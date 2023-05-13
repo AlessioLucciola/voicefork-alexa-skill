@@ -3,9 +3,21 @@
 	"version": "1.2.0",
 	"description": "alexa utility for quickly building skills",
 	"main": "index.js",
-	"scripts": {},
+	"scripts": {
+		"clean": "rimraf dist",
+		"build": "npm run clean && gulp",
+		"deploy": "npm run build && git add . && git commit -m 'Deploy' && git push"
+	},
 	"author": "Amazon Alexa",
 	"license": "Apache License",
+	"devDependencies": {
+		"@types/node": "^10.5.2",
+		"ts-node": "^5.0.1",
+		"gulp": "^4.0.2",
+		"gulp-typescript": "^4.0.2",
+		"rimraf": "^5.0.0",
+		"typescript": "^5.0.4"
+	},
 	"dependencies": {
 		"ask-sdk-core": "^2.7.0",
 		"ask-sdk-model": "^1.19.0",

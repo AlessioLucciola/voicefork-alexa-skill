@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es6",
+		"lib": ["es6"],
+		"moduleResolution": "node",
+		"rootDir": "lambda",
+		"outDir": "dist",
+		"sourceMap": false,
+		"allowJs": true,
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
+		"noImplicitThis": true,
+		"strictNullChecks": true,
+		"noImplicitReturns": true,
+		"preserveConstEnums": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true
+	},
+	"exclude": ["/**/node_modules", "lambda/local/", "__tests__", "**/__mocks__"]
+}
