@@ -14,7 +14,7 @@ const {LaunchRequestHandler,
 
 const {StaredtMakeReservationIntentHandler,
     InProgressMakeReservationIntentHandler, 
-    CompletedMakeReservationIntentHandler} = require("IntentHandlers/customIntents.js")
+    CompletedMakeReservationIntentHandler} = require("IntentHandlers/MakeReservationIntent.js")
 
 /* *
  * SessionEndedRequest notifies that a session was ended. This handler will be triggered when a currently open 
