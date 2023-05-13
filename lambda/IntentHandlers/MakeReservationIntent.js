@@ -4,7 +4,7 @@ const { format } = require("date-fns")
 const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
-		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "STARTED"
+		return request.intent.name === "MakeReservationIntent" && request.dialogState === "STARTED"
 	},
 	handle(handlerInput) {
 		const speakOutput = "Welcome to voicefork!"
@@ -16,7 +16,7 @@ const StartedMakeReservationIntentHandler = {
 const InProgressMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
-		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "IN_PROGRESS"
+		return request.intent.name === "MakeReservationIntent" && request.dialogState === "IN_PROGRESS"
 	},
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
