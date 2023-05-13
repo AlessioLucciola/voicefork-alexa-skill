@@ -1,3 +1,5 @@
+const Alexa = require('ask-sdk-core');
+
 module.exports.launchRequestHandler = {
         canHandle(handlerInput) {
             return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
@@ -24,6 +26,4 @@ module.exports.helloWorldIntentHandler = {
             //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
             .getResponse();
     }
-}
-
 }
