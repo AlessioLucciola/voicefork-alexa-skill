@@ -13,6 +13,8 @@ const StaredtMakeReservationIntentHandler = {
     //         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
     // },
     handle(handlerInput) {
+            const currentIntent = handlerInput.requestEnvelope.request.intent;       
+
     const speakOutput = 'Tell me the details of the reservation.';
     return handlerInput.responseBuilder
         .addDelegateDirective(currentIntent)
