@@ -13,7 +13,7 @@ const StaredtMakeReservationIntentHandler = {
     //         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
     // },
     handle(handlerInput) {
-    const speakOutput = 'Tell me the details of the reservatio.';
+    const speakOutput = 'Tell me the details of the reservation.';
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   }
 };
@@ -30,7 +30,7 @@ const InProgressMakeReservationIntentHandler = {
     //         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
     // },
     handle(handlerInput) {
-    const speakOutput = 'Tell me the details of the reservatio.';
+    const speakOutput = 'Reservation in progress';
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   }
 };
