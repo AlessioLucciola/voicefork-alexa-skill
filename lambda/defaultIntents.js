@@ -13,6 +13,7 @@ exports.launchRequestHandler = {
                 .getResponse();
         }
 }
+
 exports.helloWorldIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
