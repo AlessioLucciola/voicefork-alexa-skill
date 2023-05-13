@@ -12,12 +12,13 @@ const MakeReservationIntentHandler = {
 
 		const { restaurantName, date, time, numPeople } = currentIntent.slots
 
-		if (!restaurantName || !date || !time || !numPeople) return handlerInput.responseBuilder.speak("Missing parameters,").reprompt("Again missing parameters,").addDelegateDirective().getResponse()
+		if (!restaurantName.value || !date.value || !time.value || !numPeople.value)
+			return handlerInput.responseBuilder.speak("Missing parameters,").reprompt("Again missing parameters,").addDelegateDirective().getResponse()
 
 		// if (resturantName != "marione")
 		// 	return handlerInput.responseBuilder.speak("You have to say marione!").reprompt("Again, You have to say marione!").addElicitSlotDirective("restaurantName").getResponse()
 
-		return handlerInput.responseBuilder.speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`).withShouldEndSession(true).getResponse()
+		return handlerInput.responseBuilder.speak(`Final reservation details: ${restaurantName.value}, ${date.value}, ${time.value}, ${numPeople.value}`).withShouldEndSession(true).getResponse()
 	},
 }
 
