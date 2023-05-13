@@ -11,7 +11,7 @@ module.exports.launchRequestHandler = {
                 .getResponse();
         }
 }
-export const helloWorldIntentHandler = {
+module.exports.helloWorldIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'HelloWorldIntent';
