@@ -3,20 +3,8 @@ const { format } = require("date-fns")
 
 const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
-		const requestEnvelope = handlerInput.requestEnvelope
-		return Alexa.getRequestType(requestEnvelope) == "IntentRequest" && Alexa.getIntentName(requestEnvelope) == "MakeReservationIntent" && Alexa.getDialogState(requestEnvelope) == "STARTED"
-	},
-	handle(handlerInput) {
-		const speakOutput = "Welcome to voicefork!"
-		const currentIntent = handlerInput.requestEnvelope.request.intent
-		return handlerInput.responseBuilder.speak(speakOutput).addDelegateDirective(currentIntent).getResponse()
-	},
-}
-
-const InProgressMakeReservationIntentHandler = {
-	canHandle(handlerInput) {
-		const requestEnvelope = handlerInput.requestEnvelope
-		return Alexa.getRequestType(requestEnvelope) == "IntentRequest" && Alexa.getIntentName(requestEnvelope) == "MakeReservationIntent" && Alexa.getDialogState(requestEnvelope)
+		const { dialogState, type, name } = handlerInput.requestEnvelope.request
+		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState == "IN_PROGRESS"
 	},
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
@@ -35,8 +23,8 @@ const InProgressMakeReservationIntentHandler = {
 
 const CompletedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
-		const requestEnvelope = handlerInput.requestEnvelope
-		return Alexa.getRequestType(requestEnvelope) == "IntentRequest" && Alexa.getIntentName(requestEnvelope) == "MakeReservationIntent" && Alexa.getDialogState(requestEnvelope) == "CONFIRMED"
+		const { dialogState, type, name } = handlerInput.requestEnvelope.request
+		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "COMPLETED"
 	},
 	handle(handlerInput) {
 		const speakOutput = "Reservation completed."
@@ -46,6 +34,5 @@ const CompletedMakeReservationIntentHandler = {
 
 module.exports = {
 	StartedMakeReservationIntentHandler,
-	InProgressMakeReservationIntentHandler,
 	CompletedMakeReservationIntentHandler,
 }
