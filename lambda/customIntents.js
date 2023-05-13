@@ -14,7 +14,9 @@ const StaredtMakeReservationIntentHandler = {
     // },
     handle(handlerInput) {
     const speakOutput = 'Tell me the details of the reservation.';
-    return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+    return handlerInput.responseBuilder
+        .addDelegateDirective(currentIntent)
+        .getResponse();
   }
 };
 
