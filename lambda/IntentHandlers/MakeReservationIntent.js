@@ -8,7 +8,7 @@ const StartedMakeReservationIntentHandler = {
 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "STARTED"
 	},
 	handle(handlerInput) {
-		return handlerInput.responseBuilder.speak("Starting,").reprompt("Again starting, ").addDelegateDirective().getResponse()
+		return handlerInput.responseBuilder.speak("Starting_2,").reprompt("Again starting, ").addDelegateDirective().getResponse()
 	},
 }
 
@@ -41,7 +41,11 @@ const VerifyRestaurantNameReservationHandler = {
 
 		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective().getResponse()
 
-		return handlerInput.responseBuilder.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?").addElicitSlotDirective("restaurantName").getResponse()
+		return handlerInput.responseBuilder
+			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
+			.addElicitSlotDirective("restaurantName")
+			.addDelegateDirective()
+			.getResponse()
 	},
 }
 
