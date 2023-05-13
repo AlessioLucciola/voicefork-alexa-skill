@@ -18,7 +18,7 @@ const VerifyRestaurantNameReservationHandler = {
 		return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName.value
 	},
 	handle(handlerInput) {
-		const { restaurantName } = request.intent.slots
+		const { restaurantName } = handlerInput.requestEnvelope.request.intent.slots
 
 		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective().getResponse()
 
