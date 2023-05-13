@@ -1,6 +1,6 @@
 const Alexa = require('ask-sdk-core');
 
-exports.launchRequestHandler = {
+exports.LaunchRequestHandler = {
         canHandle(handlerInput) {
             return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
         },
@@ -14,7 +14,7 @@ exports.launchRequestHandler = {
         }
 }
 
-exports.helloWorldIntentHandler = {
+exports.HelloWorldIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'HelloWorldIntent';
