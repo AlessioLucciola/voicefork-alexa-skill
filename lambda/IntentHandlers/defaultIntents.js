@@ -1,4 +1,5 @@
 const Alexa = require("ask-sdk-core")
+const { StartedMakeReservationIntentHandler } = require("./MakeReservationIntent")
 
 const LaunchRequestHandler = {
 	canHandle(handlerInput) {
