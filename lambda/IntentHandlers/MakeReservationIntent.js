@@ -3,8 +3,8 @@ const { format } = require("date-fns")
 
 const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
-		const request = handlerInput.requestEnvelope.request
-		return request.intent.name === "MakeReservationIntent" && request.dialogState === "STARTED"
+		const requestEnvelope = handlerInput.requestEnvelope
+		return Alexa.getRequestType(requestEnvelope) == "IntentRequest" && Alexa.getIntentName(requestEnvelope) == "MakeReservationIntent" && Alexa.getDialogState(requestEnvelope) == "STARTED"
 	},
 	handle(handlerInput) {
 		const speakOutput = "Welcome to voicefork!"
@@ -15,8 +15,8 @@ const StartedMakeReservationIntentHandler = {
 
 const InProgressMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
-		const request = handlerInput.requestEnvelope.request
-		return request.intent.name === "MakeReservationIntent" && request.dialogState === "IN_PROGRESS"
+		const requestEnvelope = handlerInput.requestEnvelope
+		return Alexa.getRequestType(requestEnvelope) == "IntentRequest" && Alexa.getIntentName(requestEnvelope) == "MakeReservationIntent" && Alexa.getDialogState(requestEnvelope)
 	},
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
@@ -35,8 +35,8 @@ const InProgressMakeReservationIntentHandler = {
 
 const CompletedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
-		const request = handlerInput.requestEnvelope.request
-		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "COMPLETED"
+		const requestEnvelope = handlerInput.requestEnvelope
+		return Alexa.getRequestType(requestEnvelope) == "IntentRequest" && Alexa.getIntentName(requestEnvelope) == "MakeReservationIntent" && Alexa.getDialogState(requestEnvelope) == "CONFIRMED"
 	},
 	handle(handlerInput) {
 		const speakOutput = "Reservation completed."
