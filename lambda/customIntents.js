@@ -2,7 +2,6 @@ const Alexa = require('ask-sdk-core');
 const { format } = require('date-fns');
 
 const MakeReservationIntentHandler = {
-    
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
         return request.type === 'IntentRequest' &&
@@ -14,7 +13,7 @@ const MakeReservationIntentHandler = {
     //         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
     // },
     handle(handlerInput) {
-    const speakOutput = 'Tell me the details of the reservation.';
+    const speakOutput = 'Tell me the details of the reservatio.';
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   }
 };
