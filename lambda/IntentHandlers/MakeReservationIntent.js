@@ -16,7 +16,25 @@ const StartedMakeReservationIntentHandler = {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
 
 		// const speakOutput = 'Tell me the details of the reservation.';
-		return handlerInput.responseBuilder.addDelegateDirective(currentIntent).getResponse()
+		return handlerInput.responseBuilder.addDelegateDirective().getResponse()
+	},
+}
+
+const ResolveRestaurantNameMakeReservationIntentHandler = {
+	canHandle(handlerInput) {
+		const request = handlerInput.requestEnvelope.request
+		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.intent.slots.restaurantName.value
+	},
+	// canHandle(handlerInput) {
+	//     return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+	//         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
+	// },
+	handle(handlerInput) {
+		return handlerInput.responseBuilder
+			.speak("What is the name of the place?")
+			.reprompt("Please, tell me the name of the place you want to make a reservation for")
+			.addElicitSlotDirective("restaurantName")
+			.getResponse()
 	},
 }
 
@@ -33,7 +51,7 @@ const InProgressMakeReservationIntentHandler = {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
 		currentIntent.slots.restaurantName = "mariettone"
 		// const speakOutput = 'Reservation in progress';
-		return handlerInput.responseBuilder.addDelegateDirective(currentIntent).getResponse()
+		return handlerInput.responseBuilder.addDelegateDirective().getResponse()
 	},
 }
 
@@ -54,6 +72,7 @@ const CompletedMakeReservationIntentHandler = {
 
 module.exports = {
 	StartedMakeReservationIntentHandler,
+	ResolveRestaurantNameMakeReservationIntentHandler,
 	InProgressMakeReservationIntentHandler,
 	CompletedMakeReservationIntentHandler,
 }
