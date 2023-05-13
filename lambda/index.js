@@ -12,6 +12,9 @@ const {LaunchRequestHandler,
     HelpIntentHandler
 } = require("defaultIntents.js")
 
+
+const {MakeReservationIntentHandler} = require("customIntents.js")
+
 const MakeReservationIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
