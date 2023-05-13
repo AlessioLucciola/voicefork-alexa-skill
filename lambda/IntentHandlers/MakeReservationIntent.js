@@ -8,7 +8,7 @@ const StartedMakeReservationIntentHandler = {
 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState !== "COMPLETED"
 	},
 	handle(handlerInput) {
-		return handlerInput.responseBuilder.speak("Starting").addDelegateDirective().getResponse()
+		return handlerInput.responseBuilder.speak("Starting,").reprompt("Again starting, ").addDelegateDirective().getResponse()
 	},
 }
 
