@@ -15,9 +15,7 @@ const MakeReservationIntentHandler = {
     // },
     handle(handlerInput) {
     
-     const speakOutput = 'Tell me the date of the reservation.';
-
-
+    const speakOutput = 'Tell me the date of the reservation.';
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   }
 };
