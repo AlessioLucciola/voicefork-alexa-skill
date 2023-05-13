@@ -1,12 +1,12 @@
 const Alexa = require('ask-sdk-core');
 const { format } = require('date-fns');
 
-const MakeReservationIntentHandler = {
+const StartMakeReservationIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
         return request.type === 'IntentRequest' &&
           request.intent.name === 'PlanMyTripIntent' &&
-          request.dialogState === 'IN_PROGRESS';
+          request.dialogState === 'STARTED';
         },
     // canHandle(handlerInput) {
     //     return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
