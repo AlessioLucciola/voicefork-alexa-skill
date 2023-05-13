@@ -10,7 +10,7 @@ const {LaunchRequestHandler,
     CancelAndStopIntentHandler, 
     FallbackIntentHandler,
     HelpIntentHandler
-} = require("defaultIntents.js")
+} = require("IntentHandlers/defaultIntents.js")
 
 const {StaredtMakeReservationIntentHandler,
     InProgressMakeReservationIntentHandler, 
