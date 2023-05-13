@@ -14,7 +14,6 @@ const LaunchRequestHandler = {
         }
 }
 
-
 const CancelAndStopIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -68,7 +67,6 @@ const HelpIntentHandler = {
 
 module.exports = {
     LaunchRequestHandler,
-    HelloWorldIntentHandler,
     CancelAndStopIntentHandler,
     FallbackIntentHandler,
     HelpIntentHandler
