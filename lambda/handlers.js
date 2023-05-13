@@ -1,3 +1,5 @@
+const Alexa = require("ask-sdk-core")
+
 /* *
  * SessionEndedRequest notifies that a session was ended. This handler will be triggered when a currently open
  * session is closed for one of the following reasons: 1) The user says "exit" or "quit". 2) The user does not
