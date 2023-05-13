@@ -8,7 +8,8 @@ const StartedMakeReservationIntentHandler = {
 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "STARTED"
 	},
 	handle(handlerInput) {
-		return handlerInput.responseBuilder.speak("Starting_2,").reprompt("Again starting, ").addDelegateDirective().getResponse()
+		const currentIntent = handlerInput.requestEnvelope.request.intent
+		return handlerInput.responseBuilder.speak("Starting_2,").reprompt("Again starting, ").addDelegateDirective(currentIntent).getResponse()
 	},
 }
 
@@ -19,7 +20,8 @@ const InProgressMakeReservationIntentHandler = {
 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "IN_PROGRESS"
 	},
 	handle(handlerInput) {
-		return handlerInput.responseBuilder.speak("In progress,").reprompt("Again in progress, ").addDelegateDirective().getResponse()
+		const currentIntent = handlerInput.requestEnvelope.request.intent
+		return handlerInput.responseBuilder.speak("In progress,").reprompt("Again in progress, ").addDelegateDirective(currentIntent).getResponse()
 	},
 }
 
@@ -39,7 +41,7 @@ const VerifyRestaurantNameReservationHandler = {
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
 		const { restaurantName } = currentIntent.slots
-		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective().getResponse()
+		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective(currentIntent).getResponse()
 
 		return handlerInput.responseBuilder
 			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
