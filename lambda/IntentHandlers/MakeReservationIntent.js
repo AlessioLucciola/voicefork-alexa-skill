@@ -18,10 +18,12 @@ const ResolveRestaurantNameMakeReservationIntentHandler = {
 		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && (!request.intent.slots.restaurantName || !request.intent.slots.restaurantName.value)
 	},
 	handle(handlerInput) {
+		const currentIntent = handlerInput.requestEnvelope.request.intent
 		return handlerInput.responseBuilder
 			.speak("What is the name of the place?")
 			.reprompt("Please, tell me the name of the place you want to make a reservation for")
 			.addElicitSlotDirective("restaurantName")
+			.addDelegateDirective(currentIntent)
 			.getResponse()
 	},
 }
