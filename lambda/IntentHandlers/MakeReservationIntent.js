@@ -12,8 +12,10 @@ const MakeReservationIntentHandler = {
 
 		const { restaurantName, date, time, numPeople } = currentIntent.slots
 
-		if (restaurantName.value && restaurantName.value !== "pizzeria marione")
-			return handlerInput.responseBuilder.speak("You have to say pizzeria marione!").reprompt("Again, You have to say pizzeria marione!").addElicitSlotDirective("restaurantName").getResponse()
+		const apiResponse = [{ name: "Blu bar" }, { name: "Pizzeria da marione" }, { name: "Pizzeria pizza più" }, { name: "Pizzeria pulcinella" }]
+
+		if (restaurantName.value && !apiResponse.map((item) => item.name).includes(restaurantName.value))
+			return handlerInput.responseBuilder.speak(`The restaurant ${restaurantName.value} doesn't exist!`).addElicitSlotDirective("restaurantName").getResponse()
 
 		if (!restaurantName.value || !date.value || !time.value || !numPeople.value) return handlerInput.responseBuilder.addDelegateDirective().getResponse()
 
