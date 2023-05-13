@@ -4,7 +4,7 @@ const { format } = require("date-fns")
 const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const { dialogState, type, name } = handlerInput.requestEnvelope.request
-		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState !== "COMPLETED"
+		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "STARTED"
 	},
 	handle(handlerInput) {
 		return handlerInput.responseBuilder.addDelegateDirective().getResponse()
