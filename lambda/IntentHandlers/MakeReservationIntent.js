@@ -20,19 +20,23 @@ const StartedMakeReservationIntentHandler = {
 }
 
 const ResolveRestaurantNameMakeReservationIntentHandler = {
-	// canHandle(handlerInput) {
-	// 	const request = handlerInput.requestEnvelope.request
-	// 	return request.type === "Dialog.Delegate" && request.intent.name === "MakeReservationIntent" && (!request.intent.slots.restaurantName || !request.intent.slots.restaurantName.value)
-	// },
-	// handle(handlerInput) {
-	// 	const currentIntent = handlerInput.requestEnvelope.request.intent
-	// 	return handlerInput.responseBuilder
-	// 		.speak("What is the name of the place?")
-	// 		.reprompt("Please, tell me the name of the place you want to make a reservation for")
-	// 		.addElicitSlotDirective("restaurantName")
-	// 		.addDelegateDirective(currentIntent)
-	// 		.getResponse()
-	// },
+	canHandle(handlerInput) {
+		const request = handlerInput.requestEnvelope.request
+		return request.type === "Dialog.Delegate" && request.intent.name === "MakeReservationIntent" && request.intent.slots.restaurantName
+	},
+	handle(handlerInput) {
+		const currentIntent = handlerInput.requestEnvelope.request.intent
+		const { restauantName } = request.intent.slots
+
+		if (restauantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective(currentIntent).getResponse()
+
+		return handlerInput.responseBuilder
+			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
+			.reprompt("Please, tell me the name of the place you want to make a reservation for")
+			.addElicitSlotDirective("restaurantName")
+			.addDelegateDirective(currentIntent)
+			.getResponse()
+	},
 }
 
 const InProgressMakeReservationIntentHandler = {

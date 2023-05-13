@@ -7,8 +7,7 @@ const LaunchRequestHandler = {
 	},
 	handle(handlerInput) {
 		const speakOutput = "Welcome to VoiceFork, tell me the details of the reservation!"
-		return StartedMakeReservationIntentHandler.handle(handlerInput)
-		// return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse()
+		return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse()
 	},
 }
 
