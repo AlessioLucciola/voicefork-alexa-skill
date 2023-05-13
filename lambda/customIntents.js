@@ -7,18 +7,27 @@ const MakeReservationIntentHandler = {
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
     },
     handle(handlerInput) {
-        const speakOutput = 'Hi, tell me the details of the reservation!';
-        
-        const currentDate = Date()
-        const formattedDate = format(currentDate, 'EEEE, MMMM do, yyyy');
-        const speechOutput = `Today is ${formattedDate}.`;
+    const { request } = handlerInput.requestEnvelope;
+    const { intent } = request;
+    const { slots } = intent;
 
-        return handlerInput.responseBuilder.speak(speechOutput).getResponse();
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-            .getResponse();
+    const dateSlotValue = slots['date'].value;
+
+    if (!dateSlotValue) {
+      // Date slot not yet filled
+      const speakOutput = 'Tell me the date of the reservation.';
+      return handlerInput.responseBuilder.speak(speakOutput).getResponse();
     }
+
+    // Date slot is filled
+    const date = new Date(dateSlotValue);
+    const formattedDate = format(date, 'EEEE, MMMM do, yyyy');
+    const speakOutput = `The date of the reservation is ${formattedDate}. Now, please provide the remaining details.`;
+
+    // Handle the remaining reservation details here
+
+    return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+  }
 };
 
 module.exports = {
