@@ -78,7 +78,9 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        MakeReservationIntentHandler,
+        StaredtMakeReservationIntentHandler,
+        InProgressMakeReservationIntentHandler, 
+        CompletedMakeReservationIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
