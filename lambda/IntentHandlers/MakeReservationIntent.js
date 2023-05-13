@@ -14,13 +14,13 @@ const StartedMakeReservationIntentHandler = {
 const VerifyRestaurantNameReservationHandler = {
 	canHandle(handlerInput) {
 		const { dialogState, type, name } = handlerInput.requestEnvelope.request
-		const { restauantName } = handlerInput.requestEnvelope.request.intent.slots
-		return type === "IntentRequest" && name === "MakeReservationIntent" && restauantName.value
+		const { restaurantName } = handlerInput.requestEnvelope.request.intent.slots
+		return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName.value
 	},
 	handle(handlerInput) {
-		const { restauantName } = request.intent.slots
+		const { restaurantName } = request.intent.slots
 
-		if (restauantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective().getResponse()
+		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective().getResponse()
 
 		return handlerInput.responseBuilder
 			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
