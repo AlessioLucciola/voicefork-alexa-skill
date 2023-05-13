@@ -5,6 +5,7 @@
  * */
 const Alexa = require('ask-sdk-core');
 const axios = require("axios");
+const {LaunchRequestHandler, HelloWorldIntentHandler} = require("defaultIntents.js")
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
