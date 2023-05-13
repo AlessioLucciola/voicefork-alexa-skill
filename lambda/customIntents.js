@@ -47,7 +47,7 @@ const CompletedMakeReservationIntentHandler = {
     //         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
     // },
     handle(handlerInput) {
-    const speakOutput = 'Tell me the details of the reservatio.';
+    const speakOutput = 'Reservation completed.';
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   }
 };
