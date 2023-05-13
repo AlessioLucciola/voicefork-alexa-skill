@@ -5,7 +5,10 @@
  * */
 const Alexa = require('ask-sdk-core');
 const axios = require("axios");
-const {LaunchRequestHandler, HelloWorldIntentHandler, CancelAndStopIntentHandler, FallbackIntentHandler} = require("defaultIntents.js")
+const {LaunchRequestHandler, 
+HelloWorldIntentHandler, 
+CancelAndStopIntentHandler, 
+FallbackIntentHandler} = require("defaultIntents.js")
 
 
 
