@@ -1,5 +1,5 @@
-module.export = {
-    launchRequestHandler = {
+
+export const launchRequestHandler = {
         canHandle(handlerInput) {
             return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
         },
@@ -11,8 +11,8 @@ module.export = {
                 .reprompt(speakOutput)
                 .getResponse();
         }
-},
-helloWorldIntentHandler = {
+}
+export const helloWorldIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'HelloWorldIntent';
