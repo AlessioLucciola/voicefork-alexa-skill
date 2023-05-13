@@ -1,12 +1,7 @@
 const Alexa = require("ask-sdk-core")
 const { LaunchRequestHandler, CancelAndStopIntentHandler, FallbackIntentHandler, HelpIntentHandler } = require("./IntentHandlers/defaultIntents")
 const { SessionEndedRequestHandler, IntentReflectorHandler, ErrorHandler } = require("./handlers")
-const {
-	StartedMakeReservationIntentHandler,
-	,
-	InProgressMakeReservationIntentHandler,
-	CompletedMakeReservationIntentHandler,
-} = require("./IntentHandlers/MakeReservationIntent")
+const { StartedMakeReservationIntentHandler, InProgressMakeReservationIntentHandler, CompletedMakeReservationIntentHandler } = require("./IntentHandlers/MakeReservationIntent")
 
 /**
  * This handler acts as the entry point for your skill, routing all request and response
