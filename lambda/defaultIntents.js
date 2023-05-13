@@ -67,5 +67,7 @@ const FallbackIntentHandler = {
 
 module.exports = {
     LaunchRequestHandler,
-    HelloWorldIntentHandler
+    HelloWorldIntentHandler,
+    CancelAndStopIntentHandler,
+    FallbackIntentHandler
 }
