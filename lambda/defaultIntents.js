@@ -1,5 +1,5 @@
 module.export = {
-    LaunchRequestHandler = {
+    launchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
