@@ -35,7 +35,7 @@ const InProgressMakeReservationIntentHandler = {
     // },
     handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
-    
+    currentIntent.slots.restaurantName = "mariettone"
     // const speakOutput = 'Reservation in progress';
     return handlerInput.responseBuilder
         .addDelegateDirective(currentIntent)
