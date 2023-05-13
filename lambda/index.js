@@ -5,21 +5,9 @@
  * */
 const Alexa = require('ask-sdk-core');
 const axios = require("axios");
-const {LaunchRequestHandler, HelloWorldIntentHandler} = require("defaultIntents.js")
+const {LaunchRequestHandler, HelloWorldIntentHandler, CancelAndStopIntentHandler, FallbackIntentHandler} = require("defaultIntents.js")
 
-const LaunchRequestHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Hi, tell me the details of the reservation!';
 
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
-            .getResponse();
-    }
-};
 
 const MakeReservationIntentHandler = {
     canHandle(handlerInput) {
@@ -36,20 +24,6 @@ const MakeReservationIntentHandler = {
     }
 }
 
-const HelloWorldIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'HelloWorldIntent';
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Hello World!';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-            .getResponse();
-    }
-};
 
 const HelpIntentHandler = {
     canHandle(handlerInput) {
@@ -66,39 +40,7 @@ const HelpIntentHandler = {
     }
 };
 
-const CancelAndStopIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent'
-                || Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StopIntent');
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Goodbye!';
 
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .getResponse();
-    }
-};
-/* *
- * FallbackIntent triggers when a customer says something that doesn’t map to any intents in your skill
- * It must also be defined in the language model (if the locale supports it)
- * This handler can be safely added but will be ingnored in locales that do not support it yet 
- * */
-const FallbackIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.FallbackIntent';
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Sorry, I don\'t know about that. Please try again.';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
-            .getResponse();
-    }
-};
 /* *
  * SessionEndedRequest notifies that a session was ended. This handler will be triggered when a currently open 
  * session is closed for one of the following reasons: 1) The user says "exit" or "quit". 2) The user does not 
