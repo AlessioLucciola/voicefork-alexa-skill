@@ -84,5 +84,6 @@ module.exports = {
     LaunchRequestHandler,
     HelloWorldIntentHandler,
     CancelAndStopIntentHandler,
-    FallbackIntentHandler
+    FallbackIntentHandler,
+    HelpIntentHandler
 }
