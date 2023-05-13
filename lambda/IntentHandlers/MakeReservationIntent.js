@@ -16,7 +16,7 @@ const VerifyRestaurantNameReservationHandler = {
 		const { dialogState, type, name } = handlerInput.requestEnvelope.request
 		let restaurantName
 		if (type == "IntentRequest") restaurantName = handlerInput.requestEnvelope.request.intent.slots.restaurantName
-		return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName !== undefined && restaurantName.value != undefined
+		return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName !== undefined
 	},
 	handle(handlerInput) {
 		const { restaurantName } = handlerInput.requestEnvelope.request.intent.slots
