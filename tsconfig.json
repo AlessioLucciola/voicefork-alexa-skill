@@ -4,8 +4,8 @@
 		"target": "es6",
 		"lib": ["es6"],
 		"moduleResolution": "node",
-		"rootDir": "lambda",
-		"outDir": "dist",
+		"rootDir": "src",
+		"outDir": "lambda",
 		"sourceMap": false,
 		"allowJs": true,
 		"noImplicitAny": true,
@@ -17,5 +17,5 @@
 		"forceConsistentCasingInFileNames": true,
 		"strict": true
 	},
-	"exclude": ["/**/node_modules", "lambda/local/", "__tests__", "**/__mocks__"]
+	"exclude": ["/**/node_modules", "src/local", "__tests__", "**/__mocks__"]
 }
