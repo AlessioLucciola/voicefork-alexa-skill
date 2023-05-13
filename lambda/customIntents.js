@@ -15,7 +15,7 @@ const StaredtMakeReservationIntentHandler = {
     handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
 
-    const speakOutput = 'Tell me the details of the reservation.';
+    // const speakOutput = 'Tell me the details of the reservation.';
     return handlerInput.responseBuilder
         .addDelegateDirective(currentIntent)
         .getResponse();
@@ -36,7 +36,7 @@ const InProgressMakeReservationIntentHandler = {
     handle(handlerInput) {
     const currentIntent = handlerInput.requestEnvelope.request.intent;       
     
-    const speakOutput = 'Reservation in progress';
+    // const speakOutput = 'Reservation in progress';
     return handlerInput.responseBuilder
         .addDelegateDirective(currentIntent)
         .getResponse();
