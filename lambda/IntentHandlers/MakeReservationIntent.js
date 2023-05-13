@@ -8,21 +8,15 @@ const StartedMakeReservationIntentHandler = {
 	},
 	handle(handlerInput) {
 		const speakOutput = "Welcome to voicefork!"
-		return handlerInput.responseBuilder
-			.speak(speakOutput)
-			.addDelegateDirective({
-				name: "MakeReservationIntent",
-				confirmationStatus: "NONE",
-				slots: {},
-			})
-			.getResponse()
+		const currentIntent = handlerInput.requestEnvelope.request.intent
+		return handlerInput.responseBuilder.speak(speakOutput).addDelegateDirective(currentIntent).getResponse()
 	},
 }
 
 const ResolveRestaurantNameMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
-		return request.type === "Dialog.Delegate" && request.intent.name === "MakeReservationIntent" && request.intent.slots.restaurantName
+		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.intent.slots.restaurantName
 	},
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
@@ -40,15 +34,15 @@ const ResolveRestaurantNameMakeReservationIntentHandler = {
 }
 
 const InProgressMakeReservationIntentHandler = {
-	canHandle(handlerInput) {
-		const request = handlerInput.requestEnvelope.request
-		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "IN_PROGRESS"
-	},
-	handle(handlerInput) {
-		const currentIntent = handlerInput.requestEnvelope.request.intent
-		currentIntent.slots.restaurantName.value = "mariettone" // Set the restaurant name
-		return handlerInput.responseBuilder.addDelegateDirective(currentIntent).getResponse()
-	},
+	// canHandle(handlerInput) {
+	// 	const request = handlerInput.requestEnvelope.request
+	// 	return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "IN_PROGRESS"
+	// },
+	// handle(handlerInput) {
+	// 	const currentIntent = handlerInput.requestEnvelope.request.intent
+	// 	currentIntent.slots.restaurantName.value = "mariettone" // Set the restaurant name
+	// 	return handlerInput.responseBuilder.addDelegateDirective(currentIntent).getResponse()
+	// },
 }
 
 const CompletedMakeReservationIntentHandler = {
