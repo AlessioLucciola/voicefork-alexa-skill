@@ -8,7 +8,8 @@ const StartedMakeReservationIntentHandler = {
 	},
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
-		return handlerInput.responseBuilder.addDelegateDirective(currentIntent).getResponse()
+		const speakOutput = "Welcome to voicefork!"
+		return handlerInput.responseBuilder.speak(speakOutput).addDelegateDirective(currentIntent).getResponse()
 	},
 }
 

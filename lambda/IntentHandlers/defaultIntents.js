@@ -5,16 +5,9 @@ const LaunchRequestHandler = {
 		return Alexa.getRequestType(handlerInput.requestEnvelope) === "LaunchRequest"
 	},
 	handle(handlerInput) {
-		const speakOutput = "Welcome to VoiceFork!"
-
-		return handlerInput.responseBuilder
-			.speak(speakOutput)
-			.addDelegateDirective({
-				name: "MakeReservationIntent",
-				confirmationStatus: "NONE",
-				slots: {},
-			})
-			.getResponse()
+		const speakOutput = "Welcome to VoiceFork, tell me the details of the reservation!"
+		return StartedMakeReservationIntentHandler.handle(handlerInput)
+		// return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse()
 	},
 }
 
