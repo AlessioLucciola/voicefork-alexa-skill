@@ -44,8 +44,12 @@ const ErrorHandler = {
 		return true
 	},
 	handle(handlerInput, error) {
-		const speakOutput = `Sorry, I had trouble doing what you asked. Please try again. ${JSON.stringify(error)}`
-		console.log(`~~~~ Error handled: ${JSON.stringify(error)}`)
+		const errorMessage = error.message || "Unknown error"
+		const stackTrace = error.stack || "No stack trace available"
+
+		const speakOutput = `Sorry, I had trouble doing what you asked. Please try again. Error: ${errorMessage}`
+		console.log(`~~~~ Error handled: ${errorMessage}`)
+		console.log(`~~~~ Stack trace: ${stackTrace}`)
 
 		return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse()
 	},
