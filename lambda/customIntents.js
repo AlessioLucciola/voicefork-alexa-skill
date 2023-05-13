@@ -53,5 +53,7 @@ const CompletedMakeReservationIntentHandler = {
 };
 
 module.exports = {
-    MakeReservationIntentHandler
+    StaredtMakeReservationIntentHandler,
+    InProgressMakeReservationIntentHandler, 
+    CompletedMakeReservationIntentHandler
 }
