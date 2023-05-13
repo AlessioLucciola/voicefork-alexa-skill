@@ -1,6 +1,5 @@
 import * as Alexa from "ask-sdk-core"
-import { LaunchRequestHandler, CancelAndStopIntentHandler, FallbackIntentHandler, HelpIntentHandler } from "./IntentHandlers/defaultIntents"
-import { SessionEndedRequestHandler, IntentReflectorHandler, ErrorHandler } from "./handlers"
+import { SessionEndedRequestHandler, IntentReflectorHandler, ErrorHandler, LaunchRequestHandler, CancelAndStopIntentHandler, FallbackIntentHandler, HelpIntentHandler } from "./handlers"
 import { MakeReservationIntentHandler } from "./IntentHandlers/MakeReservationIntent"
 
 /**

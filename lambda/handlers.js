@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.HelpIntentHandler = exports.FallbackIntentHandler = exports.CancelAndStopIntentHandler = exports.LaunchRequestHandler = exports.ErrorHandler = exports.IntentReflectorHandler = exports.SessionEndedRequestHandler = void 0;
 const Alexa = require("ask-sdk-core");
 /* *
  * SessionEndedRequest notifies that a session was ended. This handler will be triggered when a currently open
@@ -16,6 +17,7 @@ const SessionEndedRequestHandler = {
         return handlerInput.responseBuilder.getResponse(); // notice we send an empty response
     },
 };
+exports.SessionEndedRequestHandler = SessionEndedRequestHandler;
 /* *
  * The intent reflector is used for interaction model testing and debugging.
  * It will simply repeat the intent the user said. You can create custom handlers for your intents
@@ -34,6 +36,7 @@ const IntentReflectorHandler = {
             .getResponse());
     },
 };
+exports.IntentReflectorHandler = IntentReflectorHandler;
 /**
  * Generic error handling to capture any syntax or routing errors. If you receive an error
  * stating the request handler chain is not found, you have not implemented a handler for
@@ -52,6 +55,7 @@ const ErrorHandler = {
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     },
 };
+exports.ErrorHandler = ErrorHandler;
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === "LaunchRequest";
@@ -61,6 +65,7 @@ const LaunchRequestHandler = {
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     },
 };
+exports.LaunchRequestHandler = LaunchRequestHandler;
 const CancelAndStopIntentHandler = {
     canHandle(handlerInput) {
         return (Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
@@ -71,6 +76,7 @@ const CancelAndStopIntentHandler = {
         return handlerInput.responseBuilder.speak(speakOutput).getResponse();
     },
 };
+exports.CancelAndStopIntentHandler = CancelAndStopIntentHandler;
 /* *
  * FallbackIntent triggers when a customer says something that doesn’t map to any intents in your skill
  * It must also be defined in the language model (if the locale supports it)
@@ -85,6 +91,7 @@ const FallbackIntentHandler = {
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     },
 };
+exports.FallbackIntentHandler = FallbackIntentHandler;
 const HelpIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" && Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.HelpIntent";
@@ -94,12 +101,4 @@ const HelpIntentHandler = {
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     },
 };
-exports.default = {
-    SessionEndedRequestHandler,
-    IntentReflectorHandler,
-    ErrorHandler,
-    LaunchRequestHandler,
-    CancelAndStopIntentHandler,
-    FallbackIntentHandler,
-    HelpIntentHandler,
-};
+exports.HelpIntentHandler = HelpIntentHandler;

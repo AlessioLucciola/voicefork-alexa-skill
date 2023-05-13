@@ -87,7 +87,7 @@ const CancelAndStopIntentHandler: RequestHandler = {
  * It must also be defined in the language model (if the locale supports it)
  * This handler can be safely added but will be ingnored in locales that do not support it yet
  * */
-const FallbackIntentHandler = {
+const FallbackIntentHandler: RequestHandler = {
 	canHandle(handlerInput) {
 		return Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" && Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.FallbackIntent"
 	},
@@ -98,7 +98,7 @@ const FallbackIntentHandler = {
 	},
 }
 
-const HelpIntentHandler = {
+const HelpIntentHandler: RequestHandler = {
 	canHandle(handlerInput) {
 		return Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" && Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.HelpIntent"
 	},
@@ -109,12 +109,4 @@ const HelpIntentHandler = {
 	},
 }
 
-export default {
-	SessionEndedRequestHandler,
-	IntentReflectorHandler,
-	ErrorHandler,
-	LaunchRequestHandler,
-	CancelAndStopIntentHandler,
-	FallbackIntentHandler,
-	HelpIntentHandler,
-}
+export { SessionEndedRequestHandler, IntentReflectorHandler, ErrorHandler, LaunchRequestHandler, CancelAndStopIntentHandler, FallbackIntentHandler, HelpIntentHandler }
