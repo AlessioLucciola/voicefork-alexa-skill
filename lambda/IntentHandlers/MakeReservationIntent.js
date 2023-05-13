@@ -23,7 +23,7 @@ const StartedMakeReservationIntentHandler = {
 const ResolveRestaurantNameMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
-		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.intent.slots.restaurantName.value
+		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && !request.intent.slots.restaurantName.value
 	},
 	// canHandle(handlerInput) {
 	//     return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
