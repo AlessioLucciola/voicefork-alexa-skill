@@ -5,7 +5,7 @@ const LaunchRequestHandler = {
             return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
         },
         handle(handlerInput) {
-            const speakOutput = 'Hi, tell me the details of the reservation!';
+            const speakOutput = 'Welcome to VoiceFork, tell me the details of the reservation!';
     
             return handlerInput.responseBuilder
                 .speak(speakOutput)
