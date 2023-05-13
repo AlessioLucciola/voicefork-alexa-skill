@@ -1,5 +1,3 @@
-import { IntentTypes } from "./enums"
-
 export type RestaurantSlots = {
 	restaurantName: string | undefined
 	date: string | undefined
