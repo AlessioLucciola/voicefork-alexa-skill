@@ -37,14 +37,13 @@ const VerifyRestaurantNameReservationHandler = {
 		)
 	},
 	handle(handlerInput) {
-		const { restaurantName } = handlerInput.requestEnvelope.request.intent.slots
-
+		const currentIntent = handlerInput.requestEnvelope.request.intent
+		const { restaurantName } = currentIntent.slots
 		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective().getResponse()
 
 		return handlerInput.responseBuilder
 			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
-			.addElicitSlotDirective("restaurantName")
-			.addDelegateDirective()
+			.addElicitSlotDirective("restaurantName", currentIntent)
 			.getResponse()
 	},
 }
