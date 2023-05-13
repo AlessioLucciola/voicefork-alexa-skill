@@ -22,7 +22,7 @@ const StartedMakeReservationIntentHandler = {
 const ResolveRestaurantNameMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
-		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && (!request.intent.slots.restaurantName || !request.intent.slots.restaurantName.value)
+		return request.type === "Dialog.Delegate" && request.intent.name === "MakeReservationIntent" && (!request.intent.slots.restaurantName || !request.intent.slots.restaurantName.value)
 	},
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
