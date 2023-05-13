@@ -13,10 +13,10 @@ const StartedMakeReservationIntentHandler = {
 	},
 }
 
-const ResolveRestaurantNameMakeReservationIntentHandler = {
+const InProgressMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
-		return request.intent.name === "MakeReservationIntent" && request.intent.slots.restaurantName
+		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "IN_PROGRESS"
 	},
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
@@ -33,18 +33,6 @@ const ResolveRestaurantNameMakeReservationIntentHandler = {
 	},
 }
 
-const InProgressMakeReservationIntentHandler = {
-	// canHandle(handlerInput) {
-	// 	const request = handlerInput.requestEnvelope.request
-	// 	return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "IN_PROGRESS"
-	// },
-	// handle(handlerInput) {
-	// 	const currentIntent = handlerInput.requestEnvelope.request.intent
-	// 	currentIntent.slots.restaurantName.value = "mariettone" // Set the restaurant name
-	// 	return handlerInput.responseBuilder.addDelegateDirective(currentIntent).getResponse()
-	// },
-}
-
 const CompletedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
@@ -58,7 +46,6 @@ const CompletedMakeReservationIntentHandler = {
 
 module.exports = {
 	StartedMakeReservationIntentHandler,
-	ResolveRestaurantNameMakeReservationIntentHandler,
 	InProgressMakeReservationIntentHandler,
 	CompletedMakeReservationIntentHandler,
 }

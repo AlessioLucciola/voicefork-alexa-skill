@@ -3,7 +3,7 @@ const { LaunchRequestHandler, CancelAndStopIntentHandler, FallbackIntentHandler,
 const { SessionEndedRequestHandler, IntentReflectorHandler, ErrorHandler } = require("./handlers")
 const {
 	StartedMakeReservationIntentHandler,
-	ResolveRestaurantNameMakeReservationIntentHandler,
+	,
 	InProgressMakeReservationIntentHandler,
 	CompletedMakeReservationIntentHandler,
 } = require("./IntentHandlers/MakeReservationIntent")
@@ -17,7 +17,6 @@ exports.handler = Alexa.SkillBuilders.custom()
 	.addRequestHandlers(
 		LaunchRequestHandler,
 		StartedMakeReservationIntentHandler,
-		ResolveRestaurantNameMakeReservationIntentHandler,
 		InProgressMakeReservationIntentHandler,
 		CompletedMakeReservationIntentHandler,
 		HelpIntentHandler,
