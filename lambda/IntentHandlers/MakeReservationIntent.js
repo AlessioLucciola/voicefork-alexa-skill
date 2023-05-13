@@ -14,9 +14,8 @@ const StartedMakeReservationIntentHandler = {
 	// },
 	handle(handlerInput) {
 		const currentIntent = handlerInput.requestEnvelope.request.intent
-
 		// const speakOutput = 'Tell me the details of the reservation.';
-		return handlerInput.responseBuilder.addDelegateDirective().getResponse()
+		return handlerInput.responseBuilder.addDelegateDirective(currentIntent).getResponse()
 	},
 }
 
@@ -30,10 +29,12 @@ const ResolveRestaurantNameMakeReservationIntentHandler = {
 	//         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
 	// },
 	handle(handlerInput) {
+		const currentIntent = handlerInput.requestEnvelope.request.intent
 		return handlerInput.responseBuilder
 			.speak("What is the name of the place?")
 			.reprompt("Please, tell me the name of the place you want to make a reservation for")
 			.addElicitSlotDirective("restaurantName")
+			.addDelegateDirective(currentIntent)
 			.getResponse()
 	},
 }
