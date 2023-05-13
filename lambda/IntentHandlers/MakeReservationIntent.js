@@ -47,7 +47,7 @@ const CompletedMakeReservationIntentHandler = {
 	},
 	handle(handlerInput) {
 		const speakOutput = "Reservation completed."
-		return handlerInput.responseBuilder.speak(speakOutput).getResponse()
+		return handlerInput.responseBuilder.speak(speakOutput).withShouldEndSession(true).getResponse()
 	},
 }
 
