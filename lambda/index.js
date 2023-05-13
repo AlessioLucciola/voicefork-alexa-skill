@@ -16,7 +16,7 @@ const {
 exports.handler = Alexa.SkillBuilders.custom()
 	.addRequestHandlers(
 		LaunchRequestHandler,
-		VerifyRestaurantNameReservationHandler,
+		// VerifyRestaurantNameReservationHandler,
 		StartedMakeReservationIntentHandler,
 		InProgressMakeReservationIntentHandler,
 		CompletedMakeReservationIntentHandler,
