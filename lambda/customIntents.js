@@ -14,7 +14,6 @@ const MakeReservationIntentHandler = {
     //         && Alexa.getIntentName(handlerInput.requestEnvelope) === 'MakeReservationIntent';
     // },
     handle(handlerInput) {
-    
     const speakOutput = 'Tell me the date of the reservation.';
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   }
