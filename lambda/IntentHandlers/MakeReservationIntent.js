@@ -7,9 +7,15 @@ const StartedMakeReservationIntentHandler = {
 		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "STARTED"
 	},
 	handle(handlerInput) {
-		const currentIntent = handlerInput.requestEnvelope.request.intent
 		const speakOutput = "Welcome to voicefork!"
-		return handlerInput.responseBuilder.speak(speakOutput).addDelegateDirective(currentIntent).getResponse()
+		return handlerInput.responseBuilder
+			.speak(speakOutput)
+			.addDelegateDirective({
+				name: "MakeReservationIntent",
+				confirmationStatus: "NONE",
+				slots: {},
+			})
+			.getResponse()
 	},
 }
 
