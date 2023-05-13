@@ -3,7 +3,7 @@ const { format } = require("date-fns")
 
 //Test
 
-const StaredtMakeReservationIntentHandler = {
+const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const request = handlerInput.requestEnvelope.request
 		return request.type === "IntentRequest" && request.intent.name === "MakeReservationIntent" && request.dialogState === "STARTED"
@@ -53,7 +53,7 @@ const CompletedMakeReservationIntentHandler = {
 }
 
 module.exports = {
-	StaredtMakeReservationIntentHandler,
+	StartedMakeReservationIntentHandler,
 	InProgressMakeReservationIntentHandler,
 	CompletedMakeReservationIntentHandler,
 }
