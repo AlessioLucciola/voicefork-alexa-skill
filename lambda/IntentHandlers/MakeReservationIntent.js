@@ -18,18 +18,14 @@ const VerifyRestaurantNameReservationHandler = {
 		const { name } = handlerInput.requestEnvelope.request.intent
 		let restaurantName
 		if (type === "IntentRequest") restaurantName = handlerInput.requestEnvelope.request?.intent?.slots?.restaurantName
-		return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName !== undefined
+		return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName !== undefined && dialogState == "IN_PROGRESS"
 	},
 	handle(handlerInput) {
 		const { restaurantName } = handlerInput.requestEnvelope.request.intent.slots
 
 		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective().getResponse()
 
-		return handlerInput.responseBuilder
-			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
-			.addElicitSlotDirective("restaurantName")
-			.addDelegateDirective()
-			.getResponse()
+		return handlerInput.responseBuilder.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?").addElicitSlotDirective("restaurantName").getResponse()
 	},
 }
 
