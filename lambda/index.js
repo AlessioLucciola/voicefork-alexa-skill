@@ -4,6 +4,7 @@
  * session persistence, api calls, and more.
  * */
 const Alexa = require('ask-sdk-core');
+const axios = require("axios");
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
