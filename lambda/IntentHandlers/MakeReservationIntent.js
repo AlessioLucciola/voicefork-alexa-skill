@@ -7,11 +7,7 @@ const StartedMakeReservationIntentHandler = {
 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState !== "COMPLETED"
 	},
 	handle(handlerInput) {
-		return handlerInput.responseBuilder
-			.speak("What is the name of the place?")
-			.reprompt("Please, tell me the name of the place you want to make a reservation for")
-			.addDelegateDirective()
-			.getResponse()
+		return handlerInput.responseBuilder.addDelegateDirective().getResponse()
 	},
 }
 
@@ -47,5 +43,6 @@ const CompletedMakeReservationIntentHandler = {
 
 module.exports = {
 	StartedMakeReservationIntentHandler,
+	VerifyRestaurantNameReservationHandler,
 	CompletedMakeReservationIntentHandler,
 }
