@@ -1,3 +1,18 @@
 lambda/node_modules
 .ask/
 ask-resources.json
+
+# Build directories
+.history
+dist
+.coverage
+
+# Dependency directories
+/**/node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

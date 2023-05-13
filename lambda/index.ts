@@ -1,14 +1,14 @@
-const Alexa = require("ask-sdk-core")
-const { LaunchRequestHandler, CancelAndStopIntentHandler, FallbackIntentHandler, HelpIntentHandler } = require("./IntentHandlers/defaultIntents")
-const { SessionEndedRequestHandler, IntentReflectorHandler, ErrorHandler } = require("./handlers")
-const { StartedMakeReservationIntentHandler, VerifyRestaurantNameReservationHandler, CompletedMakeReservationIntentHandler } = require("./IntentHandlers/MakeReservationIntent")
+import * as Alexa from "ask-sdk-core"
+import { LaunchRequestHandler, CancelAndStopIntentHandler, FallbackIntentHandler, HelpIntentHandler } from "./IntentHandlers/defaultIntents"
+import { SessionEndedRequestHandler, IntentReflectorHandler, ErrorHandler } from "./handlers"
+import { StartedMakeReservationIntentHandler, VerifyRestaurantNameReservationHandler, CompletedMakeReservationIntentHandler } from "./IntentHandlers/MakeReservationIntent"
 
 /**
  * This handler acts as the entry point for your skill, routing all request and response
  * payloads to the handlers above. Make sure any new handlers or interceptors you've
  * defined are included below. The order matters - they're processed top to bottom
  * */
-exports.handler = Alexa.SkillBuilders.custom()
+export const handler = Alexa.SkillBuilders.custom()
 	.addRequestHandlers(
 		LaunchRequestHandler,
 		StartedMakeReservationIntentHandler,
