@@ -3,7 +3,8 @@ const { format } = require("date-fns")
 
 const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
-		const { dialogState, type, name } = handlerInput.requestEnvelope.request
+		const { dialogState, type } = handlerInput.requestEnvelope.request
+		const { name } = handlerInput.requestEnvelope.request.intent
 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "STARTED"
 	},
 	handle(handlerInput) {
@@ -13,7 +14,8 @@ const StartedMakeReservationIntentHandler = {
 
 const VerifyRestaurantNameReservationHandler = {
 	canHandle(handlerInput) {
-		const { dialogState, type, name } = handlerInput.requestEnvelope.request
+		const { dialogState, type } = handlerInput.requestEnvelope.request
+		const { name } = handlerInput.requestEnvelope.request.intent
 		let restaurantName
 		if (type === "IntentRequest") restaurantName = handlerInput.requestEnvelope.request?.intent?.slots?.restaurantName
 		return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName !== undefined
@@ -33,7 +35,8 @@ const VerifyRestaurantNameReservationHandler = {
 
 const CompletedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
-		const { dialogState, type, name } = handlerInput.requestEnvelope.request
+		const { dialogState, type } = handlerInput.requestEnvelope.request
+		const { name } = handlerInput.requestEnvelope.request.intent
 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "COMPLETED"
 	},
 	handle(handlerInput) {
