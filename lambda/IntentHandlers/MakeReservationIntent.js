@@ -5,10 +5,21 @@ const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const { dialogState, type } = handlerInput.requestEnvelope.request
 		const { name } = handlerInput.requestEnvelope.request.intent
-		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState !== "COMPLETED"
+		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "STARTED"
 	},
 	handle(handlerInput) {
 		return handlerInput.responseBuilder.speak("Starting,").reprompt("Again starting, ").addDelegateDirective().getResponse()
+	},
+}
+
+const InProgressMakeReservationIntentHandler = {
+	canHandle(handlerInput) {
+		const { dialogState, type } = handlerInput.requestEnvelope.request
+		const { name } = handlerInput.requestEnvelope.request.intent
+		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "IN_PROGRESS"
+	},
+	handle(handlerInput) {
+		return handlerInput.responseBuilder.speak("In progress,").reprompt("Again in progress, ").addDelegateDirective().getResponse()
 	},
 }
 
@@ -48,6 +59,7 @@ const CompletedMakeReservationIntentHandler = {
 
 module.exports = {
 	StartedMakeReservationIntentHandler,
+	InProgressMakeReservationIntentHandler,
 	VerifyRestaurantNameReservationHandler,
 	CompletedMakeReservationIntentHandler,
 }
