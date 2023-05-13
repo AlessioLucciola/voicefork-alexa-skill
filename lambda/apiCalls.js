@@ -1,6 +1,5 @@
 "use strict";
-const Alexa = require('ask-sdk-core');
-const axios = require("axios");
+Object.defineProperty(exports, "__esModule", { value: true });
 const searchNearbyRestaurants = (query, latitude, longitude) => {
     return;
 };
