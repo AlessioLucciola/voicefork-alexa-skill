@@ -27,8 +27,8 @@ const VerifyRestaurantNameReservationHandler = {
 
 		return handlerInput.responseBuilder
 			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
-			.reprompt("Please, tell me the name of the place you want to make a reservation for")
 			.addElicitSlotDirective("restaurantName")
+			.addDelegateDirective()
 			.getResponse()
 	},
 }
