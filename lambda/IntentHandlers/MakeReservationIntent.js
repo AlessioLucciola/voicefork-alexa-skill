@@ -5,7 +5,7 @@ const StartedMakeReservationIntentHandler = {
 	canHandle(handlerInput) {
 		const { dialogState, type } = handlerInput.requestEnvelope.request
 		const { name } = handlerInput.requestEnvelope.request.intent
-		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "STARTED"
+		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState !== "COMPLETED"
 	},
 	handle(handlerInput) {
 		return handlerInput.responseBuilder.addDelegateDirective().getResponse()
