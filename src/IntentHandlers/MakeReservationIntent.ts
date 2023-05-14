@@ -19,7 +19,6 @@ const MakeReservationIntentHandler: RequestHandler = {
         const slots = currentIntent?.slots
 
         const { attributesManager } = handlerInput
-        const sessionAttributes = attributesManager.getSessionAttributes()
 
         const { restaurantName, date, time, numPeople, yesNo }: RestaurantSlots = {
             restaurantName: slots?.restaurantName.value,
@@ -33,7 +32,7 @@ const MakeReservationIntentHandler: RequestHandler = {
 
         //TODO: Just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
         if (restaurantName && yesNo) {
-            const { disRestaurantName } = sessionAttributes.getSessionAttributes()
+            const { disRestaurantName } = attributesManager.getSessionAttributes()
             return handlerInput.responseBuilder
                 .speak(`Your decision was ${yesNo}! The restuarnat is ${disRestaurantName}!`)
                 .addDelegateDirective()
@@ -47,7 +46,7 @@ const MakeReservationIntentHandler: RequestHandler = {
             !restaurants.map(item => item.restaurant.name.toLowerCase()).includes(restaurantName.toLowerCase())
         ) {
             const mostSimilarRestaurantName = restaurants[0].restaurant.name
-            sessionAttributes.setSessionAttributes({ disRestaurantName: mostSimilarRestaurantName })
+            attributesManager.setSessionAttributes({ disRestaurantName: mostSimilarRestaurantName })
             return handlerInput.responseBuilder
                 .speak(
                     `The restaurant ${restaurantName} doesn't exist, the most similar is ${mostSimilarRestaurantName}, did you mean that?`,
