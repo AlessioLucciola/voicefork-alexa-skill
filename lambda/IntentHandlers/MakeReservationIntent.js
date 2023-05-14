@@ -26,18 +26,29 @@ const MakeReservationIntentHandler = {
         return __awaiter(this, void 0, void 0, function* () {
             const { intent: currentIntent } = handlerInput.requestEnvelope.request;
             const slots = currentIntent === null || currentIntent === void 0 ? void 0 : currentIntent.slots;
-            const { restaurantName, date, time, numPeople } = {
+            const { restaurantName, date, time, numPeople, yesNo } = {
                 restaurantName: slots === null || slots === void 0 ? void 0 : slots.restaurantName.value,
                 date: slots === null || slots === void 0 ? void 0 : slots.date.value,
                 time: slots === null || slots === void 0 ? void 0 : slots.time.value,
                 numPeople: slots === null || slots === void 0 ? void 0 : slots.numPeople.value,
+                yesNo: slots === null || slots === void 0 ? void 0 : slots.yesNo.value,
             };
             //Get the restaurant list nearby the user
             const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== null && restaurantName !== void 0 ? restaurantName : 'Marioncello', constants_1.TEST_LATLNG);
-            if (restaurantName && !restaurants.map(item => item.restaurant.name).includes(restaurantName)) {
+            //TODO: just a test, if the restaurant is not exactly what the user says, then ask to repeat,
+            // until the user says the exact name.
+            if (restaurantName &&
+                !yesNo &&
+                !restaurants.map(item => item.restaurant.name.toLowerCase()).includes(restaurantName.toLowerCase())) {
                 return handlerInput.responseBuilder
                     .speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}!`)
-                    .addElicitSlotDirective('restaurantName')
+                    .addElicitSlotDirective('YesNoSlot')
+                    .getResponse();
+            }
+            if (restaurantName && yesNo) {
+                return handlerInput.responseBuilder
+                    .speak(`Your decision was ${yesNo}! The restuarnat is ${restaurantName}!`)
+                    .addDelegateDirective()
                     .getResponse();
             }
             if (!restaurantName || !date || !time || !numPeople)

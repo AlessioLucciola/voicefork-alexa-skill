@@ -3,6 +3,7 @@ export type RestaurantSlots = {
     date: string | undefined
     time: string | undefined
     numPeople: string | undefined
+    yesNo: string | undefined
 }
 
 export type LatLng = {
