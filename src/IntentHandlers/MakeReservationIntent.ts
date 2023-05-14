@@ -24,11 +24,12 @@ const MakeReservationIntentHandler: RequestHandler = {
 			time: slots?.time.value,
 			numPeople: slots?.numPeople.value,
 		}
-
+		//Get the restaurant list nearby the user
 		const restaurants = await searchNearbyRestaurants(restaurantName ?? "Marioncello", TEST_LATLNG)
+
 		if (restaurantName && !restaurants.map((item) => item.restaurant.name).includes(restaurantName)) {
 			return handlerInput.responseBuilder
-				.speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}say another restaurant dear`)
+				.speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}!`)
 				.addElicitSlotDirective("restaurantName")
 				.getResponse()
 		}
