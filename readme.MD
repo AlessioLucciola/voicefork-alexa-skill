@@ -14,7 +14,7 @@ Add this repository as another remote named `shared` in your alexa-skill reposit
 git remote add shared https://github.com/DomizianoScarcelli/voicefork-alexa-skill.git
 ```
 
-You can update the code of your repository from the `shard` remote by doing
+You can update the code of your repository from the `shared` remote by doing
 ```
 git pull shared:<branch-name>
 ```
@@ -30,5 +30,6 @@ For example if I want to push the code form my local `master` branch to a new `f
 ```
 git push -u shared master:feature-1
 ```
+Of course the next time you will push on `feature-1` you don't have to put the `-u` flag because the upstream branch already exists.
 
-Have fun
+Have fun!
