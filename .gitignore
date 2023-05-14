@@ -18,6 +18,7 @@ yarn-error.log*
 
 gulpfile.js
 package.json
+!/lambda/*
 package-lock.json
 readme.MD
 tsconfig.json
