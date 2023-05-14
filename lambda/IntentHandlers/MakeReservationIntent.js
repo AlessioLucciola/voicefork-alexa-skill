@@ -1,65 +1,49 @@
-const Alexa = require("ask-sdk-core")
-const { format } = require("date-fns")
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MakeReservationIntentHandler = void 0;
+const apiCalls_1 = require("../apiCalls");
+const constants_1 = require("../shared/constants");
 const MakeReservationIntentHandler = {
-	canHandle(handlerInput) {
-		const { dialogState, type } = handlerInput.requestEnvelope.request
-		const { name } = handlerInput.requestEnvelope.request.intent
-		return type === "IntentRequest" && name === "MakeReservationIntent"
-	},
-	handle(handlerInput) {
-		const currentIntent = handlerInput.requestEnvelope.request.intent
-
-		const { restaurantName, date, time, numPeople } = currentIntent.slots
-
-		const apiResponse = [{ name: "blu bar" }, { name: "pizzeria da marione" }, { name: "pizzeria pizza più" }, { name: "pizzeria pulcinella" }]
-
-		if (restaurantName.value && !apiResponse.map((item) => item.name).includes(restaurantName.value))
-			return handlerInput.responseBuilder.speak(`The restaurant ${restaurantName.value} doesn't exist, say another restaurant`).addElicitSlotDirective("restaurantName").getResponse()
-
-		if (!restaurantName.value || !date.value || !time.value || !numPeople.value) return handlerInput.responseBuilder.addDelegateDirective().getResponse()
-
-		return handlerInput.responseBuilder.speak(`Final reservation details: ${restaurantName.value}, ${date.value}, ${time.value}, ${numPeople.value}`).withShouldEndSession(true).getResponse()
-	},
-}
-
-// const VerifyRestaurantNameReservationHandler = {
-// 	canHandle(handlerInput) {
-// 		// const { dialogState, type } = handlerInput.requestEnvelope.request
-// 		// const { name } = handlerInput.requestEnvelope.request.intent
-// 		// let restaurantName
-// 		// if (type === "IntentRequest") restaurantName = handlerInput.requestEnvelope.request?.intent?.slots?.restaurantName
-// 		// return type === "IntentRequest" && name === "MakeReservationIntent" && restaurantName !== undefined
-// 		return (
-// 			handlerInput.requestEnvelope.request.type === "IntentRequest" &&
-// 			handlerInput.requestEnvelope.request.intent.name === "MakeReservationIntent" &&
-// 			handlerInput.requestEnvelope.request.intent.slots.restaurantName.value
-// 		)
-// 	},
-// 	handle(handlerInput) {
-// 		const currentIntent = handlerInput.requestEnvelope.request.intent
-// 		const { restaurantName } = currentIntent.slots
-// 		if (restaurantName.value == "marione") return handlerInput.responseBuilder.speak("Ok, marioneeeee").addDelegateDirective(currentIntent).getResponse()
-
-// 		return handlerInput.responseBuilder
-// 			.speak("The restaurant name is not valid (you have to say marione!) What is the name of the place?")
-// 			.addElicitSlotDirective("restaurantName", currentIntent)
-// 			.getResponse()
-// 	},
-// }
-
-// const CompletedMakeReservationIntentHandler = {
-// 	canHandle(handlerInput) {
-// 		const { dialogState, type } = handlerInput.requestEnvelope.request
-// 		const { name } = handlerInput.requestEnvelope.request.intent
-// 		return type === "IntentRequest" && name === "MakeReservationIntent" && dialogState === "COMPLETED"
-// 	},
-// 	handle(handlerInput) {
-// 		const speakOutput = "Reservation completed."
-// 		return handlerInput.responseBuilder.speak(speakOutput).withShouldEndSession(true).getResponse()
-// 	},
-// }
-
-module.exports = {
-	MakeReservationIntentHandler,
-}
+    canHandle(handlerInput) {
+        const request = handlerInput.requestEnvelope.request;
+        const { type } = request;
+        if (type === "IntentRequest") {
+            const { name } = request.intent;
+            return type === "IntentRequest" && name === "MakeReservationIntent";
+        }
+        return false;
+    },
+    handle(handlerInput) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { intent: currentIntent } = handlerInput.requestEnvelope.request;
+            const slots = currentIntent === null || currentIntent === void 0 ? void 0 : currentIntent.slots;
+            const { restaurantName, date, time, numPeople } = {
+                restaurantName: slots === null || slots === void 0 ? void 0 : slots.restaurantName.value,
+                date: slots === null || slots === void 0 ? void 0 : slots.date.value,
+                time: slots === null || slots === void 0 ? void 0 : slots.time.value,
+                numPeople: slots === null || slots === void 0 ? void 0 : slots.numPeople.value,
+            };
+            //Get the restaurant list nearby the user
+            const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== null && restaurantName !== void 0 ? restaurantName : "Marioncello", constants_1.TEST_LATLNG);
+            if (restaurantName && !restaurants.map((item) => item.restaurant.name).includes(restaurantName)) {
+                return handlerInput.responseBuilder
+                    .speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}!`)
+                    .addElicitSlotDirective("restaurantName")
+                    .getResponse();
+            }
+            if (!restaurantName || !date || !time || !numPeople)
+                return handlerInput.responseBuilder.addDelegateDirective().getResponse();
+            return handlerInput.responseBuilder.speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`).withShouldEndSession(true).getResponse();
+        });
+    },
+};
+exports.MakeReservationIntentHandler = MakeReservationIntentHandler;
