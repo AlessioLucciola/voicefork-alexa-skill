@@ -26,6 +26,8 @@ const MakeReservationIntentHandler = {
         return __awaiter(this, void 0, void 0, function* () {
             const { intent: currentIntent } = handlerInput.requestEnvelope.request;
             const slots = currentIntent === null || currentIntent === void 0 ? void 0 : currentIntent.slots;
+            const { attributesManager } = handlerInput;
+            const sessionAttributes = attributesManager.getSessionAttributes();
             const { restaurantName, date, time, numPeople, yesNo } = {
                 restaurantName: slots === null || slots === void 0 ? void 0 : slots.restaurantName.value,
                 date: slots === null || slots === void 0 ? void 0 : slots.date.value,
@@ -37,8 +39,9 @@ const MakeReservationIntentHandler = {
             const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== null && restaurantName !== void 0 ? restaurantName : 'Marioncello', constants_1.TEST_LATLNG);
             //TODO: Just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
             if (restaurantName && yesNo) {
+                const { disRestaurantName } = sessionAttributes.getSessionAttributes();
                 return handlerInput.responseBuilder
-                    .speak(`Your decision was ${yesNo}! The restuarnat is ${restaurantName}!`)
+                    .speak(`Your decision was ${yesNo}! The restuarnat is ${disRestaurantName}!`)
                     .addDelegateDirective()
                     .getResponse();
             }
@@ -46,8 +49,10 @@ const MakeReservationIntentHandler = {
             if (restaurantName &&
                 !yesNo &&
                 !restaurants.map(item => item.restaurant.name.toLowerCase()).includes(restaurantName.toLowerCase())) {
+                const mostSimilarRestaurantName = restaurants[0].restaurant.name;
+                sessionAttributes.setSessionAttributes({ disRestaurantName: mostSimilarRestaurantName });
                 return handlerInput.responseBuilder
-                    .speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}!`)
+                    .speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${mostSimilarRestaurantName}, did you mean that?`)
                     .addElicitSlotDirective('YesNoSlot')
                     .getResponse();
             }
