@@ -21,7 +21,7 @@ const MakeReservationIntentHandler: RequestHandler = {
 				"ngrok-skip-browser-warning ": "true",
 			},
 		}
-		const URL = `https://c714-2001-b07-a5a-64c2-10c6-c32f-6448-a932.ngrok-free.app//users/get-all-users`
+		const URL = `https://c714-2001-b07-a5a-64c2-10c6-c32f-6448-a932.ngrok-free.app/users/get-all-users`
 		const randomUser = (await axios.get(URL, config)).data[0]
 
 		const slots = currentIntent?.slots

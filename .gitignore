@@ -4,7 +4,6 @@ ask-resources.json
 
 # Build directories
 .history
-lambda
 .coverage
 
 # Dependency directories
