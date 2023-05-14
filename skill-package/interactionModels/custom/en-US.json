@@ -56,6 +56,10 @@
                         {
                             "name": "meal",
                             "type": "Meal"
+                        },
+                        {
+                            "name": "YesNoSlot",
+                            "type": "YesNo"
                         }
                     ],
                     "samples": [
@@ -72,13 +76,13 @@
                         "reserve a table",
                         "book a restaurant",
                         "Make a reservation for {numPeople} people at {restaurantName} for {meal} on {date} ",
-                        "I\u0027d like to reserve a table at {restaurantName} for {meal} ",
+                        "I'd like to reserve a table at {restaurantName} for {meal} ",
                         "Can you book a table for {numPeople} people on {date} at {time} at {restaurantName} ",
                         "I need to reserve a table for {restaurantName} for {numPeople} people.",
                         "Can you help me book a table at {restaurantName} for {numPeople} on {date} at {time} ",
                         "Reserve a table at {restaurantName} for {numPeople} on {date} at {time} ",
                         "Make a reservation at {restaurantName} for {numPeople} people on {date} at {time} ",
-                        "I\u0027d like to book a table for {numPeople} people at {restaurantName} for {meal} on {date} at {time} ",
+                        "I'd like to book a table for {numPeople} people at {restaurantName} for {meal} on {date} at {time} ",
                         "Reserve a table for {meal} at {restaurantName} on {date} at {time} ",
                         "I need to book a table for {numPeople} people at {restaurantName} on {date} at {time} "
                     ]
@@ -86,6 +90,7 @@
             ],
             "types": [
                 {
+                    "name": "Meal",
                     "values": [
                         {
                             "name": {
@@ -107,8 +112,24 @@
                                 "value": "Breakfast"
                             }
                         }
-                    ],
-                    "name": "Meal"
+                    ]
+                },
+                {
+                    "name": "YesNo",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "No",
+                                "synonyms": ["Nope"]
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Yes",
+                                "synonyms": ["Confirm", "Absolutely", "Sure"]
+                            }
+                        }
+                    ]
                 }
             ]
         },
@@ -116,6 +137,7 @@
             "intents": [
                 {
                     "name": "MakeReservationIntent",
+                    "delegationStrategy": "SKILL_RESPONSE",
                     "confirmationRequired": true,
                     "prompts": {
                         "confirmation": "Confirm.Intent.479195797993"
@@ -124,8 +146,8 @@
                         {
                             "name": "restaurantName",
                             "type": "AMAZON.LocalBusiness",
-                            "elicitationRequired": true,
                             "confirmationRequired": false,
+                            "elicitationRequired": true,
                             "prompts": {
                                 "elicitation": "Elicit.Slot.1131910980557.1052744693404"
                             }
@@ -133,8 +155,8 @@
                         {
                             "name": "date",
                             "type": "AMAZON.DATE",
-                            "elicitationRequired": true,
                             "confirmationRequired": false,
+                            "elicitationRequired": true,
                             "prompts": {
                                 "elicitation": "Elicit.Slot.1131910980557.434137186812"
                             }
@@ -142,8 +164,8 @@
                         {
                             "name": "time",
                             "type": "AMAZON.TIME",
-                            "elicitationRequired": true,
                             "confirmationRequired": false,
+                            "elicitationRequired": true,
                             "prompts": {
                                 "elicitation": "Elicit.Slot.1131910980557.306310326497"
                             }
@@ -151,8 +173,8 @@
                         {
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
-                            "elicitationRequired": true,
                             "confirmationRequired": false,
+                            "elicitationRequired": true,
                             "prompts": {
                                 "elicitation": "Elicit.Slot.1131910980557.483134300689"
                             }
@@ -160,12 +182,18 @@
                         {
                             "name": "meal",
                             "type": "Meal",
-                            "elicitationRequired": false,
                             "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        },
+                        {
+                            "name": "YesNoSlot",
+                            "type": "YesNo",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
                             "prompts": {}
                         }
-                    ],
-                    "delegationStrategy": "SKILL_RESPONSE"
+                    ]
                 }
             ],
             "delegationStrategy": "ALWAYS"
@@ -219,7 +247,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "What\u0027s the name of the restaurant?"
+                        "value": "What's the name of the restaurant?"
                     },
                     {
                         "type": "PlainText",
@@ -245,6 +273,5 @@
                 ]
             }
         ]
-    },
-    "version": "9"
+    }
 }

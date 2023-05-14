@@ -31,7 +31,7 @@ const MakeReservationIntentHandler = {
                 date: slots === null || slots === void 0 ? void 0 : slots.date.value,
                 time: slots === null || slots === void 0 ? void 0 : slots.time.value,
                 numPeople: slots === null || slots === void 0 ? void 0 : slots.numPeople.value,
-                yesNo: slots === null || slots === void 0 ? void 0 : slots.yesNo.value,
+                yesNo: slots === null || slots === void 0 ? void 0 : slots.YesNoSlot.value,
             };
             //Get the restaurant list nearby the user
             const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== null && restaurantName !== void 0 ? restaurantName : 'Marioncello', constants_1.TEST_LATLNG);
