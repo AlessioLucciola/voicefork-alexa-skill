@@ -10,7 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MakeReservationIntentHandler = void 0;
-const axios_1 = require("axios");
+const apiCalls_1 = require("../apiCalls");
+const constants_1 = require("../shared/constants");
 const MakeReservationIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
@@ -31,17 +32,10 @@ const MakeReservationIntentHandler = {
                 time: slots === null || slots === void 0 ? void 0 : slots.time.value,
                 numPeople: slots === null || slots === void 0 ? void 0 : slots.numPeople.value,
             };
-            const apiResponse = [{ name: "blu bar" }, { name: "pizzeria da marione" }, { name: "pizzeria pizza più" }, { name: "pizzeria pulcinella" }];
-            if (restaurantName && !apiResponse.map((item) => item.name).includes(restaurantName)) {
-                const config = {
-                    headers: {
-                        "ngrok-skip-browser-warning ": "true",
-                    },
-                };
-                const URL = `https://c714-2001-b07-a5a-64c2-10c6-c32f-6448-a932.ngrok-free.app/users/get-all-users`;
-                const randomUser = (yield axios_1.default.get(URL, config)).data[0];
+            const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== null && restaurantName !== void 0 ? restaurantName : "Marioncello", constants_1.TEST_LATLNG);
+            if (restaurantName && !restaurants.map((item) => item.restaurant.name).includes(restaurantName)) {
                 return handlerInput.responseBuilder
-                    .speak(`The restaurant ${restaurantName} doesn't exist, say another restaurant dear ${randomUser.name}`)
+                    .speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}say another restaurant dear`)
                     .addElicitSlotDirective("restaurantName")
                     .getResponse();
             }
