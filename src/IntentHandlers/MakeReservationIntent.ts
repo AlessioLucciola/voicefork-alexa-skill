@@ -28,8 +28,15 @@ const MakeReservationIntentHandler: RequestHandler = {
         //Get the restaurant list nearby the user
         const restaurants = await searchNearbyRestaurants(restaurantName ?? 'Marioncello', TEST_LATLNG)
 
-        //TODO: just a test, if the restaurant is not exactly what the user says, then ask to repeat,
-        // until the user says the exact name.
+        //TODO: just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
+        if (restaurantName && yesNo) {
+            return handlerInput.responseBuilder
+                .speak(`Your decision was ${yesNo}! The restuarnat is ${restaurantName}!`)
+                .addDelegateDirective()
+                .getResponse()
+        }
+
+        //TODO: just a test: if the restaurant is not exactly what the user says, then ask if the best match is the wanted restaurant
         if (
             restaurantName &&
             !yesNo &&
@@ -40,13 +47,6 @@ const MakeReservationIntentHandler: RequestHandler = {
                     `The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}!`,
                 )
                 .addElicitSlotDirective('YesNoSlot')
-                .getResponse()
-        }
-
-        if (restaurantName && yesNo) {
-            return handlerInput.responseBuilder
-                .speak(`Your decision was ${yesNo}! The restuarnat is ${restaurantName}!`)
-                .addDelegateDirective()
                 .getResponse()
         }
 
