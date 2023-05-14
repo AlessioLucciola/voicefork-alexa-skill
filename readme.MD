@@ -32,4 +32,6 @@ git push -u shared master:feature-1
 ```
 Of course the next time you will push on `feature-1` you don't have to put the `-u` flag because the upstream branch already exists.
 
+BE CAREFUL: In order to pull and push from the `origin` branch, that is you alexa-skill branch, do that explicitly to avoid errors, so pull with `git pull origin master` and push with `git push origin master`. (Use `npm run deploy` instead of push to avoid even more errros!)
+
 Have fun!
