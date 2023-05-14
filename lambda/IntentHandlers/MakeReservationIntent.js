@@ -16,9 +16,9 @@ const MakeReservationIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
         const { type } = request;
-        if (type === "IntentRequest") {
+        if (type === 'IntentRequest') {
             const { name } = request.intent;
-            return type === "IntentRequest" && name === "MakeReservationIntent";
+            return type === 'IntentRequest' && name === 'MakeReservationIntent';
         }
         return false;
     },
@@ -33,16 +33,19 @@ const MakeReservationIntentHandler = {
                 numPeople: slots === null || slots === void 0 ? void 0 : slots.numPeople.value,
             };
             //Get the restaurant list nearby the user
-            const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== null && restaurantName !== void 0 ? restaurantName : "Marioncello", constants_1.TEST_LATLNG);
-            if (restaurantName && !restaurants.map((item) => item.restaurant.name).includes(restaurantName)) {
+            const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== null && restaurantName !== void 0 ? restaurantName : 'Marioncello', constants_1.TEST_LATLNG);
+            if (restaurantName && !restaurants.map(item => item.restaurant.name).includes(restaurantName)) {
                 return handlerInput.responseBuilder
                     .speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${restaurants[0].restaurant.name}!`)
-                    .addElicitSlotDirective("restaurantName")
+                    .addElicitSlotDirective('restaurantName')
                     .getResponse();
             }
             if (!restaurantName || !date || !time || !numPeople)
                 return handlerInput.responseBuilder.addDelegateDirective().getResponse();
-            return handlerInput.responseBuilder.speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`).withShouldEndSession(true).getResponse();
+            return handlerInput.responseBuilder
+                .speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`)
+                .withShouldEndSession(true)
+                .getResponse();
         });
     },
 };

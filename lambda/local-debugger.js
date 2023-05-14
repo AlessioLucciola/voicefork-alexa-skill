@@ -21,13 +21,13 @@ use another editor/IDE, please check out the [ASK SDK Local Debug package at npm
 (https://www.npmjs.com/package/ask-sdk-local-debug).
 
 */
-const net = require("net");
-const fs = require("fs");
+const net = require('net');
+const fs = require('fs');
 const localDebugger = net.createServer();
-const httpHeaderDelimeter = "\r\n";
-const httpBodyDelimeter = "\r\n\r\n";
-const defaultHandlerName = "handler";
-const host = "localhost";
+const httpHeaderDelimeter = '\r\n';
+const httpBodyDelimeter = '\r\n\r\n';
+const defaultHandlerName = 'handler';
+const host = 'localhost';
 const defaultPort = 0;
 /**
  * Resolves the skill invoker class dependency from the user provided
@@ -51,9 +51,9 @@ localDebugger.listen(portNumber, host, () => {
  * here - https://developer.amazon.com/docs/custom-skills/request-and-response-json-reference.html#http-header-1
  * The response is written onto the socket connection.
  */
-localDebugger.on("connection", (socket) => {
+localDebugger.on('connection', (socket) => {
     console.log(`Connection from: ${socket.remoteAddress}:${socket.remotePort}`);
-    socket.on("data", (data) => {
+    socket.on('data', (data) => {
         const body = JSON.parse(data.toString().split(httpBodyDelimeter).pop());
         console.log(`Request envelope: ${JSON.stringify(body)}`);
         skillInvoker[lambdaHandlerName](body, null, (_invokeErr, response) => {
@@ -68,7 +68,7 @@ localDebugger.on("connection", (socket) => {
  * Defaults to 0.
  */
 function getAndValidatePortNumber() {
-    const portNumberArgument = Number(getArgument("portNumber", defaultPort));
+    const portNumberArgument = Number(getArgument('portNumber', defaultPort));
     if (!Number.isInteger(portNumberArgument)) {
         throw new Error(`Port number has to be an integer - ${portNumberArgument}.`);
     }
@@ -76,7 +76,8 @@ function getAndValidatePortNumber() {
         throw new Error(`Port out of legal range: ${portNumberArgument}. The port number should be in the range [0, 65535]`);
     }
     if (portNumberArgument === 0) {
-        console.log("The TCP server will listen on a port that is free." + "Check logs to find out what port number is being used");
+        console.log('The TCP server will listen on a port that is free.' +
+            'Check logs to find out what port number is being used');
     }
     return portNumberArgument;
 }
@@ -85,7 +86,7 @@ function getAndValidatePortNumber() {
  * Defaults to "handler".
  */
 function getLambdaHandlerName() {
-    return getArgument("lambdaHandler", defaultHandlerName);
+    return getArgument('lambdaHandler', defaultHandlerName);
 }
 /**
  * Validates that the skill entry file exists on the path specified.
@@ -93,7 +94,7 @@ function getLambdaHandlerName() {
  */
 // eslint-disable-next-line consistent-return
 function getAndValidateSkillInvokerFile() {
-    const fileNameArgument = getArgument("skillEntryFile", "skillEntryFile");
+    const fileNameArgument = getArgument('skillEntryFile', 'skillEntryFile');
     if (!fs.existsSync(fileNameArgument)) {
         throw new Error(`File not found: ${fileNameArgument}`);
     }
@@ -106,7 +107,7 @@ function getAndValidateSkillInvokerFile() {
  */
 function getArgument(argumentName, defaultValue) {
     const index = process.argv.indexOf(`--${argumentName}`);
-    if (index === -1 || typeof process.argv[index + 1] === "undefined") {
+    if (index === -1 || typeof process.argv[index + 1] === 'undefined') {
         if (defaultValue === undefined) {
             throw new Error(`Required argument - ${argumentName} not provided.`);
         }

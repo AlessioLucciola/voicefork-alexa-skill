@@ -1,21 +1,21 @@
 {
-	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es6",
-		"lib": ["es6"],
-		"moduleResolution": "node",
-		"rootDir": "src",
-		"outDir": "lambda",
-		"sourceMap": false,
-		"allowJs": false,
-		"noImplicitAny": true,
-		"noUnusedLocals": true,
-		"noImplicitThis": true,
-		"strictNullChecks": true,
-		"noImplicitReturns": true,
-		"preserveConstEnums": true,
-		"forceConsistentCasingInFileNames": true,
-		"strict": true
-	},
-	"exclude": ["/**/node_modules", "__tests__", "**/__mocks__", "lambda"]
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "lib": ["es6"],
+        "moduleResolution": "node",
+        "rootDir": "src",
+        "outDir": "lambda",
+        "sourceMap": false,
+        "allowJs": false,
+        "noImplicitAny": true,
+        "noUnusedLocals": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "noImplicitReturns": true,
+        "preserveConstEnums": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true
+    },
+    "exclude": ["/**/node_modules", "__tests__", "**/__mocks__", "lambda"]
 }

@@ -13,5 +13,5 @@ exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(handlers_1.LaunchRequestHandler, MakeReservationIntent_1.MakeReservationIntentHandler, handlers_1.HelpIntentHandler, handlers_1.CancelAndStopIntentHandler, handlers_1.FallbackIntentHandler, handlers_1.SessionEndedRequestHandler, handlers_1.IntentReflectorHandler)
     .addErrorHandlers(handlers_1.ErrorHandler)
     .withApiClient(new Alexa.DefaultApiClient())
-    .withCustomUserAgent("sample/hello-world/v1.2")
+    .withCustomUserAgent('sample/hello-world/v1.2')
     .lambda();

@@ -20,7 +20,7 @@ const searchNearbyRestaurants = (query, coordinates) => __awaiter(void 0, void 0
     const URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`;
     const config = {
         headers: {
-            "ngrok-skip-browser-warning ": "true",
+            'ngrok-skip-browser-warning ': 'true',
         },
     };
     const searchResult = (yield axios_1.default.get(URL, config)).data;

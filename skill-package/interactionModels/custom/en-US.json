@@ -1,243 +1,250 @@
 {
-	"interactionModel": {
-		"languageModel": {
-			"invocationName": "voicefork restaurants",
-			"intents": [
-				{
-					"name": "AMAZON.CancelIntent",
-					"samples": []
-				},
-				{
-					"name": "AMAZON.HelpIntent",
-					"samples": []
-				},
-				{
-					"name": "AMAZON.StopIntent",
-					"samples": []
-				},
-				{
-					"name": "AMAZON.NavigateHomeIntent",
-					"samples": []
-				},
-				{
-					"name": "AMAZON.FallbackIntent",
-					"samples": []
-				},
-				{
-					"name": "MakeReservationIntent",
-					"slots": [
-						{
-							"name": "restaurantName",
-							"type": "AMAZON.LocalBusiness",
-							"samples": ["{restaurantName} for {numPeople}", "{restaurantName}", "at {restaurantName}"]
-						},
-						{
-							"name": "date",
-							"type": "AMAZON.DATE",
-							"samples": ["{date} {time}", "for {date} {time}", "{date}", "{date} at {time}", "for {date} at {time}", "for {date} "]
-						},
-						{
-							"name": "time",
-							"type": "AMAZON.TIME",
-							"samples": ["at {time}", "{time}"]
-						},
-						{
-							"name": "numPeople",
-							"type": "AMAZON.NUMBER",
-							"samples": ["for {numPeople}", "{numPeople}"]
-						},
-						{
-							"name": "meal",
-							"type": "Meal"
-						}
-					],
-					"samples": [
-						"reserve a table for {meal} at {restaurantName} for {numPeople} {date} ",
-						"reserve a table for {meal} at {restaurantName} ",
-						"reserve a table for {numPeople} people {date} for {meal} at {time} at {restaurantName}",
-						"book a table for {restaurantName} for {numPeople}",
-						"{restaurantName} for {numPeople} the {date} at {time}",
-						"{restaurantName}",
-						"reserve a table at {restaurantName} for {numPeople} {date} at {time}",
-						"reserve a table at {restaurantName}",
-						"reserve a table for {date} at {time}",
-						"reserve a table for {numPeople}",
-						"reserve a table",
-						"book a restaurant",
-						"Make a reservation for {numPeople} people at {restaurantName} for {meal} on {date} ",
-						"I\u0027d like to reserve a table at {restaurantName} for {meal} ",
-						"Can you book a table for {numPeople} people on {date} at {time} at {restaurantName} ",
-						"I need to reserve a table for {restaurantName} for {numPeople} people.",
-						"Can you help me book a table at {restaurantName} for {numPeople} on {date} at {time} ",
-						"Reserve a table at {restaurantName} for {numPeople} on {date} at {time} ",
-						"Make a reservation at {restaurantName} for {numPeople} people on {date} at {time} ",
-						"I\u0027d like to book a table for {numPeople} people at {restaurantName} for {meal} on {date} at {time} ",
-						"Reserve a table for {meal} at {restaurantName} on {date} at {time} ",
-						"I need to book a table for {numPeople} people at {restaurantName} on {date} at {time} "
-					]
-				}
-			],
-			"types": [
-				{
-					"values": [
-						{
-							"name": {
-								"value": "Dinner"
-							}
-						},
-						{
-							"name": {
-								"value": "Lunch"
-							}
-						},
-						{
-							"name": {
-								"value": "Brunch"
-							}
-						},
-						{
-							"name": {
-								"value": "Breakfast"
-							}
-						}
-					],
-					"name": "Meal"
-				}
-			]
-		},
-		"dialog": {
-			"intents": [
-				{
-					"name": "MakeReservationIntent",
-					"confirmationRequired": true,
-					"prompts": {
-						"confirmation": "Confirm.Intent.479195797993"
-					},
-					"slots": [
-						{
-							"name": "restaurantName",
-							"type": "AMAZON.LocalBusiness",
-							"elicitationRequired": true,
-							"confirmationRequired": false,
-							"prompts": {
-								"elicitation": "Elicit.Slot.1131910980557.1052744693404"
-							}
-						},
-						{
-							"name": "date",
-							"type": "AMAZON.DATE",
-							"elicitationRequired": true,
-							"confirmationRequired": false,
-							"prompts": {
-								"elicitation": "Elicit.Slot.1131910980557.434137186812"
-							}
-						},
-						{
-							"name": "time",
-							"type": "AMAZON.TIME",
-							"elicitationRequired": true,
-							"confirmationRequired": false,
-							"prompts": {
-								"elicitation": "Elicit.Slot.1131910980557.306310326497"
-							}
-						},
-						{
-							"name": "numPeople",
-							"type": "AMAZON.NUMBER",
-							"elicitationRequired": true,
-							"confirmationRequired": false,
-							"prompts": {
-								"elicitation": "Elicit.Slot.1131910980557.483134300689"
-							}
-						},
-						{
-							"name": "meal",
-							"type": "Meal",
-							"elicitationRequired": false,
-							"confirmationRequired": false,
-							"prompts": {}
-						}
-					],
-					"delegationStrategy": "SKILL_RESPONSE"
-				}
-			],
-			"delegationStrategy": "ALWAYS"
-		},
-		"prompts": [
-			{
-				"id": "Elicit.Slot.1131910980557.483134300689",
-				"variations": [
-					{
-						"type": "PlainText",
-						"value": "OK, {restaurantName} {date} at {time} , for how many people?"
-					},
-					{
-						"type": "PlainText",
-						"value": "For how many people?"
-					}
-				]
-			},
-			{
-				"id": "Elicit.Slot.1131910980557.434137186812",
-				"variations": [
-					{
-						"type": "PlainText",
-						"value": "Ok, {restaurantName} for {numPeople} , for when?"
-					},
-					{
-						"type": "PlainText",
-						"value": "OK, restaurant {restaurantName} , for when?"
-					},
-					{
-						"type": "PlainText",
-						"value": "For when?"
-					}
-				]
-			},
-			{
-				"id": "Elicit.Slot.1131910980557.306310326497",
-				"variations": [
-					{
-						"type": "PlainText",
-						"value": "OK for {date} , at what time?"
-					},
-					{
-						"type": "PlainText",
-						"value": "At what time?"
-					}
-				]
-			},
-			{
-				"id": "Elicit.Slot.1131910980557.1052744693404",
-				"variations": [
-					{
-						"type": "PlainText",
-						"value": "What\u0027s the name of the restaurant?"
-					},
-					{
-						"type": "PlainText",
-						"value": "Where?"
-					},
-					{
-						"type": "PlainText",
-						"value": "Which is the name of the restaurant?"
-					},
-					{
-						"type": "PlainText",
-						"value": "For which restaurant?"
-					}
-				]
-			},
-			{
-				"id": "Confirm.Intent.479195797993",
-				"variations": [
-					{
-						"type": "PlainText",
-						"value": "Do I proceed to reserve a table at {restaurantName} the {date} at {time} for {numPeople} ?"
-					}
-				]
-			}
-		]
-	},
-	"version": "9"
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "voicefork restaurants",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "MakeReservationIntent",
+                    "slots": [
+                        {
+                            "name": "restaurantName",
+                            "type": "AMAZON.LocalBusiness",
+                            "samples": ["{restaurantName} for {numPeople}", "{restaurantName}", "at {restaurantName}"]
+                        },
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE",
+                            "samples": [
+                                "{date} {time}",
+                                "for {date} {time}",
+                                "{date}",
+                                "{date} at {time}",
+                                "for {date} at {time}",
+                                "for {date} "
+                            ]
+                        },
+                        {
+                            "name": "time",
+                            "type": "AMAZON.TIME",
+                            "samples": ["at {time}", "{time}"]
+                        },
+                        {
+                            "name": "numPeople",
+                            "type": "AMAZON.NUMBER",
+                            "samples": ["for {numPeople}", "{numPeople}"]
+                        },
+                        {
+                            "name": "meal",
+                            "type": "Meal"
+                        }
+                    ],
+                    "samples": [
+                        "reserve a table for {meal} at {restaurantName} for {numPeople} {date} ",
+                        "reserve a table for {meal} at {restaurantName} ",
+                        "reserve a table for {numPeople} people {date} for {meal} at {time} at {restaurantName}",
+                        "book a table for {restaurantName} for {numPeople}",
+                        "{restaurantName} for {numPeople} the {date} at {time}",
+                        "{restaurantName}",
+                        "reserve a table at {restaurantName} for {numPeople} {date} at {time}",
+                        "reserve a table at {restaurantName}",
+                        "reserve a table for {date} at {time}",
+                        "reserve a table for {numPeople}",
+                        "reserve a table",
+                        "book a restaurant",
+                        "Make a reservation for {numPeople} people at {restaurantName} for {meal} on {date} ",
+                        "I\u0027d like to reserve a table at {restaurantName} for {meal} ",
+                        "Can you book a table for {numPeople} people on {date} at {time} at {restaurantName} ",
+                        "I need to reserve a table for {restaurantName} for {numPeople} people.",
+                        "Can you help me book a table at {restaurantName} for {numPeople} on {date} at {time} ",
+                        "Reserve a table at {restaurantName} for {numPeople} on {date} at {time} ",
+                        "Make a reservation at {restaurantName} for {numPeople} people on {date} at {time} ",
+                        "I\u0027d like to book a table for {numPeople} people at {restaurantName} for {meal} on {date} at {time} ",
+                        "Reserve a table for {meal} at {restaurantName} on {date} at {time} ",
+                        "I need to book a table for {numPeople} people at {restaurantName} on {date} at {time} "
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "values": [
+                        {
+                            "name": {
+                                "value": "Dinner"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Lunch"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Brunch"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Breakfast"
+                            }
+                        }
+                    ],
+                    "name": "Meal"
+                }
+            ]
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "MakeReservationIntent",
+                    "confirmationRequired": true,
+                    "prompts": {
+                        "confirmation": "Confirm.Intent.479195797993"
+                    },
+                    "slots": [
+                        {
+                            "name": "restaurantName",
+                            "type": "AMAZON.LocalBusiness",
+                            "elicitationRequired": true,
+                            "confirmationRequired": false,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1131910980557.1052744693404"
+                            }
+                        },
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE",
+                            "elicitationRequired": true,
+                            "confirmationRequired": false,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1131910980557.434137186812"
+                            }
+                        },
+                        {
+                            "name": "time",
+                            "type": "AMAZON.TIME",
+                            "elicitationRequired": true,
+                            "confirmationRequired": false,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1131910980557.306310326497"
+                            }
+                        },
+                        {
+                            "name": "numPeople",
+                            "type": "AMAZON.NUMBER",
+                            "elicitationRequired": true,
+                            "confirmationRequired": false,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1131910980557.483134300689"
+                            }
+                        },
+                        {
+                            "name": "meal",
+                            "type": "Meal",
+                            "elicitationRequired": false,
+                            "confirmationRequired": false,
+                            "prompts": {}
+                        }
+                    ],
+                    "delegationStrategy": "SKILL_RESPONSE"
+                }
+            ],
+            "delegationStrategy": "ALWAYS"
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Slot.1131910980557.483134300689",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "OK, {restaurantName} {date} at {time} , for how many people?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "For how many people?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1131910980557.434137186812",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Ok, {restaurantName} for {numPeople} , for when?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "OK, restaurant {restaurantName} , for when?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "For when?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1131910980557.306310326497",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "OK for {date} , at what time?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "At what time?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1131910980557.1052744693404",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What\u0027s the name of the restaurant?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Where?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Which is the name of the restaurant?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "For which restaurant?"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Intent.479195797993",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Do I proceed to reserve a table at {restaurantName} the {date} at {time} for {numPeople} ?"
+                    }
+                ]
+            }
+        ]
+    },
+    "version": "9"
 }

@@ -9,7 +9,7 @@ const Alexa = require("ask-sdk-core");
  * */
 const SessionEndedRequestHandler = {
     canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === "SessionEndedRequest";
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
     },
     handle(handlerInput) {
         console.log(`~~~~ Session ended: ${JSON.stringify(handlerInput.requestEnvelope)}`);
@@ -25,7 +25,7 @@ exports.SessionEndedRequestHandler = SessionEndedRequestHandler;
  * */
 const IntentReflectorHandler = {
     canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest";
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest';
     },
     handle(handlerInput) {
         const intentName = Alexa.getIntentName(handlerInput.requestEnvelope);
@@ -47,8 +47,8 @@ const ErrorHandler = {
         return true;
     },
     handle(handlerInput, error) {
-        const errorMessage = error.message || "Unknown error";
-        const stackTrace = error.stack || "No stack trace available";
+        const errorMessage = error.message || 'Unknown error';
+        const stackTrace = error.stack || 'No stack trace available';
         const speakOutput = `Sorry, I had trouble doing what you asked. Please try again. Error: ${errorMessage}`;
         console.log(`~~~~ Error handled: ${errorMessage}`);
         console.log(`~~~~ Stack trace: ${stackTrace}`);
@@ -58,21 +58,22 @@ const ErrorHandler = {
 exports.ErrorHandler = ErrorHandler;
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === "LaunchRequest";
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = "Welcome to VoiceFork, tell me the details of the reservation!";
+        const speakOutput = 'Welcome to VoiceFork, tell me the details of the reservation!';
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     },
 };
 exports.LaunchRequestHandler = LaunchRequestHandler;
 const CancelAndStopIntentHandler = {
     canHandle(handlerInput) {
-        return (Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
-            (Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.CancelIntent" || Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.StopIntent"));
+        return (Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest' &&
+            (Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent' ||
+                Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StopIntent'));
     },
     handle(handlerInput) {
-        const speakOutput = "Goodbye!";
+        const speakOutput = 'Goodbye!';
         return handlerInput.responseBuilder.speak(speakOutput).getResponse();
     },
 };
@@ -84,7 +85,8 @@ exports.CancelAndStopIntentHandler = CancelAndStopIntentHandler;
  * */
 const FallbackIntentHandler = {
     canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" && Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.FallbackIntent";
+        return (Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest' &&
+            Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.FallbackIntent');
     },
     handle(handlerInput) {
         const speakOutput = "Sorry, I don't know about that. Please try again.";
@@ -94,10 +96,11 @@ const FallbackIntentHandler = {
 exports.FallbackIntentHandler = FallbackIntentHandler;
 const HelpIntentHandler = {
     canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" && Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.HelpIntent";
+        return (Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest' &&
+            Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.HelpIntent');
     },
     handle(handlerInput) {
-        const speakOutput = "You can say hello to me! How can I help?";
+        const speakOutput = 'You can say hello to me! How can I help?';
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse();
     },
 };
