@@ -33,6 +33,7 @@ const MakeReservationIntentHandler: RequestHandler = {
         //TODO: Just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
         if (restaurantName && yesNo) {
             const { disRestaurantName } = attributesManager.getSessionAttributes()
+            if (slots) slots.restaurantName.value = disRestaurantName //TODO: this has to be changes in order to reflect the changes inside of restaurantName variable
             return handlerInput.responseBuilder
                 .speak(`Your decision was ${yesNo}! The restuarnat is ${disRestaurantName}!`)
                 .addDelegateDirective()
