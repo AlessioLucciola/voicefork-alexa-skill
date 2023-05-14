@@ -1,6 +1,7 @@
 import { RequestHandler } from "ask-sdk-core"
 import { IntentRequest } from "ask-sdk-model"
 import { RestaurantSlots } from "../shared/types"
+import axios from "axios"
 
 const MakeReservationIntentHandler: RequestHandler = {
 	canHandle(handlerInput) {
@@ -12,8 +13,16 @@ const MakeReservationIntentHandler: RequestHandler = {
 		}
 		return false
 	},
-	handle(handlerInput) {
+	async handle(handlerInput) {
 		const { intent: currentIntent } = handlerInput.requestEnvelope.request as IntentRequest
+
+		const config = {
+			headers: {
+				"ngrok-skip-browser-warning ": "true",
+			},
+		}
+		const URL = `https://c714-2001-b07-a5a-64c2-10c6-c32f-6448-a932.ngrok-free.app//users/get-all-users`
+		const randomUser = (await axios.get(URL, config)).data[0]
 
 		const slots = currentIntent?.slots
 
@@ -31,7 +40,7 @@ const MakeReservationIntentHandler: RequestHandler = {
 
 		if (!restaurantName || !date || !time || !numPeople) return handlerInput.responseBuilder.addDelegateDirective().getResponse()
 
-		return handlerInput.responseBuilder.speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`).withShouldEndSession(true).getResponse()
+		return handlerInput.responseBuilder.speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}, ${randomUser.name}`).withShouldEndSession(true).getResponse()
 	},
 }
 
