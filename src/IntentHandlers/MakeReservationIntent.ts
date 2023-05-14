@@ -28,7 +28,7 @@ const MakeReservationIntentHandler: RequestHandler = {
         //Get the restaurant list nearby the user
         const restaurants = await searchNearbyRestaurants(restaurantName ?? 'Marioncello', TEST_LATLNG)
 
-        //TODO: just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
+        //TODO: Just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
         if (restaurantName && yesNo) {
             return handlerInput.responseBuilder
                 .speak(`Your decision was ${yesNo}! The restuarnat is ${restaurantName}!`)
@@ -36,7 +36,7 @@ const MakeReservationIntentHandler: RequestHandler = {
                 .getResponse()
         }
 
-        //TODO: just a test: if the restaurant is not exactly what the user says, then ask if the best match is the wanted restaurant
+        //TODO: Just a test: if the restaurant is not exactly what the user says, then ask if the best match is the wanted restaurant
         if (
             restaurantName &&
             !yesNo &&
