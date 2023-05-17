@@ -3,12 +3,23 @@ var ts = require('gulp-typescript')
 var tsProject = ts.createProject('tsconfig.json')
 var OUT_DIR = 'lambda'
 var IN_DIR = 'src'
-// compile typescript
+
+// Compile typescript
 gulp.task('compile', function () {
     return tsProject.src().pipe(tsProject()).js.pipe(gulp.dest(OUT_DIR))
 })
-// copy json files (e.g. localization json)
+
+// Copy json files (e.g. localization json)
 gulp.task('json', function () {
-    return gulp.src(IN_DIR + '/**/*.json').pipe(gulp.dest(OUT_DIR))
+    return gulp.src([IN_DIR + '/**/*.json', '!*/node_modules/**/*']).pipe(gulp.dest(OUT_DIR))
 })
-gulp.task('default', gulp.parallel(['compile', 'json']))
+
+// Default task
+gulp.task('default', gulp.series('compile', 'json'))
+
+function watchCallback(cb) {
+    // Run the tasks
+    gulp.series('compile', 'json')(cb)
+}
+
+gulp.watch('src/*', { events: 'all' }, watchCallback)

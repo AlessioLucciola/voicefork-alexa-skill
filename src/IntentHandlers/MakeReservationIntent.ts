@@ -27,6 +27,7 @@ const MakeReservationIntentHandler: RequestHandler = {
             numPeople: slots?.numPeople.value,
             yesNo: slots?.YesNoSlot.value,
         }
+
         //Get the restaurant list nearby the user
         const restaurants = await searchNearbyRestaurants(restaurantName ?? 'Marioncello', TEST_LATLNG)
 
