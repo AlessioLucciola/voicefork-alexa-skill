@@ -16,7 +16,7 @@ git remote add shared https://github.com/DomizianoScarcelli/voicefork-alexa-skil
 
 You can update the code of your repository from the `shared` remote by doing
 ```
-git pull shared:<branch-name>
+git pull shared <branch-name>
 ```
 And you can push the code on one `shared` branch by doing:
 
