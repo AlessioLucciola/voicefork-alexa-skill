@@ -1,9 +1,7 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "Debug Alexa Skill (Node.js)",
             "type": "node",
@@ -17,20 +15,20 @@
                 "--handlerName",
                 "handler",
                 "--skillEntryFile",
-                "${workspaceFolder}/lambda/index.js",
+                "${workspaceFolder}\\lambda\\index.js",
                 "--region",
                 "EU"
             ],
-            "cwd": "${workspaceFolder}/lambda"
+            "cwd": "${workspaceFolder}\\lambda"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/gulpfile.js",
+            "skipFiles": ["<node_internals>\\**"],
+            "program": "${workspaceFolder}\\gulpfile.js",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": ["${workspaceFolder}/lambda/**/*.js"]
+            "outFiles": ["${workspaceFolder}\\lambda\\**\\*.js"]
         }
     ]
 }
