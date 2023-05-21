@@ -29,13 +29,13 @@ const MakeReservationIntentHandler: RequestHandler = {
         }
 
         //Get the restaurant list nearby the user
-        const restaurants = await searchNearbyRestaurants(restaurantName ?? 'Marioncello', TEST_LATLNG)
+        const restaurants = await searchNearbyRestaurants(restaurantName !== undefined ? restaurantName : '', TEST_LATLNG)
 
         //TODO: Just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
         if (restaurantName && yesNo) {
             const { disRestaurantName } = attributesManager.getSessionAttributes() //TODO: restaurantName remains unchanged
             return handlerInput.responseBuilder
-                .speak(`Your decision was ${yesNo}! The restuarnat is ${disRestaurantName}!`)
+                .speak(`Your decision was ${yesNo}! The restaurant is ${disRestaurantName}!`)
                 .addDelegateDirective()
                 .getResponse()
         }
@@ -54,6 +54,31 @@ const MakeReservationIntentHandler: RequestHandler = {
                 )
                 .addElicitSlotDirective('YesNoSlot')
                 .getResponse()
+        }
+
+        if (time !== undefined && date !== undefined) {
+            const reservationDate = new Date(date + " " + time)
+            if (reservationDate < new Date()) {
+                return handlerInput.responseBuilder
+                .speak(
+                    `Sorry, it seems that you are trying to reserve a table for a date in the past. You want to reserve a table at ${time} in which day?`
+                )
+                .reprompt(`Do you want to reserve a table for tomorrow or another day?`)
+                .addElicitSlotDirective('date')
+                .getResponse()
+            }
+        }
+
+        if (date !== undefined) {
+            const currentDate = new Date()
+            if (currentDate > new Date(date)) {
+                return handlerInput.responseBuilder
+                .speak(
+                    'Sorry, you can\'t reserve a table for a date in the past. Please, when do you want to reserve a table?',
+                )
+                .addElicitSlotDirective('date')
+                .getResponse()
+            }
         }
 
         if (!restaurantName || !date || !time || !numPeople)

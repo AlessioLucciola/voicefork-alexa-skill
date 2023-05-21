@@ -29,7 +29,11 @@
                         {
                             "name": "restaurantName",
                             "type": "AMAZON.LocalBusiness",
-                            "samples": ["{restaurantName} for {numPeople}", "{restaurantName}", "at {restaurantName}"]
+                            "samples": [
+                                "{restaurantName} for {numPeople}",
+                                "{restaurantName}",
+                                "at {restaurantName}"
+                            ]
                         },
                         {
                             "name": "date",
@@ -46,12 +50,18 @@
                         {
                             "name": "time",
                             "type": "AMAZON.TIME",
-                            "samples": ["at {time}", "{time}"]
+                            "samples": [
+                                "at {time}",
+                                "{time}"
+                            ]
                         },
                         {
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
-                            "samples": ["for {numPeople}", "{numPeople}"]
+                            "samples": [
+                                "for {numPeople}",
+                                "{numPeople}"
+                            ]
                         },
                         {
                             "name": "meal",
@@ -63,6 +73,8 @@
                         }
                     ],
                     "samples": [
+                        "reserve a table for {date}",
+                        "reserve a table at {time}",
                         "reserve a table for {meal} at {restaurantName} for {numPeople} {date} ",
                         "reserve a table for {meal} at {restaurantName} ",
                         "reserve a table for {numPeople} people {date} for {meal} at {time} at {restaurantName}",
@@ -120,13 +132,19 @@
                         {
                             "name": {
                                 "value": "No",
-                                "synonyms": ["Nope"]
+                                "synonyms": [
+                                    "Nope"
+                                ]
                             }
                         },
                         {
                             "name": {
                                 "value": "Yes",
-                                "synonyms": ["Confirm", "Absolutely", "Sure"]
+                                "synonyms": [
+                                    "Confirm",
+                                    "Absolutely",
+                                    "Sure"
+                                ]
                             }
                         }
                     ]
