@@ -1,8 +1,8 @@
 import { RequestHandler } from 'ask-sdk-core'
 import { IntentRequest } from 'ask-sdk-model'
-import { RestaurantSlots } from '../shared/types'
+import { LatLng, RestaurantSlots } from '../shared/types'
 import { searchNearbyRestaurants } from '../apiCalls'
-import { TEST_LATLNG } from '../shared/constants'
+import getCoordinates from '../utils/localizationFeatures'
 
 const MakeReservationIntentHandler: RequestHandler = {
     canHandle(handlerInput) {
@@ -20,16 +20,69 @@ const MakeReservationIntentHandler: RequestHandler = {
 
         const { attributesManager } = handlerInput
 
-        const { restaurantName, date, time, numPeople, yesNo }: RestaurantSlots = {
+        const coordinates = getCoordinates()
+
+        const { restaurantName, location, date, time, numPeople, yesNo }: RestaurantSlots = {
             restaurantName: slots?.restaurantName.value,
+            location: slots?.location.value,
             date: slots?.date.value,
             time: slots?.time.value,
             numPeople: slots?.numPeople.value,
             yesNo: slots?.YesNoSlot.value,
         }
 
+        const findNearbyRestaurants = async (coordinates: LatLng) => {
+            return await searchNearbyRestaurants(restaurantName !== undefined ? restaurantName : '', coordinates)
+        }
+
+        const findSimilarRestaurant = (restaurants: any) => {
+            //TODO: Just a test: if the restaurant is not exactly what the user says, then ask if the best match is the wanted restaurant
+            if (
+                restaurantName &&
+                !yesNo &&
+                !restaurants.map((item: any) => item.restaurant.name.toLowerCase()).includes(restaurantName.toLowerCase())
+            ) {
+                const mostSimilarRestaurantName = restaurants[0].restaurant.name
+                attributesManager.setSessionAttributes({ disRestaurantName: mostSimilarRestaurantName })
+                return handlerInput.responseBuilder
+                    .speak(
+                        `The restaurant ${restaurantName} doesn't exist, the most similar is ${mostSimilarRestaurantName}, did you mean that?`,
+                    )
+                    .addElicitSlotDirective('YesNoSlot')
+                    .getResponse()
+            }
+            return
+        }
+
         //Get the restaurant list nearby the user
-        const restaurants = await searchNearbyRestaurants(restaurantName !== undefined ? restaurantName : '', TEST_LATLNG)
+        if (restaurantName) {
+            if (coordinates !== undefined && location !== undefined) {
+                // TO DO: Caso in cui ho le coordinate dell'utente ma voglio comunque prenotare altrove
+                return handlerInput.responseBuilder
+                .speak(
+                    `You are in the case in which you have the coordinates but you want to reserve elsewhere`
+                )
+                .getResponse()
+            } else if (coordinates !== undefined && location !== undefined) {
+                const restaurants = findNearbyRestaurants(coordinates)
+                findSimilarRestaurant(restaurants)
+            } else if (coordinates === undefined && location !== undefined ) {
+                // TO DO: Caso in cui non ho le coordinate dell'utente ma mi è stata detta la città
+                return handlerInput.responseBuilder
+                .speak(
+                    `You are in the case in which you don't have the coordinates but you already have the city. In case you only have to solve the disambiguation if necessary.`
+                )
+                .getResponse()
+            } else {
+                return handlerInput.responseBuilder
+                .speak(
+                    `Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`
+                )
+                .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
+                .addElicitSlotDirective('location')
+                .getResponse()
+            }
+        }
 
         //TODO: Just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
         if (restaurantName && yesNo) {
@@ -37,22 +90,6 @@ const MakeReservationIntentHandler: RequestHandler = {
             return handlerInput.responseBuilder
                 .speak(`Your decision was ${yesNo}! The restaurant is ${disRestaurantName}!`)
                 .addDelegateDirective()
-                .getResponse()
-        }
-
-        //TODO: Just a test: if the restaurant is not exactly what the user says, then ask if the best match is the wanted restaurant
-        if (
-            restaurantName &&
-            !yesNo &&
-            !restaurants.map(item => item.restaurant.name.toLowerCase()).includes(restaurantName.toLowerCase())
-        ) {
-            const mostSimilarRestaurantName = restaurants[0].restaurant.name
-            attributesManager.setSessionAttributes({ disRestaurantName: mostSimilarRestaurantName })
-            return handlerInput.responseBuilder
-                .speak(
-                    `The restaurant ${restaurantName} doesn't exist, the most similar is ${mostSimilarRestaurantName}, did you mean that?`,
-                )
-                .addElicitSlotDirective('YesNoSlot')
                 .getResponse()
         }
 

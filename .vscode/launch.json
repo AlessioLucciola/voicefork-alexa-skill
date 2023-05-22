@@ -1,34 +1,34 @@
-{
-    "version": "0.2.0",
-    "configurations": [
-        
-        {
-            "name": "Debug Alexa Skill (Node.js)",
-            "type": "node",
-            "request": "launch",
-            "program": "${command:ask.debugAdapterPath}",
-            "args": [
-                "--accessToken",
-                "${command:ask.accessToken}",
-                "--skillId",
-                "${command:ask.skillIdFromWorkspace}",
-                "--handlerName",
-                "handler",
-                "--skillEntryFile",
-                "${workspaceFolder}\\lambda\\index.js",
-                "--region",
-                "EU"
-            ],
-            "cwd": "${workspaceFolder}\\lambda"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": ["<node_internals>\\**"],
-            "program": "${workspaceFolder}\\gulpfile.js",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": ["${workspaceFolder}\\lambda\\**\\*.js"]
-        }
-    ]
+{ 
+    "version": "0.2.0", 
+    "configurations": [ 
+         
+        { 
+            "name": "Debug Alexa Skill (Node.js)", 
+            "type": "node", 
+            "request": "launch", 
+            "program": "${command:ask.debugAdapterPath}", 
+            "args": [ 
+                "--accessToken", 
+                "${command:ask.accessToken}", 
+                "--skillId", 
+                "${command:ask.skillIdFromWorkspace}", 
+                "--handlerName", 
+                "handler", 
+                "--skillEntryFile", 
+                "${workspaceFolder}\\lambda\\index.js", 
+                "--region", 
+                "EU" 
+            ], 
+            "cwd": "${workspaceFolder}\\lambda" 
+        }, 
+        { 
+            "type": "node", 
+            "request": "launch", 
+            "name": "Launch Program", 
+            "skipFiles": ["<node_internals>\\**"], 
+            "program": "${workspaceFolder}\\gulpfile.js", 
+            "preLaunchTask": "tsc: build - tsconfig.json", 
+            "outFiles": ["${workspaceFolder}\\lambda\\**\\*.js"] 
+        } 
+    ] 
 }
