@@ -1,7 +1,7 @@
 import { LatLng } from './shared/types'
-import { RESTAURANTS_URL } from './shared/urls'
+import { RESTAURANTS_URL, RESERVATIONS_URL } from './shared/urls'
 import axios from 'axios'
-import { RestaurantSearchResult } from './shared/types'
+import { RestaurantSearchResult, ReservationContext } from './shared/types'
 
 export const searchNearbyRestaurants = async (
     query: string,
@@ -21,4 +21,20 @@ export const searchNearbyRestaurants = async (
 
     const searchResult: RestaurantSearchResult[] = (await axios.get(URL, config)).data
     return searchResult
+}
+
+/**
+ * Given a context, it returns the distance from the context for that id_restaurant.
+ * //TODO: For how the API are implemented now, the user is not even considered and we assume there is only one user.
+ * @param context
+ * @returns
+ */
+export const getDistanceFromContext = async (context: ReservationContext): Promise<number | null> => {
+    const { id_restaurant, n_people, reservationLocation, currentDay, reservationDay, currentTime, reservationTime } =
+        context
+    const { latitude, longitude } = reservationLocation
+    const URL = `${RESERVATIONS_URL}/get-distance-context?id_restaurant=${id_restaurant}&n_people=${n_people}&latitude=${latitude}&longitude=${longitude}&currentDay=${currentDay}&reservationDay=${reservationDay}&currentTime=${currentTime}&reservationTime=${reservationTime}`
+    const data = (await axios.get(URL)).data
+
+    return data.distance
 }
