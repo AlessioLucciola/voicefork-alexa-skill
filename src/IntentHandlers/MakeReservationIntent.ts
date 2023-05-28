@@ -34,14 +34,14 @@ const MakeReservationIntentHandler: RequestHandler = {
 
         const { restaurantName, location, date, time, numPeople, yesNo } = slotValues
 
-        if (!restaurantName || !date || !time || !numPeople) {
-            //Ask for the data that's missing before disambiguation
-            return handlerInput.responseBuilder.addDelegateDirective().getResponse()
-        }
+        // if (!restaurantName || !date || !time || !numPeople) {
+        //     //Ask for the data that's missing before disambiguation
+        //     return handlerInput.responseBuilder.addDelegateDirective().getResponse()
+        // }
 
-        if (restaurantName && date && time && numPeople) {
-            return await handleSimilarRestaurants(handlerInput, slotValues)
-        }
+        // if (restaurantName && date && time && numPeople) {
+        //     return await handleSimilarRestaurants(handlerInput, slotValues)
+        // }
 
         const findNearbyRestaurants = async (coordinates: LatLng) => {
             return await searchNearbyRestaurants(restaurantName !== undefined ? restaurantName : '', coordinates)
