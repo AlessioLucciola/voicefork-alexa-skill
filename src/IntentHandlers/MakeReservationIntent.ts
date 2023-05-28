@@ -3,7 +3,7 @@ import { IntentRequest } from 'ask-sdk-model'
 import { LatLng, RestaurantSlots } from '../shared/types'
 import { searchNearbyRestaurants } from '../apiCalls'
 import getCoordinates from '../utils/localizationFeatures'
-import { handleSimilarRestaurants } from '../responseHandlers/reservationContextManager'
+import { handleSimilarRestaurants } from '../responseHandlers/reservationContextResponseHandler'
 
 const MakeReservationIntentHandler: RequestHandler = {
     canHandle(handlerInput: HandlerInput) {
@@ -20,6 +20,7 @@ const MakeReservationIntentHandler: RequestHandler = {
         const slots = currentIntent?.slots
 
         const { attributesManager } = handlerInput
+        tele
 
         const coordinates = getCoordinates()
 

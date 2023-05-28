@@ -1,5 +1,3 @@
-import { Slot } from 'ask-sdk-model'
-
 export type RestaurantSlots = {
     restaurantName: string | undefined
     location: string | undefined
