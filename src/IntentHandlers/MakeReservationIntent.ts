@@ -20,7 +20,6 @@ const MakeReservationIntentHandler: RequestHandler = {
         const slots = currentIntent?.slots
 
         const { attributesManager } = handlerInput
-        tele
 
         const coordinates = getCoordinates()
 
