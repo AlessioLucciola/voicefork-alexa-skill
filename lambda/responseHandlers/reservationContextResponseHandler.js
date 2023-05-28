@@ -45,12 +45,12 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         if (result.nameDistance > DISTANCE_THRESHOLD)
             continue;
         const { id } = result.restaurant;
-        const { weekday: currentDay, hour: currentHour, minute: currentMinute } = (0, dateTimeUtils_1.getDateComponentsFromDate)(Date());
-        const currentTime = `${currentHour}:${currentMinute}`;
+        const { weekday: currentDay, hour: currentHour, minute: currentMinute } = (0, dateTimeUtils_1.getDateComponentsFromDate)();
+        const currentTime = (0, dateTimeUtils_1.parseTime)(currentHour, currentMinute);
         const reservationDateTime = (0, dateTimeUtils_1.convertAmazonDateTime)(date, time);
         const reservationDateComponents = (0, dateTimeUtils_1.getDateComponentsFromDate)(reservationDateTime);
         const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute } = reservationDateComponents;
-        const reservationTime = `${reservationHour}:${reservationMinute}`;
+        const reservationTime = (0, dateTimeUtils_1.parseTime)(reservationHour, reservationMinute);
         const context = {
             id_restaurant: id,
             n_people: parseInt(numPeople),
@@ -61,18 +61,69 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             reservationTime,
         };
         const contextDistance = yield (0, apiCalls_2.getDistanceFromContext)(context);
-        if (contextDistance !== null && contextDistance < CONTEXT_SOFT_THRESHOLD) {
-            plausibleContexts.push({
-                restaurant: result.restaurant,
-                contextDistance,
-                nameDistance: result.nameDistance,
-            });
-        }
+        plausibleContexts.push({
+            restaurant: result.restaurant,
+            contextDistance: contextDistance,
+            nameDistance: result.nameDistance,
+        });
+    }
+    console.log(JSON.stringify(plausibleContexts, null, 2)); //TODO: debug
+    let scores = [];
+    for (let context of plausibleContexts) {
+        scores.push({
+            restaurant: context.restaurant,
+            score: computeAggregateScore(context),
+        });
     }
     //Examine the plausible restaurants
-    console.log(JSON.stringify(plausibleContexts)); //TODO: debug
+    console.log(JSON.stringify(scores, null, 2)); //TODO: debug
     return handlerInput.responseBuilder
-        .speak(`I examined the results, they are ${plausibleContexts.length}, the top 3 are: ${JSON.stringify(plausibleContexts.slice(0, 3))}`)
+        .speak(`I examined the results, they are ${scores.length}, the top 3 are: ${JSON.stringify(scores.slice(0, 3))}`)
         .getResponse();
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
+const computeAggregateScore = (context) => {
+    const { contextDistance, nameDistance } = context;
+    const NAME_WEIGHT = 0.7;
+    const CONTEXT_WEIGHT = 0.3;
+    if (contextDistance == null) {
+        return Math.min(nameDistance * 1.2, 1); //TODO: doesn't work so well
+    }
+    const normalizedContextDistance = normalizeContext(contextDistance);
+    const avg = NAME_WEIGHT * nameDistance + CONTEXT_WEIGHT * normalizedContextDistance;
+    return avg;
+};
+const normalizeContext = (inputValue) => {
+    // Map that regulates the normalization. The values in between are interpolated.
+    const valueMap = [
+        [0, 0],
+        [0.1, 0.01],
+        [0.2, 0.05],
+        [0.3, 0.1],
+        [0.5, 0.3],
+        [1, 0.4],
+        [2, 0.5],
+        [3, 0.6],
+        [20, 0.8],
+        [100, 1],
+    ];
+    // Sort the input values
+    const sortedValues = valueMap.map(([inputValue]) => inputValue).sort((a, b) => a - b);
+    // Find the index of inputValue in the sorted list
+    const index = sortedValues.findIndex(value => inputValue <= value);
+    if (index === 0) {
+        // If inputValue is less than the smallest value in the list, return the normalized value of the smallest value
+        return valueMap[0][1];
+    }
+    else if (index === -1) {
+        // If inputValue is greater than the largest value in the list, return the normalized value of the largest value
+        return valueMap[valueMap.length - 1][1];
+    }
+    else {
+        // Interpolate between the normalized values based on the index
+        const [prevValue, prevNormalizedValue] = valueMap[index - 1];
+        const [nextValue, nextNormalizedValue] = valueMap[index];
+        const t = (inputValue - prevValue) / (nextValue - prevValue);
+        return prevNormalizedValue + (nextNormalizedValue - prevNormalizedValue) * t;
+    }
+};

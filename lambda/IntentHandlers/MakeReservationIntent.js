@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MakeReservationIntentHandler = void 0;
 const apiCalls_1 = require("../apiCalls");
 const localizationFeatures_1 = require("../utils/localizationFeatures");
+const reservationContextResponseHandler_1 = require("../responseHandlers/reservationContextResponseHandler");
 const MakeReservationIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
@@ -37,13 +38,13 @@ const MakeReservationIntentHandler = {
                 yesNo: slots === null || slots === void 0 ? void 0 : slots.YesNoSlot.value,
             };
             const { restaurantName, location, date, time, numPeople, yesNo } = slotValues;
-            // if (!restaurantName || !date || !time || !numPeople) {
-            //     //Ask for the data that's missing before disambiguation
-            //     return handlerInput.responseBuilder.addDelegateDirective().getResponse()
-            // }
-            // if (restaurantName && date && time && numPeople) {
-            //     return await handleSimilarRestaurants(handlerInput, slotValues)
-            // }
+            if (!restaurantName || !date || !time || !numPeople) {
+                //Ask for the data that's missing before disambiguation
+                return handlerInput.responseBuilder.addDelegateDirective().getResponse();
+            }
+            if (restaurantName && date && time && numPeople) {
+                return yield (0, reservationContextResponseHandler_1.handleSimilarRestaurants)(handlerInput, slotValues);
+            }
             const findNearbyRestaurants = (coordinates) => __awaiter(this, void 0, void 0, function* () {
                 return yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== undefined ? restaurantName : '', coordinates);
             });

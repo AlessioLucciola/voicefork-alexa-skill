@@ -47,7 +47,7 @@ const searchRestaurants = (query, locationInfo, city) => __awaiter(void 0, void 
     }
     console.log(`Made api call to ${URL}`);
     const data = (yield axios_1.default.get(URL)).data;
-    console.log(`${URL} returned ${JSON.stringify(data)}`);
+    console.log(`${URL} returned ${JSON.stringify(data, null, 2)}`);
     return data;
 });
 exports.searchRestaurants = searchRestaurants;
@@ -63,7 +63,7 @@ const getDistanceFromContext = (context) => __awaiter(void 0, void 0, void 0, fu
     const URL = `${urls_1.RESERVATIONS_URL}/get-distance-context?id_restaurant=${id_restaurant}&n_people=${n_people}&latitude=${latitude}&longitude=${longitude}&currentDay=${currentDay}&reservationDay=${reservationDay}&currentTime=${currentTime}&reservationTime=${reservationTime}`;
     console.log(`Made api call to ${URL}`);
     const data = (yield axios_1.default.get(URL)).data;
-    console.log(`${URL} returned ${JSON.stringify(data)}`);
+    console.log(`${URL} returned ${JSON.stringify(data, null, 2)}`);
     return data.distance;
 });
 exports.getDistanceFromContext = getDistanceFromContext;
