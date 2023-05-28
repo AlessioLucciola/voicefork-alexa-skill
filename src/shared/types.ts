@@ -1,3 +1,5 @@
+import { Slot } from 'ask-sdk-model'
+
 export type RestaurantSlots = {
     restaurantName: string | undefined
     location: string | undefined
@@ -55,4 +57,14 @@ export type ReservationContext = {
     reservationDay: number
     currentTime?: string
     reservationTime?: string
+}
+
+//This represents the slots that the skill supports, and they have to be updated accordingly.
+export type Slots = {
+    restaurantName: Slot
+    location: Slot
+    date: Slot
+    time: Slot
+    numPeople: Slot
+    yesNo: Slot
 }
