@@ -74,6 +74,7 @@ export const handleSimilarRestaurants = async (
             score: computeAggregateScore(context),
         })
     }
+    scores.sort((a, b) => b.score - a.score)
     //Examine the plausible restaurants
     console.log(JSON.stringify(scores, null, 2)) //TODO: debug
 
@@ -84,6 +85,11 @@ export const handleSimilarRestaurants = async (
         .getResponse()
 }
 
+/**
+ * Computes the aggregate score between the contextDistance and the nameDistance. The higher the score, the better.
+ * @param context
+ * @returns
+ */
 const computeAggregateScore = (context: {
     restaurant: Restaurant
     contextDistance: number | null
@@ -92,17 +98,24 @@ const computeAggregateScore = (context: {
     const { contextDistance, nameDistance } = context
     const NAME_WEIGHT = 0.7
     const CONTEXT_WEIGHT = 0.3
+    const NULL_DISTANCE_SCALING_FACTOR = 0.6 //The lower the less important the restaurant with contextDistance == null
     if (contextDistance == null) {
-        return Math.min(nameDistance * 1.2, 1) //TODO: doesn't work so well
+        //TODO: There is a problem with this, because if each restaurant has the distance == null, the nameDistance score gets too distorted
+        const minNameDistance = Math.max(nameDistance, 0.05) // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
+        return Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1)
     }
     const normalizedContextDistance = normalizeContext(contextDistance)
     const avg = NAME_WEIGHT * nameDistance + CONTEXT_WEIGHT * normalizedContextDistance
-    return avg
+    return 1 - avg //Reverse in order to have a score the higher the better
 }
 
+/**
+ * Normalizes the inputValue according to the valueMap distribution, interpolating the values in between.
+ * @param inputValue
+ * @returns
+ */
 const normalizeContext = (inputValue: number): number => {
-    // Map that regulates the normalization. The values in between are interpolated.
-    const valueMap: [number, number][] = [
+    const VALUE_MAP: [number, number][] = [
         [0, 0],
         [0.1, 0.01],
         [0.2, 0.05],
@@ -116,21 +129,21 @@ const normalizeContext = (inputValue: number): number => {
     ]
 
     // Sort the input values
-    const sortedValues = valueMap.map(([inputValue]) => inputValue).sort((a, b) => a - b)
+    const sortedValues = VALUE_MAP.map(([inputValue]) => inputValue).sort((a, b) => a - b)
 
     // Find the index of inputValue in the sorted list
     const index = sortedValues.findIndex(value => inputValue <= value)
 
     if (index === 0) {
         // If inputValue is less than the smallest value in the list, return the normalized value of the smallest value
-        return valueMap[0][1]
+        return VALUE_MAP[0][1]
     } else if (index === -1) {
         // If inputValue is greater than the largest value in the list, return the normalized value of the largest value
-        return valueMap[valueMap.length - 1][1]
+        return VALUE_MAP[VALUE_MAP.length - 1][1]
     } else {
         // Interpolate between the normalized values based on the index
-        const [prevValue, prevNormalizedValue] = valueMap[index - 1]
-        const [nextValue, nextNormalizedValue] = valueMap[index]
+        const [prevValue, prevNormalizedValue] = VALUE_MAP[index - 1]
+        const [nextValue, nextNormalizedValue] = VALUE_MAP[index]
         const t = (inputValue - prevValue) / (nextValue - prevValue)
         return prevNormalizedValue + (nextNormalizedValue - prevNormalizedValue) * t
     }
