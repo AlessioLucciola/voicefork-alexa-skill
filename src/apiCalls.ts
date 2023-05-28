@@ -2,6 +2,7 @@ import { LatLng } from './shared/types'
 import { RESTAURANTS_URL, RESERVATIONS_URL } from './shared/urls'
 import axios from 'axios'
 import { RestaurantSearchResult, ReservationContext } from './shared/types'
+import getCoordinates from './utils/localizationFeatures'
 
 export const searchNearbyRestaurants = async (
     query: string,
@@ -21,6 +22,31 @@ export const searchNearbyRestaurants = async (
 
     const searchResult: RestaurantSearchResult[] = (await axios.get(URL, config)).data
     return searchResult
+}
+
+/**
+ * Returns the list of restaurants, sorted by their distance from the query.
+ * If the latitude and longitude are defined, the response also includes the distance in meters from the restaurant.
+ * @param query
+ * @param locationInfo
+ * @param city
+ * @returns
+ */
+export const searchRestaurants = async (
+    query: string,
+    locationInfo?: { location: LatLng; maxDistance: number },
+    city?: string,
+): Promise<RestaurantSearchResult[]> => {
+    let URL = ''
+    if (locationInfo) {
+        const { location, maxDistance } = locationInfo
+        const { latitude, longitude } = location
+        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=150`
+    } else {
+        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`
+    }
+    const data: RestaurantSearchResult[] = (await axios.get(URL)).data
+    return data
 }
 
 /**
