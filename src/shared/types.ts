@@ -59,12 +59,12 @@ export type ReservationContext = {
     reservationTime?: string
 }
 
-//This represents the slots that the skill supports, and they have to be updated accordingly.
-export type Slots = {
-    restaurantName: Slot
-    location: Slot
-    date: Slot
-    time: Slot
-    numPeople: Slot
-    yesNo: Slot
+export type DateComponents = {
+    day: number
+    weekday: number
+    month: number
+    year: number
+    hour: number
+    minute: number
+    second: number
 }

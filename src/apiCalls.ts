@@ -45,7 +45,9 @@ export const searchRestaurants = async (
     } else {
         URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`
     }
+    console.log(`Made api call to ${URL}`)
     const data: RestaurantSearchResult[] = (await axios.get(URL)).data
+    console.log(`${URL} returned ${JSON.stringify(data)}`)
     return data
 }
 
@@ -60,7 +62,8 @@ export const getDistanceFromContext = async (context: ReservationContext): Promi
         context
     const { latitude, longitude } = reservationLocation
     const URL = `${RESERVATIONS_URL}/get-distance-context?id_restaurant=${id_restaurant}&n_people=${n_people}&latitude=${latitude}&longitude=${longitude}&currentDay=${currentDay}&reservationDay=${reservationDay}&currentTime=${currentTime}&reservationTime=${reservationTime}`
+    console.log(`Made api call to ${URL}`)
     const data = (await axios.get(URL)).data
-
+    console.log(`${URL} returned ${JSON.stringify(data)}`)
     return data.distance
 }

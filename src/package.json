@@ -11,7 +11,8 @@
         "ask-sdk-model": "^1.69.0",
         "aws-sdk": "^2.326.0",
         "axios": "^1.4.0",
-        "date-fns": "^2.30.0"
+        "date-fns": "^2.30.0",
+        "luxon": "^3.3.0"
     },
     "devDependencies": {
         "ask-sdk-local-debug": "^1.1.0"

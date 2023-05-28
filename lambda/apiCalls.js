@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchNearbyRestaurants = void 0;
+exports.getDistanceFromContext = exports.searchRestaurants = exports.searchNearbyRestaurants = void 0;
 const urls_1 = require("./shared/urls");
 const axios_1 = require("axios");
 const searchNearbyRestaurants = (query, coordinates) => __awaiter(void 0, void 0, void 0, function* () {
@@ -27,3 +27,43 @@ const searchNearbyRestaurants = (query, coordinates) => __awaiter(void 0, void 0
     return searchResult;
 });
 exports.searchNearbyRestaurants = searchNearbyRestaurants;
+/**
+ * Returns the list of restaurants, sorted by their distance from the query.
+ * If the latitude and longitude are defined, the response also includes the distance in meters from the restaurant.
+ * @param query
+ * @param locationInfo
+ * @param city
+ * @returns
+ */
+const searchRestaurants = (query, locationInfo, city) => __awaiter(void 0, void 0, void 0, function* () {
+    let URL = '';
+    if (locationInfo) {
+        const { location, maxDistance } = locationInfo;
+        const { latitude, longitude } = location;
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=150`;
+    }
+    else {
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`;
+    }
+    console.log(`Made api call to ${URL}`);
+    const data = (yield axios_1.default.get(URL)).data;
+    console.log(`${URL} returned ${JSON.stringify(data)}`);
+    return data;
+});
+exports.searchRestaurants = searchRestaurants;
+/**
+ * Given a context, it returns the distance from the context for that id_restaurant.
+ * //TODO: For how the API are implemented now, the user is not even considered and we assume there is only one user.
+ * @param context
+ * @returns
+ */
+const getDistanceFromContext = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id_restaurant, n_people, reservationLocation, currentDay, reservationDay, currentTime, reservationTime } = context;
+    const { latitude, longitude } = reservationLocation;
+    const URL = `${urls_1.RESERVATIONS_URL}/get-distance-context?id_restaurant=${id_restaurant}&n_people=${n_people}&latitude=${latitude}&longitude=${longitude}&currentDay=${currentDay}&reservationDay=${reservationDay}&currentTime=${currentTime}&reservationTime=${reservationTime}`;
+    console.log(`Made api call to ${URL}`);
+    const data = (yield axios_1.default.get(URL)).data;
+    console.log(`${URL} returned ${JSON.stringify(data)}`);
+    return data.distance;
+});
+exports.getDistanceFromContext = getDistanceFromContext;

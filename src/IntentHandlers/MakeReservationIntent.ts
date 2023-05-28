@@ -1,8 +1,9 @@
 import { HandlerInput, RequestHandler } from 'ask-sdk-core'
-import { IntentRequest, Slot } from 'ask-sdk-model'
+import { IntentRequest } from 'ask-sdk-model'
 import { LatLng, RestaurantSlots } from '../shared/types'
 import { searchNearbyRestaurants } from '../apiCalls'
 import getCoordinates from '../utils/localizationFeatures'
+import { handleSimilarRestaurants } from '../responseHandlers/reservationContextManager'
 
 const MakeReservationIntentHandler: RequestHandler = {
     canHandle(handlerInput: HandlerInput) {
@@ -22,13 +23,24 @@ const MakeReservationIntentHandler: RequestHandler = {
 
         const coordinates = getCoordinates()
 
-        const { restaurantName, location, date, time, numPeople, yesNo }: RestaurantSlots = {
+        const slotValues: RestaurantSlots = {
             restaurantName: slots?.restaurantName.value,
             location: slots?.location.value,
             date: slots?.date.value,
             time: slots?.time.value,
             numPeople: slots?.numPeople.value,
             yesNo: slots?.YesNoSlot.value,
+        }
+
+        const { restaurantName, location, date, time, numPeople, yesNo } = slotValues
+
+        if (!restaurantName || !date || !time || !numPeople) {
+            //Ask for the data that's missing before disambiguation
+            return handlerInput.responseBuilder.addDelegateDirective().getResponse()
+        }
+
+        if (restaurantName && date && time && numPeople) {
+            return await handleSimilarRestaurants(handlerInput, slotValues)
         }
 
         const findNearbyRestaurants = async (coordinates: LatLng) => {

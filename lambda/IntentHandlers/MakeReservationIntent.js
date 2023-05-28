@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MakeReservationIntentHandler = void 0;
 const apiCalls_1 = require("../apiCalls");
 const localizationFeatures_1 = require("../utils/localizationFeatures");
+const reservationContextManager_1 = require("../responseHandlers/reservationContextManager");
 const MakeReservationIntentHandler = {
     canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request;
@@ -28,7 +29,7 @@ const MakeReservationIntentHandler = {
             const slots = currentIntent === null || currentIntent === void 0 ? void 0 : currentIntent.slots;
             const { attributesManager } = handlerInput;
             const coordinates = (0, localizationFeatures_1.default)();
-            const { restaurantName, location, date, time, numPeople, yesNo } = {
+            const slotValues = {
                 restaurantName: slots === null || slots === void 0 ? void 0 : slots.restaurantName.value,
                 location: slots === null || slots === void 0 ? void 0 : slots.location.value,
                 date: slots === null || slots === void 0 ? void 0 : slots.date.value,
@@ -36,6 +37,14 @@ const MakeReservationIntentHandler = {
                 numPeople: slots === null || slots === void 0 ? void 0 : slots.numPeople.value,
                 yesNo: slots === null || slots === void 0 ? void 0 : slots.YesNoSlot.value,
             };
+            const { restaurantName, location, date, time, numPeople, yesNo } = slotValues;
+            if (!restaurantName || !date || !time || !numPeople) {
+                //Ask for the data that's missing before disambiguation
+                return handlerInput.responseBuilder.addDelegateDirective().getResponse();
+            }
+            if (restaurantName && date && time && numPeople) {
+                return yield (0, reservationContextManager_1.handleSimilarRestaurants)(handlerInput, slotValues);
+            }
             const findNearbyRestaurants = (coordinates) => __awaiter(this, void 0, void 0, function* () {
                 return yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName !== undefined ? restaurantName : '', coordinates);
             });
@@ -43,7 +52,9 @@ const MakeReservationIntentHandler = {
                 //TODO: Just a test: if the restaurant is not exactly what the user says, then ask if the best match is the wanted restaurant
                 if (restaurantName &&
                     !yesNo &&
-                    !restaurants.map((item) => item.restaurant.name.toLowerCase()).includes(restaurantName.toLowerCase())) {
+                    !restaurants
+                        .map((item) => item.restaurant.name.toLowerCase())
+                        .includes(restaurantName.toLowerCase())) {
                     const mostSimilarRestaurantName = restaurants[0].restaurant.name;
                     attributesManager.setSessionAttributes({ disRestaurantName: mostSimilarRestaurantName });
                     return handlerInput.responseBuilder
@@ -88,7 +99,7 @@ const MakeReservationIntentHandler = {
                     .getResponse();
             }
             if (time !== undefined && date !== undefined) {
-                const reservationDate = new Date(date + " " + time);
+                const reservationDate = new Date(date + ' ' + time);
                 if (reservationDate < new Date()) {
                     return handlerInput.responseBuilder
                         .speak(`Sorry, it seems that you are trying to reserve a table for a date in the past. You want to reserve a table at ${time} in which day?`)
@@ -101,7 +112,7 @@ const MakeReservationIntentHandler = {
                 const currentDate = new Date();
                 if (currentDate > new Date(date)) {
                     return handlerInput.responseBuilder
-                        .speak('Sorry, you can\'t reserve a table for a date in the past. Please, when do you want to reserve a table?')
+                        .speak("Sorry, you can't reserve a table for a date in the past. Please, when do you want to reserve a table?")
                         .addElicitSlotDirective('date')
                         .getResponse();
                 }
