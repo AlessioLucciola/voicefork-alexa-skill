@@ -4,9 +4,11 @@ import { ReservationContext, Restaurant, RestaurantSearchResult, RestaurantSlots
 import getCoordinates from '../utils/localizationFeatures'
 import { searchRestaurants } from '../apiCalls'
 import { getDistanceFromContext } from '../apiCalls'
-import { TEST_LATLNG } from '../shared/constants'
+import { CONF, TEST_LATLNG } from '../shared/constants'
 import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../utils/dateTimeUtils'
-import { normalize } from 'path'
+
+const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
+
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
  * @param handlerInput
@@ -18,11 +20,10 @@ export const handleSimilarRestaurants = async (
     slots: RestaurantSlots,
 ): Promise<Response> => {
     const { restaurantName, location, date, time, numPeople, yesNo } = slots
-    const DISTANCE_THRESHOLD = 0.6
-    const CONTEXT_SOFT_THRESHOLD = 2
-    const CONTEXT_HARD_THRESHOLD = 0.5
+
     let searchResults: RestaurantSearchResult[] = []
     const coordinates = getCoordinates()
+
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
         return handlerInput.responseBuilder.addDelegateDirective().getResponse()
@@ -99,8 +100,6 @@ const computeAggregateScore = (context: {
     nameDistance: number
 }): number => {
     const { contextDistance, nameDistance } = context
-    const CONTEXT_WEIGHT = 0.3
-    const NULL_DISTANCE_SCALING_FACTOR = 0.5 //The lower the less important the restaurant with contextDistance == null
     if (contextDistance == null) {
         //TODO: There is a problem with this, because if each restaurant has the distance == null, the nameDistance score gets too distorted
         const minNameDistance = Math.max(nameDistance, 0.05) // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
@@ -117,19 +116,6 @@ const computeAggregateScore = (context: {
  * @returns
  */
 const normalizeContext = (inputValue: number): number => {
-    const VALUE_MAP: [number, number][] = [
-        [0, 0],
-        [0.1, 0.01],
-        [0.2, 0.05],
-        [0.3, 0.1],
-        [0.5, 0.3],
-        [1, 0.4],
-        [2, 0.5],
-        [3, 0.6],
-        [20, 0.8],
-        [100, 1],
-    ]
-
     // Sort the input values
     const sortedValues = VALUE_MAP.map(([inputValue]) => inputValue).sort((a, b) => a - b)
 
