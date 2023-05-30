@@ -68,6 +68,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     console.log(JSON.stringify(plausibleContexts, null, 2)); //TODO: debug
     let scores = [];
     for (let context of plausibleContexts) {
+        //TODO: For debug reasons I inserted also nameDistance and contextDistance, this have to be removed later.
         scores.push({
             restaurant: context.restaurant,
             nameDistance: context.nameDistance,
@@ -140,6 +141,7 @@ const handleScores = (items) => {
         if (low <= score && score < medium)
             lowChoices.push(item);
     }
+    // let choices: RestaurantWithScore[][] = [highChoices, mediumChoices, lowChoices]
     if (highChoices.length > 0) {
         //TODO:
     }
@@ -149,4 +151,68 @@ const handleScores = (items) => {
     else {
         //TODO:
     }
+};
+//******************************************//
+//********COMPUTING VARIANCES***************//
+//******************************************//
+const computeHighestVariance = (items) => {
+    if (items.length <= 1)
+        return null;
+    let allLatLng = [];
+    let allCities = [];
+    let allCuisines = [];
+    let allAvgRating = [];
+    for (let { restaurant, score } of items) {
+        const { latitude, longitude, city, cuisines, avgRating } = restaurant;
+        allLatLng.push({ latitude, longitude });
+        allCities.push([city]);
+        allCuisines.push(cuisines.split(',').map(item => item.trim()));
+        allAvgRating.push(avgRating);
+    }
+    const variances = {
+        latLng: computeLatLngVariance(allLatLng),
+        city: computeStringArrayVariance(allCities),
+        cuisine: computeStringArrayVariance(allCuisines),
+        avgRating: computeSimpleVariance(allAvgRating),
+    };
+    const [maxPropertyName, maxValue] = Object.entries(variances).reduce((acc, [property, value]) => (value > acc[1] ? [property, value] : acc), ['', -Infinity]);
+    return { field: maxPropertyName, variance: maxValue };
+};
+const computeSimpleVariance = (values) => {
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const squaredDifferences = values.map(value => Math.pow(value - mean, 2));
+    const sumOfSquaredDifferences = squaredDifferences.reduce((sum, difference) => sum + difference, 0);
+    const variance = sumOfSquaredDifferences / values.length;
+    return variance;
+};
+const computeLatLngVariance = (values) => {
+    // Calculate the average latitude and longitude
+    const sumLatitude = values.reduce((sum, { latitude }) => sum + latitude, 0);
+    const sumLongitude = values.reduce((sum, { longitude }) => sum + longitude, 0);
+    const avgLatitude = sumLatitude / values.length;
+    const avgLongitude = sumLongitude / values.length;
+    // Calculate the sum of squared distances
+    const sumSquaredDistances = values.reduce((sum, { latitude, longitude }) => {
+        const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude });
+        return sum + distance * distance;
+    }, 0);
+    const variance = sumSquaredDistances / (values.length - 1);
+    return variance;
+};
+const computeStringArrayVariance = (values) => {
+    const countUniqueStrings = (arr) => {
+        const uniqueStrings = new Set(arr);
+        return uniqueStrings.size;
+    };
+    // Calculate the average count of different strings
+    const sumCounts = values.reduce((sum, arr) => sum + countUniqueStrings(arr), 0);
+    const avgCount = sumCounts / values.length;
+    // Calculate the sum of squared differences from the average count
+    const sumSquaredDifferences = values.reduce((sum, arr) => {
+        const difference = countUniqueStrings(arr) - avgCount;
+        return sum + difference * difference;
+    }, 0);
+    // Calculate the variance
+    const variance = sumSquaredDifferences / (values.length - 1);
+    return variance;
 };

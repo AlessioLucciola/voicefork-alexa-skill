@@ -35,7 +35,8 @@ exports.CONF = {
         [100, 1],
     ],
     SCORE_THRESHOLDS: {
-        ok: 0.7,
-        disambiguate: 0.4,
+        high: 0.7,
+        medium: 0.4,
+        low: 0.2,
     },
 };
