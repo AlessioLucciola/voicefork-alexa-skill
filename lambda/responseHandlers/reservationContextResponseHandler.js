@@ -15,6 +15,7 @@ const apiCalls_1 = require("../apiCalls");
 const apiCalls_2 = require("../apiCalls");
 const constants_1 = require("../shared/constants");
 const dateTimeUtils_1 = require("../utils/dateTimeUtils");
+const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = constants_1.CONF;
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
  * @param handlerInput
@@ -23,9 +24,6 @@ const dateTimeUtils_1 = require("../utils/dateTimeUtils");
  */
 const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void 0, void 0, function* () {
     const { restaurantName, location, date, time, numPeople, yesNo } = slots;
-    const DISTANCE_THRESHOLD = 0.6;
-    const CONTEXT_SOFT_THRESHOLD = 2;
-    const CONTEXT_HARD_THRESHOLD = 0.5;
     let searchResults = [];
     const coordinates = (0, localizationFeatures_1.default)();
     if (!restaurantName || !date || !time || !numPeople) {
@@ -92,8 +90,6 @@ exports.handleSimilarRestaurants = handleSimilarRestaurants;
  */
 const computeAggregateScore = (context) => {
     const { contextDistance, nameDistance } = context;
-    const CONTEXT_WEIGHT = 0.3;
-    const NULL_DISTANCE_SCALING_FACTOR = 0.5; //The lower the less important the restaurant with contextDistance == null
     if (contextDistance == null) {
         //TODO: There is a problem with this, because if each restaurant has the distance == null, the nameDistance score gets too distorted
         const minNameDistance = Math.max(nameDistance, 0.05); // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
@@ -109,18 +105,6 @@ const computeAggregateScore = (context) => {
  * @returns
  */
 const normalizeContext = (inputValue) => {
-    const VALUE_MAP = [
-        [0, 0],
-        [0.1, 0.01],
-        [0.2, 0.05],
-        [0.3, 0.1],
-        [0.5, 0.3],
-        [1, 0.4],
-        [2, 0.5],
-        [3, 0.6],
-        [20, 0.8],
-        [100, 1],
-    ];
     // Sort the input values
     const sortedValues = VALUE_MAP.map(([inputValue]) => inputValue).sort((a, b) => a - b);
     // Find the index of inputValue in the sorted list
@@ -139,5 +123,30 @@ const normalizeContext = (inputValue) => {
         const [nextValue, nextNormalizedValue] = VALUE_MAP[index];
         const t = (inputValue - prevValue) / (nextValue - prevValue);
         return prevNormalizedValue + (nextNormalizedValue - prevNormalizedValue) * t;
+    }
+};
+const handleScores = (items) => {
+    const { SCORE_THRESHOLDS } = constants_1.CONF;
+    let highChoices = [];
+    let mediumChoices = [];
+    let lowChoices = [];
+    const { high, medium, low } = SCORE_THRESHOLDS;
+    for (let item of items) {
+        const { score } = item;
+        if (score >= high)
+            highChoices.push(item);
+        if (medium <= score && score < high)
+            mediumChoices.push(item);
+        if (low <= score && score < medium)
+            lowChoices.push(item);
+    }
+    if (highChoices.length > 0) {
+        //TODO:
+    }
+    if (mediumChoices.length > 0) {
+        //TODO:
+    }
+    else {
+        //TODO:
     }
 };

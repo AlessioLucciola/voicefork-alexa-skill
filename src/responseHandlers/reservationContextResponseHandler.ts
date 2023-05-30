@@ -136,3 +136,26 @@ const normalizeContext = (inputValue: number): number => {
         return prevNormalizedValue + (nextNormalizedValue - prevNormalizedValue) * t
     }
 }
+
+const handleScores = (items: { restaurant: Restaurant; score: number }[]) => {
+    const { SCORE_THRESHOLDS } = CONF
+    let highChoices = []
+    let mediumChoices = []
+    let lowChoices = []
+    const { high, medium, low } = SCORE_THRESHOLDS
+    for (let item of items) {
+        const { score } = item
+        if (score >= high) highChoices.push(item)
+        if (medium <= score && score < high) mediumChoices.push(item)
+        if (low <= score && score < medium) lowChoices.push(item)
+    }
+
+    if (highChoices.length > 0) {
+        //TODO:
+    }
+    if (mediumChoices.length > 0) {
+        //TODO:
+    } else {
+        //TODO:
+    }
+}

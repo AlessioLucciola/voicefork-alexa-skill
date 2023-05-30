@@ -35,4 +35,9 @@ export const CONF = {
         [20, 0.8],
         [100, 1],
     ],
+    SCORE_THRESHOLDS: {
+        high: 0.7,
+        medium: 0.4,
+        low: 0.2,
+    },
 }
