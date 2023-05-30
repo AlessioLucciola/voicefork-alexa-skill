@@ -15,6 +15,7 @@ const apiCalls_1 = require("../apiCalls");
 const apiCalls_2 = require("../apiCalls");
 const constants_1 = require("../shared/constants");
 const dateTimeUtils_1 = require("../utils/dateTimeUtils");
+const debugUtils_1 = require("../utils/debugUtils");
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = constants_1.CONF;
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -65,23 +66,36 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             nameDistance: result.nameDistance,
         });
     }
-    console.log(JSON.stringify(plausibleContexts, null, 2)); //TODO: debug
+    console.log((0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
     let scores = [];
     for (let context of plausibleContexts) {
         //TODO: For debug reasons I inserted also nameDistance and contextDistance, this have to be removed later.
         scores.push({
             restaurant: context.restaurant,
-            nameDistance: context.nameDistance,
-            contextDistance: context.contextDistance,
+            // nameDistance: context.nameDistance,
+            // contextDistance: context.contextDistance,
             score: computeAggregateScore(context),
         });
     }
     scores.sort((a, b) => b.score - a.score);
     //Examine the plausible restaurants
-    console.log(JSON.stringify(scores, null, 2)); //TODO: debug
-    return handlerInput.responseBuilder
-        .speak(`I examined the results, they are ${scores.length}, the top 3 are: ${JSON.stringify(scores.slice(0, 3))}`)
-        .getResponse();
+    console.log(`DEBUG SCORES: ${(0, debugUtils_1.beautify)(scores)}`); //TODO: debug
+    const handleResult = handleScores(scores);
+    if (!handleResult) {
+        return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse();
+    }
+    if ('field' in handleResult && 'variance' in handleResult) {
+        const { field, variance } = handleResult;
+        return handlerInput.responseBuilder
+            .speak(`I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`)
+            .getResponse();
+    }
+    else {
+        const { restaurant, score } = handleResult;
+        return handlerInput.responseBuilder
+            .speak(`I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`)
+            .getResponse();
+    }
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
 /**
@@ -141,20 +155,34 @@ const handleScores = (items) => {
         if (low <= score && score < medium)
             lowChoices.push(item);
     }
-    // let choices: RestaurantWithScore[][] = [highChoices, mediumChoices, lowChoices]
     if (highChoices.length > 0) {
-        //TODO:
+        console.log(`CHOICES_DEBUG: Inside high choices with length of ${highChoices.length}. The object is ${(0, debugUtils_1.beautify)(highChoices)}`);
+        const fieldAndVariance = computeHighestVariance(highChoices);
+        if (fieldAndVariance) {
+            return fieldAndVariance;
+        }
+        return highChoices[0]; //If variance is null, then it means that there is only an element
     }
     if (mediumChoices.length > 0) {
-        //TODO:
+        //TODO: Change this, for now it's just a copy of the highChoices
+        console.log(`CHOICES_DEBUG: Inside medium choices with length of ${mediumChoices.length}. The object is ${(0, debugUtils_1.beautify)(mediumChoices)}`);
+        const fieldAndVariance = computeHighestVariance(mediumChoices);
+        if (fieldAndVariance) {
+            return fieldAndVariance;
+        }
+        return mediumChoices[0]; //If variance is null, then it means that there is only an element
     }
-    else {
-        //TODO:
+    if (lowChoices.length > 0) {
+        //TODO: Change this, for now it's just a copy of the highChoices
+        console.log(`CHOICES_DEBUG: Inside low choices with length of ${lowChoices.length}. The object is ${(0, debugUtils_1.beautify)(lowChoices)}`);
+        const fieldAndVariance = computeHighestVariance(lowChoices);
+        if (fieldAndVariance) {
+            return fieldAndVariance;
+        }
+        return lowChoices[0]; //If variance is null, then it means that there is only an element
     }
+    return null;
 };
-//******************************************//
-//********COMPUTING VARIANCES***************//
-//******************************************//
 const computeHighestVariance = (items) => {
     if (items.length <= 1)
         return null;
@@ -169,13 +197,22 @@ const computeHighestVariance = (items) => {
         allCuisines.push(cuisines.split(',').map(item => item.trim()));
         allAvgRating.push(avgRating);
     }
+    console.log(`DEBUG DATA: ${(0, debugUtils_1.beautify)({
+        allLatLng: allLatLng,
+        allCities: allCities,
+        allCuisines: allCuisines,
+        allAvgRating: allAvgRating,
+    })}`);
     const variances = {
         latLng: computeLatLngVariance(allLatLng),
         city: computeStringArrayVariance(allCities),
         cuisine: computeStringArrayVariance(allCuisines),
         avgRating: computeSimpleVariance(allAvgRating),
     };
-    const [maxPropertyName, maxValue] = Object.entries(variances).reduce((acc, [property, value]) => (value > acc[1] ? [property, value] : acc), ['', -Infinity]);
+    console.log(`DEBUG VARIANCES (before normalization): ${(0, debugUtils_1.beautify)(variances)}`);
+    const normalizedVariances = normalizeVariances(variances);
+    console.log(`DEBUG NORMALIZED VARIANCES: ${(0, debugUtils_1.beautify)(normalizedVariances)}`);
+    const [maxPropertyName, maxValue] = Object.entries(normalizedVariances).reduce((acc, [property, value]) => (value > acc[1] ? [property, value] : acc), ['', -Infinity]);
     return { field: maxPropertyName, variance: maxValue };
 };
 const computeSimpleVariance = (values) => {
@@ -183,7 +220,8 @@ const computeSimpleVariance = (values) => {
     const squaredDifferences = values.map(value => Math.pow(value - mean, 2));
     const sumOfSquaredDifferences = squaredDifferences.reduce((sum, difference) => sum + difference, 0);
     const variance = sumOfSquaredDifferences / values.length;
-    return variance;
+    const standardDeviation = Math.sqrt(variance);
+    return { mean, std: standardDeviation, variance };
 };
 const computeLatLngVariance = (values) => {
     // Calculate the average latitude and longitude
@@ -196,8 +234,14 @@ const computeLatLngVariance = (values) => {
         const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude });
         return sum + distance * distance;
     }, 0);
+    // Calculate the sum of distances
+    const mean = values.reduce((sum, { latitude, longitude }) => {
+        const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude });
+        return sum + distance;
+    }, 0) / values.length;
     const variance = sumSquaredDistances / (values.length - 1);
-    return variance;
+    const standardDeviation = Math.sqrt(variance);
+    return { mean, std: standardDeviation, variance };
 };
 const computeStringArrayVariance = (values) => {
     const countUniqueStrings = (arr) => {
@@ -212,7 +256,28 @@ const computeStringArrayVariance = (values) => {
         const difference = countUniqueStrings(arr) - avgCount;
         return sum + difference * difference;
     }, 0);
+    const mean = values.reduce((sum, arr) => {
+        const difference = countUniqueStrings(arr) - avgCount;
+        return sum + difference * difference;
+    }, 0) / values.length;
     // Calculate the variance
     const variance = sumSquaredDifferences / (values.length - 1);
-    return variance;
+    const standardDeviation = Math.sqrt(variance);
+    return { mean, std: standardDeviation, variance };
+};
+const normalizeVariances = (variances) => {
+    let { latLng, city, cuisine, avgRating } = variances;
+    latLng = latLng;
+    city = city;
+    cuisine = cuisine;
+    avgRating = avgRating;
+    const zScore = (item) => {
+        return (item.variance - item.mean) / item.std;
+    };
+    return {
+        latLng: zScore(latLng),
+        city: zScore(city),
+        cuisine: zScore(cuisine),
+        avgRating: zScore(avgRating),
+    };
 };
