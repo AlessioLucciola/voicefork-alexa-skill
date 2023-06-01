@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "voicefork restaurants",
+            "invocationName": "local voicefork",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -29,12 +29,48 @@
                         {
                             "name": "restaurantName",
                             "type": "AMAZON.LocalBusiness",
-                            "samples": ["{restaurantName} for {numPeople}", "{restaurantName}", "at {restaurantName}"]
+                            "samples": [
+                                "{restaurantName} on {date} in {location} at {time} for {numPeople} ",
+                                "{restaurantName} on {date} in {location} at {time}",
+                                "{restaurantName} for {numPeople} in {location} on {date} at {time}",
+                                "{restaurantName} for {numPeople} at {time} in {location} on {date}",
+                                "{restaurantName} for {numPeople} at {time} in {location}",
+                                "{restaurantName} in {location} on {date} at {time} for {numPeople} ",
+                                "{restaurantName} in {location} for {numPeople} at {time}",
+                                "{restaurantName} at {time} in {location} on {date} for {numPeople} ",
+                                "{restaurantName} at {time} in {location} on {date}",
+                                "{restaurantName} at {time} in {location} for {numPeople} ",
+                                "{restaurantName} at {time} in {location}",
+                                "{restaurantName} for {numPeople} in {location} at {time}",
+                                "{restaurantName} for {meal}",
+                                "{restaurantName} in {location} at {time}",
+                                "{restaurantName} in {location} on {date}",
+                                "{restaurantName} in {location} on {date} at {time}",
+                                "{restaurantName} in {location}",
+                                "{restaurantName} on {date}",
+                                "{restaurantName} at {time}",
+                                "{restaurantName} on {date} at {time}",
+                                "{restaurantName} for {numPeople}",
+                                "{restaurantName}",
+                                "at {restaurantName}"
+                            ]
+                        },
+                        {
+                            "name": "location",
+                            "type": "AMAZON.City"
                         },
                         {
                             "name": "date",
                             "type": "AMAZON.DATE",
                             "samples": [
+                                "For {date} at {time} with {numPeople} in {location} at {restaurantName}",
+                                "For {date} at {time} in {location} for {numPeople} at {restaurantName}",
+                                "For {date} at {time} in {location} at {restaurantName}",
+                                "For {date} at {time} for {numPeople}  at {restaurantName}",
+                                "For {date} at {time} at {restaurantName}",
+                                "For {date} at {time} in {location} for {numPeople} ",
+                                "For {date} at {time} in {location}",
+                                "For {date} at {time} for {numPeople} ",
                                 "{date} {time}",
                                 "for {date} {time}",
                                 "{date}",
@@ -46,12 +82,45 @@
                         {
                             "name": "time",
                             "type": "AMAZON.TIME",
-                            "samples": ["at {time}", "{time}"]
+                            "samples": [
+                                "At {time} in {location} on {date} for {numPeople} at {restaurantName}",
+                                "At {time} in {location} on {date} at {restaurantName}",
+                                "At {time} on {date} for {numPeople} at {restaurantName}",
+                                "At {time} on {date} at {restaurantName}",
+                                "At {time} in {location} for {numPeople} at {restaurantName}",
+                                "At {time} in {location} at {restaurantName}",
+                                "At {time} for {numPeople} at {restaurantName}",
+                                "At {time} at {restaurantName}",
+                                "At {time} in {location} on {date} for {numPeople} ",
+                                "At {time} in {location} on {date}",
+                                "At {time} on {date} for {numPeople} ",
+                                "At {time} on {date}",
+                                "At {time} in {location} with {numPeople} ",
+                                "At {time} in {location}",
+                                "At {time} for {numPeople} ",
+                                "at {time}",
+                                "{time}"
+                            ]
                         },
                         {
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
-                            "samples": ["for {numPeople}", "{numPeople}"]
+                            "samples": [
+                                "For {numPeople} on {date} at {time} in {location} at {restaurantName}",
+                                "For {numPeople} at {time} at {restaurantName} in {location}",
+                                "For {numPeople} on {date} in {location} at {restaurantName}",
+                                "For {numPeople} on {date} at {time}",
+                                "For {numPeople} at {time} in {location} at {restaurantName} on {date}",
+                                "For {numPeople} at {time} on {date} at {restaurantName}",
+                                "For {numPeople} at {time} in {location} at {restaurantName}",
+                                "For {numPeople} at {time} on {date}",
+                                "For {numPeople} at {time} in {location}",
+                                "For {numPeople} at {time}",
+                                "For {numPeople} in {location}",
+                                "For {numPeople} on {date}",
+                                "for {numPeople}",
+                                "{numPeople}"
+                            ]
                         },
                         {
                             "name": "meal",
@@ -63,6 +132,42 @@
                         }
                     ],
                     "samples": [
+                        "reserve a table for {restaurantName} in {location} on {date} for {meal}",
+                        "reserve a table  in {location} on {date} for {meal}",
+                        "reserve a table  in {location} on {date}",
+                        "reserve a table  in {location} at {time}",
+                        "reserve a table  in {location} at {meal}",
+                        "reserve a table  in {location} for {meal}",
+                        "reserve a table  in {location} for {numPeople}",
+                        "reserve a table in {location} at {time} on {date}",
+                        "reserve a table for {restaurantName} in {location} at {time} for {numPeople}",
+                        "reserve a table for {restaurantName} in {location} for {numPeople}",
+                        "reserve a table for {restaurantName} in {location} at {time} on {date} for {numPeople}",
+                        "reserve a table for {restaurantName} in {location} on {date}",
+                        "reserve a table for {restaurantName} in {location} at {time}",
+                        "reserve a table for {restaurantName} in {location} ",
+                        "reserve a table for {restaurantName} in {location} at {time} on {date}",
+                        "i'd like to reserve a reservation for {restaurantName}",
+                        "i'd like to reserve a table for {restaurantName}",
+                        "make a reservation for {restaurantName}",
+                        "reserve a reservation for {restaurantName}",
+                        "get a table {restaurantName}",
+                        "book a reservation for {restaurantName}",
+                        "reserve a reservation at {restaurantName}",
+                        "make a reservation at {restaurantName}",
+                        "reserve a table for {restaurantName}",
+                        "reserve a {restaurantName} {date} on {time}",
+                        "reserve a reservation for {numPeople} {date}",
+                        "book me a table at {restaurantName}",
+                        "make a table for {restaurantName}",
+                        "i need to reserve a reservation for {restaurantName} for {numPeople} people",
+                        "i need to reserve a reservation at {restaurantName} for {numPeople} people",
+                        "book a restaurant for me",
+                        "book a reservation for {numPeople} {date}",
+                        "book a table for {restaurantName}",
+                        "book a table at {restaurantName}",
+                        "reserve a table for {date}",
+                        "reserve a table at {time}",
                         "reserve a table for {meal} at {restaurantName} for {numPeople} {date} ",
                         "reserve a table for {meal} at {restaurantName} ",
                         "reserve a table for {numPeople} people {date} for {meal} at {time} at {restaurantName}",
@@ -120,13 +225,19 @@
                         {
                             "name": {
                                 "value": "No",
-                                "synonyms": ["Nope"]
+                                "synonyms": [
+                                    "Nope"
+                                ]
                             }
                         },
                         {
                             "name": {
                                 "value": "Yes",
-                                "synonyms": ["Confirm", "Absolutely", "Sure"]
+                                "synonyms": [
+                                    "Confirm",
+                                    "Absolutely",
+                                    "Sure"
+                                ]
                             }
                         }
                     ]
@@ -153,6 +264,13 @@
                             }
                         },
                         {
+                            "name": "location",
+                            "type": "AMAZON.City",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        },
+                        {
                             "name": "date",
                             "type": "AMAZON.DATE",
                             "confirmationRequired": false,
@@ -177,7 +295,14 @@
                             "elicitationRequired": true,
                             "prompts": {
                                 "elicitation": "Elicit.Slot.1131910980557.483134300689"
-                            }
+                            },
+                            "validations": [
+                                {
+                                    "type": "isGreaterThan",
+                                    "prompt": "Slot.Validation.1455308135920.1563892441043.1019866544303",
+                                    "value": "0"
+                                }
+                            ]
                         },
                         {
                             "name": "meal",
@@ -269,6 +394,15 @@
                     {
                         "type": "PlainText",
                         "value": "Do I proceed to reserve a table at {restaurantName} the {date} at {time} for {numPeople} ?"
+                    }
+                ]
+            },
+            {
+                "id": "Slot.Validation.1455308135920.1563892441043.1019866544303",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "The number of people you want to reserve for is invalid. Please provide a correct value."
                     }
                 ]
             }
