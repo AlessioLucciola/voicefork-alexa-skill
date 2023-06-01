@@ -50,7 +50,7 @@ const ErrorHandler: ErrorHandler = {
         const errorMessage = error.message || 'Unknown error'
         const stackTrace = error.stack || 'No stack trace available'
 
-        const speakOutput = `Sorry, I had trouble doing what you asked. Please try again. Error: ${errorMessage}`
+        const speakOutput = `Sorry LOCAL, I had trouble doing what you asked. Please try again. Error: ${errorMessage}`
         console.log(`~~~~ Error handled: ${errorMessage}`)
         console.log(`~~~~ Stack trace: ${stackTrace}`)
 
@@ -63,7 +63,7 @@ const LaunchRequestHandler: RequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest'
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome to VoiceFork, tell me the details of the reservation!'
+        const speakOutput = 'Welcome to Local VoiceFork, tell me the details of the reservation!'
         return handlerInput.responseBuilder.speak(speakOutput).reprompt(speakOutput).getResponse()
     },
 }

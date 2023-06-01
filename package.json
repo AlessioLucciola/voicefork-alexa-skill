@@ -6,8 +6,9 @@
     "scripts": {
         "clean": "rimraf lambda",
         "prettify": "npx prettier --write .",
-        "build": "npm run clean && gulp",
-        "deploy": "npm run prettify && npm run build && git add . && git commit -m 'Deploy' && git push origin master"
+        "build": "npm run clean && tsc --build && cp ./src/package.json ./lambda/package.json",
+        "deploy": "npm run prettify && npm run build && git add . && git commit -m 'Deploy' && git push origin master",
+        "dev": "npm run build && tsc --watch"
     },
     "author": "Amazon Alexa",
     "license": "Apache License",

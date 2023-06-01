@@ -1,5 +1,6 @@
 export type RestaurantSlots = {
     restaurantName: string | undefined
+    location: string | undefined
     date: string | undefined
     time: string | undefined
     numPeople: string | undefined
