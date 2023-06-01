@@ -1,7 +1,6 @@
 { 
     "version": "0.2.0", 
     "configurations": [ 
-         
         { 
             "name": "Debug Alexa Skill (Node.js)", 
             "type": "node", 
@@ -20,7 +19,7 @@
                 "EU" 
             ], 
             "cwd": "${workspaceFolder}\\lambda",
-            "console": "integratedTerminal" // questo é per Danilo 😔
+            // "console": "integratedTerminal" // questo é per Danilo 😔
         },
     ] 
 }
