@@ -9,7 +9,7 @@ export const searchNearbyRestaurants = async (
 ): Promise<RestaurantSearchResult[]> => {
     const { latitude, longitude } = coordinates
     const MAX_DISTANCE = 50000
-    const LIMIT = 100
+    const LIMIT = 200
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
     const URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`
 

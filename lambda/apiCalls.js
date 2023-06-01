@@ -15,7 +15,7 @@ const axios_1 = require("axios");
 const searchNearbyRestaurants = (query, coordinates) => __awaiter(void 0, void 0, void 0, function* () {
     const { latitude, longitude } = coordinates;
     const MAX_DISTANCE = 50000;
-    const LIMIT = 100;
+    const LIMIT = 200;
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
     const URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`;
     const config = {
