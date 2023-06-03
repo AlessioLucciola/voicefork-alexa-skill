@@ -8,8 +8,8 @@ export type RestaurantSlots = {
 }
 
 export type LatLng = {
-    latitude: number
-    longitude: number
+    latitude?: number | undefined
+    longitude?: number | undefined
 }
 
 //This reflects the backend prisma Restaurant type, so it has to be changed whenever that is changed
