@@ -34,7 +34,6 @@ const MakeReservationIntentHandler = {
             let restaurantsList = [];
             let restaurantNameRes = [];
             let solveRestaurantName = false;
-            let mostSimilarRestaurantName = undefined;
             const { restaurantName, location, date, time, numPeople, yesNo } = {
                 restaurantName: slots === null || slots === void 0 ? void 0 : slots.restaurantName.value,
                 location: slots === null || slots === void 0 ? void 0 : slots.location.value,
@@ -51,13 +50,12 @@ const MakeReservationIntentHandler = {
                         .getResponse();
                 }
                 else {
-                    console.log('DEBUG finding similar restaurant!');
                     let restaurantNameInResults = [];
-                    for (let item of restaurants) {
+                    restaurants.map((item) => {
                         if (item.restaurant.name.toLowerCase().includes(restaurantName.toLowerCase())) {
                             restaurantNameInResults.push(item);
                         }
-                    }
+                    });
                     //sessionAttributes.restaurantsList = restaurants //Lista di tutti i ristoranti trovati
                     //sessionAttributes.restaurantNamesInResults = restaurantNameInResults //Lista dei ristoranti trovati in cui apparte il nome dato in input
                     //sessionAttributes.solveRestaurantName = true //Mi porta nel caso in cui va risolto il nome del ristorante
@@ -65,16 +63,15 @@ const MakeReservationIntentHandler = {
                     restaurantsList = restaurants;
                     restaurantNameRes = restaurantNameInResults;
                     solveRestaurantName = true;
-                    console.log('Im about to solving restaurant name error!');
-                    return solveRestaurantNameError();
+                    solveRestaurantNameError();
                 }
+                return;
             };
             const solveRestaurantNameError = () => {
                 if (restaurantNameRes.length > 0) {
                     //Caso in cui ho trovato risultati in cui appare il nome del ristorante
                     //Per ora prendo quello più simile ma forse si può fare qualcosa con il contesto o la distanza
-                    if (!restaurantNameRes[0].restaurant.name.toLowerCase() ===
-                        restaurantsList[0].restaurant.name.toLowerCase()) {
+                    if (!restaurantNameRes[0].restaurant.name.toLowerCase() === restaurantsList[0].restaurant.name.toLowerCase()) {
                         // Ci sarebbe da aggiornare lo slot con il nome del nuovo ristorante in qualche modo
                         // Prendo il ristorante più simile
                         sessionAttributes.restaurant = restaurantsList[0];
@@ -83,17 +80,17 @@ const MakeReservationIntentHandler = {
                         //Prendo il ristorante con esattamente lo stesso nome
                         sessionAttributes.restaurant = restaurantNameRes[0];
                     }
-                    return handlerInput.responseBuilder.speak("I didn't find any restaurants").getResponse();
                 }
                 else {
                     //Caso in cui non appare il nome del ristorante ma la lista è comunque non vuota quindi propongo quello più simile
-                    mostSimilarRestaurantName = restaurantsList[0].restaurant.name;
+                    const mostSimilarRestaurantName = restaurantsList[0].restaurant.name;
                     sessionAttributes.restaurant = restaurantsList[0];
                     return handlerInput.responseBuilder
                         .speak(`The restaurant ${restaurantName} doesn't exist, the most similar is ${mostSimilarRestaurantName}, did you mean that?`)
                         .addElicitSlotDirective('YesNoSlot')
                         .getResponse();
                 }
+                return;
             };
             const getRestaurants = (restaurantName) => __awaiter(this, void 0, void 0, function* () {
                 if (coordinates !== undefined && location !== undefined) {
@@ -123,7 +120,7 @@ const MakeReservationIntentHandler = {
                 }
             });
             //Get the list of restaurants and solve the possible disambiguation
-            if (restaurantName !== undefined) {
+            if (restaurantName !== undefined && (solveRestaurantName)) {
                 if (solveRestaurantName) {
                     // Caso in cui il nome detto dall'utente non è corretto e va proposto un nuovo nome
                     return handlerInput.responseBuilder
@@ -138,13 +135,12 @@ const MakeReservationIntentHandler = {
                         .getResponse();
                 }
                 else if (yesNo === undefined) {
-                    console.log('DEBUG: INSIDE YES NO');
                     // Caso in cui l'utente ha detto il nome del ristorante ma si deve ancora ottenere la lista
-                    return yield getRestaurants(restaurantName); //Richiama l'API che prende la lista dei ristoranti
+                    getRestaurants(restaurantName); //Richiama l'API che prende la lista dei ristoranti
                 }
             }
             if (time !== undefined && date !== undefined) {
-                const reservationDate = new Date(date + ' ' + time);
+                const reservationDate = new Date(date + " " + time);
                 if (reservationDate < new Date()) {
                     return handlerInput.responseBuilder
                         .speak(`Sorry, it seems that you are trying to reserve a table for a date in the past. You want to reserve a table at ${time} in which day?`)
@@ -157,15 +153,21 @@ const MakeReservationIntentHandler = {
                 const currentDate = new Date();
                 if (currentDate > new Date(date)) {
                     return handlerInput.responseBuilder
-                        .speak("Sorry, you can't reserve a table for a date in the past. Please, when do you want to reserve a table?")
+                        .speak('Sorry, you can\'t reserve a table for a date in the past. Please, when do you want to reserve a table?')
                         .addElicitSlotDirective('date')
                         .getResponse();
                 }
             }
-            if (!restaurantName || !date || !time || !numPeople) {
-                console.log('DEBUG: INSIDE GENERIC RESOLUTION');
-                return handlerInput.responseBuilder.addDelegateDirective().getResponse();
+            if (numPeople !== undefined) {
+                if (parseInt(numPeople) <= 0) {
+                    return handlerInput.responseBuilder
+                        .speak('The number of people you want to reserve for is invalid. Please, for how many people you want to reserve a table?')
+                        .addElicitSlotDirective('numPeople')
+                        .getResponse();
+                }
             }
+            if (!restaurantName || !date || !time || !numPeople)
+                return handlerInput.responseBuilder.addDelegateDirective().getResponse();
             return handlerInput.responseBuilder
                 .speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`)
                 .withShouldEndSession(true)

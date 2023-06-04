@@ -30,6 +30,7 @@
                             "name": "restaurantName",
                             "type": "AMAZON.LocalBusiness",
                             "samples": [
+                                "{restaurantName} on {date} at {time} for {numPeople}",
                                 "{restaurantName} on {date} in {location} at {time} for {numPeople} ",
                                 "{restaurantName} on {date} in {location} at {time}",
                                 "{restaurantName} for {numPeople} in {location} on {date} at {time}",
@@ -42,7 +43,6 @@
                                 "{restaurantName} at {time} in {location} for {numPeople} ",
                                 "{restaurantName} at {time} in {location}",
                                 "{restaurantName} for {numPeople} in {location} at {time}",
-                                "{restaurantName} for {meal}",
                                 "{restaurantName} in {location} at {time}",
                                 "{restaurantName} in {location} on {date}",
                                 "{restaurantName} in {location} on {date} at {time}",
@@ -51,8 +51,7 @@
                                 "{restaurantName} at {time}",
                                 "{restaurantName} on {date} at {time}",
                                 "{restaurantName} for {numPeople}",
-                                "{restaurantName}",
-                                "at {restaurantName}"
+                                "{restaurantName}"
                             ]
                         },
                         {
@@ -63,16 +62,13 @@
                             "name": "date",
                             "type": "AMAZON.DATE",
                             "samples": [
-                                "For {date} at {time} with {numPeople} in {location}",
+                                "{date} at {time} with {numPeople} in {location}",
                                 "{date} at {time} in {location} for {numPeople}",
                                 "{date} at {time} in {location} ",
-                                " {date} at {time} for {numPeople} ",
+                                "{date} at {time} for {numPeople} ",
                                 "{date} {time}",
-                                "for {date} {time}",
                                 "{date}",
-                                "{date} at {time}",
-                                "for {date} at {time}",
-                                "for {date} "
+                                "{date} at {time}"
                             ]
                         },
                         {
@@ -83,16 +79,9 @@
                                 "{time} in {location} on {date}",
                                 "{time} on {date} for {numPeople}",
                                 "{time} on {date} ",
-                                "At {time} in {location} for {numPeople} ",
+                                "{time} in {location} for {numPeople} ",
                                 "{time} in {location} ",
                                 "{time} for {numPeople} ",
-                                "At {time} in {location} on {date} for {numPeople} ",
-                                "At {time} in {location} on {date}",
-                                "At {time} on {date} for {numPeople} ",
-                                "At {time} in {location} with {numPeople} ",
-                                "At {time} in {location}",
-                                "At {time} for {numPeople} ",
-                                "at {time}",
                                 "{time}"
                             ]
                         },
@@ -100,23 +89,15 @@
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
                             "samples": [
+                                "{numPeople} at {time} on {date}",
+                                "{numPeople} at {time} in {location}",
+                                "{numPeople} on {date} at {time} in {location}",
+                                "{numPeople} on {date} in {location} at {time}",
+                                "{numPeople} on {date} in {location}",
                                 "{numPeople} at {time}",
-                                " {numPeople} in {location}",
-                                " {numPeople} on {date}",
-                                "For {numPeople} on {date} at {time} in {location}",
-                                "For {numPeople} at {time}  in {location}",
-                                "For {numPeople} on {date} in {location} ",
-                                "For {numPeople} on {date} at {time}",
-                                "For {numPeople} at {time} in {location} on {date}",
-                                "{numPeople} at {time} on {date} ",
-                                "{numPeople} at {time} in {location} ",
-                                "For {numPeople} at {time} on {date}",
-                                "For {numPeople} at {time} in {location}",
-                                "For {numPeople} at {time}",
-                                "For {numPeople} in {location}",
-                                "For {numPeople} on {date}",
-                                "for {numPeople}",
-                                "{numPeople}"
+                                "{numPeople} on {date}",
+                                "{numPeople}",
+                                "{numPeople} in {location}"
                             ]
                         },
                         {
@@ -130,12 +111,12 @@
                     ],
                     "samples": [
                         "reserve a table for {restaurantName} in {location} on {date} for {meal}",
-                        "reserve a table  in {location} on {date} for {meal}",
-                        "reserve a table  in {location} on {date}",
-                        "reserve a table  in {location} at {time}",
-                        "reserve a table  in {location} at {meal}",
-                        "reserve a table  in {location} for {meal}",
-                        "reserve a table  in {location} for {numPeople}",
+                        "reserve a table in {location} on {date} for {meal}",
+                        "reserve a table in {location} on {date}",
+                        "reserve a table in {location} at {time}",
+                        "reserve a table in {location} at {meal}",
+                        "reserve a table in {location} for {meal}",
+                        "reserve a table in {location} for {numPeople}",
                         "reserve a table in {location} at {time} on {date}",
                         "reserve a table for {restaurantName} in {location} at {time} for {numPeople}",
                         "reserve a table for {restaurantName} in {location} for {numPeople}",
@@ -292,14 +273,7 @@
                             "elicitationRequired": true,
                             "prompts": {
                                 "elicitation": "Elicit.Slot.1131910980557.483134300689"
-                            },
-                            "validations": [
-                                {
-                                    "type": "isGreaterThan",
-                                    "prompt": "Slot.Validation.1455308135920.1563892441043.1019866544303",
-                                    "value": "0"
-                                }
-                            ]
+                            }
                         },
                         {
                             "name": "meal",
@@ -391,15 +365,6 @@
                     {
                         "type": "PlainText",
                         "value": "Do I proceed to reserve a table at {restaurantName} the {date} at {time} for {numPeople} ?"
-                    }
-                ]
-            },
-            {
-                "id": "Slot.Validation.1455308135920.1563892441043.1019866544303",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "The number of people you want to reserve for is invalid. Please provide a correct value."
                     }
                 ]
             }
