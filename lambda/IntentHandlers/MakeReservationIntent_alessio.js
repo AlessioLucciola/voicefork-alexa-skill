@@ -50,7 +50,6 @@ const MakeReservationIntentHandler = {
                         .getResponse();
                 }
                 else {
-                    console.log('DEBUG finding similar restaurant!');
                     let restaurantNameInResults = [];
                     restaurants.map((item) => {
                         if (item.restaurant.name.toLowerCase().includes(restaurantName.toLowerCase())) {
@@ -102,8 +101,6 @@ const MakeReservationIntentHandler = {
                 else if (coordinates !== undefined && location === undefined) {
                     // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
                     const restaurants = yield (0, apiCalls_1.searchNearbyRestaurants)(restaurantName, coordinates);
-                    console.log(`DEBUG FOUND ${restaurants.length} RESTAURANTS!`);
-                    console.log('DEBUG INSIDE COORDINTES BUT NOT CITY CASE');
                     findSimilarRestaurant(restaurantName, restaurants);
                 }
                 else if (coordinates === undefined && location !== undefined) {
@@ -137,7 +134,6 @@ const MakeReservationIntentHandler = {
                         .getResponse();
                 }
                 else if (yesNo === undefined) {
-                    console.log('DEBUG: INSIDE YES NO');
                     // Caso in cui l'utente ha detto il nome del ristorante ma si deve ancora ottenere la lista
                     getRestaurants(restaurantName); //Richiama l'API che prende la lista dei ristoranti
                 }
@@ -162,8 +158,7 @@ const MakeReservationIntentHandler = {
                 }
             }
             if (!restaurantName || !date || !time || !numPeople)
-                console.log('DEBUG: INSIDE GENERIC RESOLUTION');
-            return handlerInput.responseBuilder.addDelegateDirective().getResponse();
+                return handlerInput.responseBuilder.addDelegateDirective().getResponse();
             return handlerInput.responseBuilder
                 .speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`)
                 .withShouldEndSession(true)

@@ -3,7 +3,7 @@ import { RESTAURANTS_URL } from './shared/urls'
 import axios from 'axios'
 import { RestaurantSearchResult } from './shared/types'
 
-export const searchRestaurants = async (
+export const searchNearbyRestaurants = async (
     query: string,
     coordinates: LatLng,
 ): Promise<RestaurantSearchResult[]> => {
@@ -25,10 +25,11 @@ export const searchRestaurants = async (
 }
 
 export const searchRestaurantsByCity = async (
+    query: string,
     location: string,
 ): Promise<RestaurantSearchResult[]> => {
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
-    const URL = `${RESTAURANTS_URL}restaurants-by-city?city=${location}`
+    const URL = `${RESTAURANTS_URL}search-restaurants?query=${query}&city=${location}`
 
     const config = {
         headers: {

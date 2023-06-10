@@ -46,7 +46,6 @@ const MakeReservationIntentHandler: RequestHandler = {
                 )
                 .getResponse()
             } else {
-                console.log('DEBUG finding similar restaurant!')
                 let restaurantNameInResults: any = []
                 restaurants.map((item: any) => {
                     if (item.restaurant.name.toLowerCase().includes(restaurantName.toLowerCase())) {
@@ -100,8 +99,6 @@ const MakeReservationIntentHandler: RequestHandler = {
             } else if (coordinates !== undefined && location === undefined) {
                 // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
                 const restaurants = await searchNearbyRestaurants(restaurantName, coordinates)
-                console.log(`DEBUG FOUND ${restaurants.length} RESTAURANTS!`)
-                console.log('DEBUG INSIDE COORDINTES BUT NOT CITY CASE')
                 findSimilarRestaurant(restaurantName, restaurants)
             } else if (coordinates === undefined && location !== undefined ) {
                 // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
@@ -138,7 +135,6 @@ const MakeReservationIntentHandler: RequestHandler = {
                 )
                 .getResponse()
             } else if (yesNo === undefined) {
-                console.log('DEBUG: INSIDE YES NO')
                 // Caso in cui l'utente ha detto il nome del ristorante ma si deve ancora ottenere la lista
                 getRestaurants(restaurantName) //Richiama l'API che prende la lista dei ristoranti
             }
@@ -170,7 +166,6 @@ const MakeReservationIntentHandler: RequestHandler = {
         }
 
         if (!restaurantName || !date || !time || !numPeople)
-            console.log('DEBUG: INSIDE GENERIC RESOLUTION')
             return handlerInput.responseBuilder.addDelegateDirective().getResponse()
 
         return handlerInput.responseBuilder
