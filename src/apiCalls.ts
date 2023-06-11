@@ -9,8 +9,8 @@ export const searchNearbyRestaurants = async (
     coordinates: LatLng,
 ): Promise<RestaurantSearchResult[]> => {
     const { latitude, longitude } = coordinates
-    const MAX_DISTANCE = 50000
-    const LIMIT = 100
+    const MAX_DISTANCE = 50_000
+    const LIMIT = 500
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
     const URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`
 
@@ -38,12 +38,13 @@ export const searchRestaurants = async (
     city?: string,
 ): Promise<RestaurantSearchResult[]> => {
     let URL = ''
+    const LIMIT = 500
     if (locationInfo) {
         const { location, maxDistance } = locationInfo
         const { latitude, longitude } = location
-        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=500`
+        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=${LIMIT}`
     } else {
-        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`
+        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=${LIMIT}`
     }
     console.log(`Made api call to ${URL}`)
     const data: RestaurantSearchResult[] = (await axios.get(URL)).data

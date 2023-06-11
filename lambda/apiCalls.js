@@ -16,7 +16,7 @@ const constants_1 = require("./shared/constants");
 const searchNearbyRestaurants = (query, coordinates) => __awaiter(void 0, void 0, void 0, function* () {
     const { latitude, longitude } = coordinates;
     const MAX_DISTANCE = 50000;
-    const LIMIT = 100;
+    const LIMIT = 500;
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
     const URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`;
     const config = {
@@ -38,13 +38,14 @@ exports.searchNearbyRestaurants = searchNearbyRestaurants;
  */
 const searchRestaurants = (query, locationInfo, city) => __awaiter(void 0, void 0, void 0, function* () {
     let URL = '';
+    const LIMIT = 500;
     if (locationInfo) {
         const { location, maxDistance } = locationInfo;
         const { latitude, longitude } = location;
-        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=500`;
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=${LIMIT}`;
     }
     else {
-        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`;
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=${LIMIT}`;
     }
     console.log(`Made api call to ${URL}`);
     const data = (yield axios_1.default.get(URL)).data;

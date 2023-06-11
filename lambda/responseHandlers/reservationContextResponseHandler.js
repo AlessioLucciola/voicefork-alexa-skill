@@ -71,8 +71,8 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     let plausibleContexts = [];
     //Examine the search results
     for (let result of searchResults) {
-        if (result.nameDistance > DISTANCE_THRESHOLD)
-            continue;
+        if (result.nameDistance >= DISTANCE_THRESHOLD)
+            continue; //TODO: maybe remove it
         const { id } = result.restaurant;
         const { weekday: currentDay, hour: currentHour, minute: currentMinute } = (0, dateTimeUtils_1.getDateComponentsFromDate)();
         const currentTime = (0, dateTimeUtils_1.parseTime)(currentHour, currentMinute);
@@ -96,19 +96,27 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             nameDistance: result.nameDistance,
         });
     }
-    console.log((0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
+    console.log('DEBUG_PLAUSIBLE_CONTEXT: ', (0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
     let scores = [];
-    for (let context of plausibleContexts) {
-        //TODO: For debug reasons I inserted also nameDistance and contextDistance, this have to be removed later.
-        scores.push({
-            restaurant: context.restaurant,
-            // nameDistance: context.nameDistance,
-            // contextDistance: context.contextDistance,
-            score: computeAggregateScore(context),
-        });
+    if (plausibleContexts.every(context => context === null)) {
+        //If all the context are null, then the score is just 1 - nameDistnace
+        for (let context of plausibleContexts) {
+            scores.push({
+                restaurant: context.restaurant,
+                score: context.nameDistance,
+            });
+        }
+    }
+    else {
+        //If a non-null context exists, I have to adjust all the scores accordingly in order to push the restaurant with a context up in the list
+        for (let context of plausibleContexts) {
+            scores.push({
+                restaurant: context.restaurant,
+                score: computeAggregateScore(context),
+            });
+        }
     }
     scores.sort((a, b) => b.score - a.score);
-    //Examine the plausible restaurants
     console.log(`DEBUG SCORES: ${(0, debugUtils_1.beautify)(scores)}`); //TODO: debug
     const handleResult = handleScores(scores);
     if (!handleResult) {
@@ -136,7 +144,6 @@ exports.handleSimilarRestaurants = handleSimilarRestaurants;
 const computeAggregateScore = (context) => {
     const { contextDistance, nameDistance } = context;
     if (contextDistance == null) {
-        //TODO: There is a problem with this, because if each restaurant has the distance == null, the nameDistance score gets too distorted
         const minNameDistance = Math.max(nameDistance, 0.05); // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
         return 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1);
     }
