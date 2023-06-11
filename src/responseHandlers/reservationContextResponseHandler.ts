@@ -41,7 +41,7 @@ export const handleSimilarRestaurants = async (
 
     //Examine the search results
     for (let result of searchResults) {
-        if (result.nameDistance > DISTANCE_THRESHOLD) continue
+        if (result.nameDistance < DISTANCE_THRESHOLD) continue // TODO: da rivedere?
 
         const { id } = result.restaurant
 

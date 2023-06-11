@@ -30,7 +30,19 @@
                             "name": "restaurantName",
                             "type": "AMAZON.LocalBusiness",
                             "samples": [
-                                "{restaurantName} for {meal}",
+                                "{restaurantName} on {date} at {time} for {numPeople}",
+                                "{restaurantName} on {date} in {location} at {time} for {numPeople} ",
+                                "{restaurantName} on {date} in {location} at {time}",
+                                "{restaurantName} for {numPeople} in {location} on {date} at {time}",
+                                "{restaurantName} for {numPeople} at {time} in {location} on {date}",
+                                "{restaurantName} for {numPeople} at {time} in {location}",
+                                "{restaurantName} in {location} on {date} at {time} for {numPeople} ",
+                                "{restaurantName} in {location} for {numPeople} at {time}",
+                                "{restaurantName} at {time} in {location} on {date} for {numPeople} ",
+                                "{restaurantName} at {time} in {location} on {date}",
+                                "{restaurantName} at {time} in {location} for {numPeople} ",
+                                "{restaurantName} at {time} in {location}",
+                                "{restaurantName} for {numPeople} in {location} at {time}",
                                 "{restaurantName} in {location} at {time}",
                                 "{restaurantName} in {location} on {date}",
                                 "{restaurantName} in {location} on {date} at {time}",
@@ -39,8 +51,7 @@
                                 "{restaurantName} at {time}",
                                 "{restaurantName} on {date} at {time}",
                                 "{restaurantName} for {numPeople}",
-                                "{restaurantName}",
-                                "at {restaurantName}"
+                                "{restaurantName}"
                             ]
                         },
                         {
@@ -51,19 +62,26 @@
                             "name": "date",
                             "type": "AMAZON.DATE",
                             "samples": [
-                                "{date} {time}",
-                                "for {date} {time}",
-                                "{date}",
                                 "{date} at {time}",
-                                "for {date} at {time}",
-                                "for {date} "
+                                "{date}",
+                                "{date} {time}",
+                                "{date} at {time} for {numPeople}",
+                                "{date} to {restaurantName}",
+                                "{date} to {restaurantName} at {time}",
+                                "{date} to {restaurantName} at {time} for {numPeople}"
                             ]
                         },
                         {
                             "name": "time",
                             "type": "AMAZON.TIME",
                             "samples": [
-                                "at {time}",
+                                "{time} in {location} on {date} for {numPeople}",
+                                "{time} in {location} on {date}",
+                                "{time} on {date} for {numPeople}",
+                                "{time} on {date} ",
+                                "{time} in {location} for {numPeople} ",
+                                "{time} in {location} ",
+                                "{time} for {numPeople} ",
                                 "{time}"
                             ]
                         },
@@ -71,8 +89,15 @@
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
                             "samples": [
-                                "for {numPeople}",
-                                "{numPeople}"
+                                "{numPeople} at {time} on {date}",
+                                "{numPeople} at {time} in {location}",
+                                "{numPeople} on {date} at {time} in {location}",
+                                "{numPeople} on {date} in {location} at {time}",
+                                "{numPeople} on {date} in {location}",
+                                "{numPeople} at {time}",
+                                "{numPeople} on {date}",
+                                "{numPeople}",
+                                "{numPeople} in {location}"
                             ]
                         },
                         {
@@ -85,64 +110,68 @@
                         }
                     ],
                     "samples": [
-                        "reserve a table for {restaurantName} in {location} on {date} for {meal}",
-                        "reserve a table  in {location} on {date} for {meal}",
-                        "reserve a table  in {location} on {date}",
-                        "reserve a table  in {location} at {time}",
-                        "reserve a table  in {location} at {meal}",
-                        "reserve a table  in {location} for {meal}",
-                        "reserve a table  in {location} for {numPeople}",
+                        "reserve a table in {location} on {date}",
+                        "reserve a table in {location} at {time}",
+                        "reserve a table in {location}",
+                        "reserve a table in {location} for {numPeople}",
                         "reserve a table in {location} at {time} on {date}",
-                        "reserve a table for {restaurantName} in {location} at {time} for {numPeople}",
-                        "reserve a table for {restaurantName} in {location} for {numPeople}",
-                        "reserve a table for {restaurantName} in {location} at {time} on {date} for {numPeople}",
-                        "reserve a table for {restaurantName} in {location} on {date}",
-                        "reserve a table for {restaurantName} in {location} at {time}",
-                        "reserve a table for {restaurantName} in {location} ",
-                        "reserve a table for {restaurantName} in {location} at {time} on {date}",
-                        "i'd like to reserve a reservation for {restaurantName}",
-                        "i'd like to reserve a table for {restaurantName}",
-                        "make a reservation for {restaurantName}",
-                        "reserve a reservation for {restaurantName}",
-                        "get a table {restaurantName}",
-                        "book a reservation for {restaurantName}",
-                        "reserve a reservation at {restaurantName}",
-                        "make a reservation at {restaurantName}",
-                        "reserve a table for {restaurantName}",
-                        "reserve a {restaurantName} {date} on {time}",
-                        "reserve a reservation for {numPeople} {date}",
-                        "book me a table at {restaurantName}",
-                        "make a table for {restaurantName}",
-                        "i need to reserve a reservation for {restaurantName} for {numPeople} people",
-                        "i need to reserve a reservation at {restaurantName} for {numPeople} people",
+                        "reserve a table to {restaurantName} in {location} at {time} for {numPeople}",
+                        "reserve a table to {restaurantName} in {location} for {numPeople}",
+                        "reserve a table to {restaurantName} in {location} at {time} on {date} for {numPeople}",
+                        "reserve a table to {restaurantName} in {location} on {date}",
+                        "reserve a table to {restaurantName} in {location} at {time}",
+                        "reserve a table to {restaurantName} in {location} ",
+                        "reserve a table to {restaurantName} in {location} at {time} on {date}",
+                        "I'd like to reserve a reservation to {restaurantName}",
+                        "get a table to {restaurantName}",
+                        "book a reservation to {restaurantName}",
+                        "reserve a reservation to {restaurantName}",
+                        "make a reservation to {restaurantName}",
+                        "reserve a table to {restaurantName} on {date} at {time}",
+                        "reserve a reservation for {numPeople} on {date}",
+                        "book me a table to {restaurantName}",
+                        "i need to reserve a reservation to {restaurantName} for {numPeople}",
                         "book a restaurant for me",
                         "book a reservation for {numPeople} {date}",
-                        "book a table for {restaurantName}",
-                        "book a table at {restaurantName}",
+                        "book a table to {restaurantName}",
                         "reserve a table for {date}",
                         "reserve a table at {time}",
-                        "reserve a table for {meal} at {restaurantName} for {numPeople} {date} ",
-                        "reserve a table for {meal} at {restaurantName} ",
-                        "reserve a table for {numPeople} people {date} for {meal} at {time} at {restaurantName}",
-                        "book a table for {restaurantName} for {numPeople}",
-                        "{restaurantName} for {numPeople} the {date} at {time}",
+                        "reserve a table to {restaurantName} for {numPeople} on {date}",
+                        "reserve a table for {numPeople} on {date} at {time} to {restaurantName}",
+                        "book a table to {restaurantName} for {numPeople}",
+                        "{restaurantName} for {numPeople} on {date} at {time}",
                         "{restaurantName}",
-                        "reserve a table at {restaurantName} for {numPeople} {date} at {time}",
-                        "reserve a table at {restaurantName}",
-                        "reserve a table for {date} at {time}",
+                        "reserve a table to {restaurantName}",
+                        "reserve a table on {date} at {time}",
                         "reserve a table for {numPeople}",
                         "reserve a table",
                         "book a restaurant",
-                        "Make a reservation for {numPeople} people at {restaurantName} for {meal} on {date} ",
-                        "I'd like to reserve a table at {restaurantName} for {meal} ",
-                        "Can you book a table for {numPeople} people on {date} at {time} at {restaurantName} ",
-                        "I need to reserve a table for {restaurantName} for {numPeople} people.",
-                        "Can you help me book a table at {restaurantName} for {numPeople} on {date} at {time} ",
-                        "Reserve a table at {restaurantName} for {numPeople} on {date} at {time} ",
-                        "Make a reservation at {restaurantName} for {numPeople} people on {date} at {time} ",
-                        "I'd like to book a table for {numPeople} people at {restaurantName} for {meal} on {date} at {time} ",
-                        "Reserve a table for {meal} at {restaurantName} on {date} at {time} ",
-                        "I need to book a table for {numPeople} people at {restaurantName} on {date} at {time} "
+                        "Make a reservation for {numPeople} to {restaurantName} on {date}",
+                        "I'd like to reserve a table to {restaurantName}",
+                        "Can you book a table for {numPeople} on {date} at {time} to {restaurantName}",
+                        "I need to reserve a table to {restaurantName} for {numPeople}",
+                        "Can you help me book a table to {restaurantName} for {numPeople} on {date} at {time}",
+                        "Make a reservation to {restaurantName} for {numPeople}  on {date} at {time}",
+                        "I'd like to book a table for {numPeople} to {restaurantName} on {date} at {time}",
+                        "I need to book a table for {numPeople} to {restaurantName} on {date} at {time}",
+                        "Reserve a table for {numPeople} people to {restaurantName} in {location} on {date} at {time}",
+                        "Book a table to {restaurantName} in {location} for {numPeople} on {date} at {time}",
+                        "Can you help me reserve a table for {numPeople} to {restaurantName} in {location} on {date} at {time} ",
+                        "Reserve a table for {numPeople} to {restaurantName} in {location} on {date} at {time}",
+                        "Make a reservation to {restaurantName} in {location} for {numPeople} on {date} at {time}",
+                        "I'd like to reserve a table for {numPeople} to {restaurantName} in {location} on {date} at {time}",
+                        "Book a table for {numPeople} to {restaurantName} on {date} at {time}",
+                        "Make a reservation for {numPeople} to {restaurantName} on {date} at {time}",
+                        "Can you help me reserve a table to {restaurantName} for {numPeople} on {date} at {time}",
+                        "I need to book a table to {restaurantName} for {numPeople} on {date} at {time}",
+                        "Reserve a table for {numPeople} to {restaurantName} on {date} at {time}",
+                        "I'd like to make a reservation to {restaurantName} for {numPeople} on {date} at {time}",
+                        "Can you book a table for {numPeople} to {restaurantName} on {date} at {time}",
+                        "I'd like to reserve a table for {numPeople} to {restaurantName} on {date} at {time}",
+                        "Make a reservation for {numPeople} to {restaurantName} on {date} at {time} in {location}",
+                        "Can you help me reserve a table for {numPeople} to {restaurantName} on {date} at {time} in {location}",
+                        "Reserve a table for {numPeople} to {restaurantName} on {date} at {time} in {location}",
+                        "I'd like to reserve a table for {numPeople} to {restaurantName} on {date} at {time} in {location}"
                     ]
                 }
             ],
@@ -275,7 +304,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "OK, {restaurantName} {date} at {time} , for how many people?"
+                        "value": "OK, at {restaurantName} on {date} at {time} , for how many people?"
                     },
                     {
                         "type": "PlainText",
@@ -288,11 +317,31 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Ok, {restaurantName} for {numPeople} , for when?"
+                        "value": "Ok, at {time} for {numPeople} , for when?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "OK, restaurant {restaurantName} , for when?"
+                        "value": "Ok, to {restaurantName}  at {time} for {numPeople} , for when?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Ok, at {time} , for when?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Ok, for {numPeople} , for when?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Ok, to {restaurantName} at {time} , for when?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Ok, to {restaurantName} for {numPeople} , for when?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Ok, to {restaurantName} , for when?"
                     },
                     {
                         "type": "PlainText",
@@ -305,7 +354,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "OK for {date} , at what time?"
+                        "value": "OK, on {date} , at what time?"
                     },
                     {
                         "type": "PlainText",
@@ -339,7 +388,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Do I proceed to reserve a table at {restaurantName} the {date} at {time} for {numPeople} ?"
+                        "value": "Do I proceed to reserve a table to {restaurantName} on {date} at {time} for {numPeople} people?"
                     }
                 ]
             }
