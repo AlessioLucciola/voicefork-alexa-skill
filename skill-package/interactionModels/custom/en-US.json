@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "voicefork restaurants",
+            "invocationName": "local voicefork",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -29,7 +29,23 @@
                         {
                             "name": "restaurantName",
                             "type": "AMAZON.LocalBusiness",
-                            "samples": ["{restaurantName} for {numPeople}", "{restaurantName}", "at {restaurantName}"]
+                            "samples": [
+                                "{restaurantName} for {meal}",
+                                "{restaurantName} in {location} at {time}",
+                                "{restaurantName} in {location} on {date}",
+                                "{restaurantName} in {location} on {date} at {time}",
+                                "{restaurantName} in {location}",
+                                "{restaurantName} on {date}",
+                                "{restaurantName} at {time}",
+                                "{restaurantName} on {date} at {time}",
+                                "{restaurantName} for {numPeople}",
+                                "{restaurantName}",
+                                "at {restaurantName}"
+                            ]
+                        },
+                        {
+                            "name": "location",
+                            "type": "AMAZON.City"
                         },
                         {
                             "name": "date",
@@ -46,12 +62,18 @@
                         {
                             "name": "time",
                             "type": "AMAZON.TIME",
-                            "samples": ["at {time}", "{time}"]
+                            "samples": [
+                                "at {time}",
+                                "{time}"
+                            ]
                         },
                         {
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
-                            "samples": ["for {numPeople}", "{numPeople}"]
+                            "samples": [
+                                "for {numPeople}",
+                                "{numPeople}"
+                            ]
                         },
                         {
                             "name": "meal",
@@ -63,6 +85,42 @@
                         }
                     ],
                     "samples": [
+                        "reserve a table for {restaurantName} in {location} on {date} for {meal}",
+                        "reserve a table  in {location} on {date} for {meal}",
+                        "reserve a table  in {location} on {date}",
+                        "reserve a table  in {location} at {time}",
+                        "reserve a table  in {location} at {meal}",
+                        "reserve a table  in {location} for {meal}",
+                        "reserve a table  in {location} for {numPeople}",
+                        "reserve a table in {location} at {time} on {date}",
+                        "reserve a table for {restaurantName} in {location} at {time} for {numPeople}",
+                        "reserve a table for {restaurantName} in {location} for {numPeople}",
+                        "reserve a table for {restaurantName} in {location} at {time} on {date} for {numPeople}",
+                        "reserve a table for {restaurantName} in {location} on {date}",
+                        "reserve a table for {restaurantName} in {location} at {time}",
+                        "reserve a table for {restaurantName} in {location} ",
+                        "reserve a table for {restaurantName} in {location} at {time} on {date}",
+                        "i'd like to reserve a reservation for {restaurantName}",
+                        "i'd like to reserve a table for {restaurantName}",
+                        "make a reservation for {restaurantName}",
+                        "reserve a reservation for {restaurantName}",
+                        "get a table {restaurantName}",
+                        "book a reservation for {restaurantName}",
+                        "reserve a reservation at {restaurantName}",
+                        "make a reservation at {restaurantName}",
+                        "reserve a table for {restaurantName}",
+                        "reserve a {restaurantName} {date} on {time}",
+                        "reserve a reservation for {numPeople} {date}",
+                        "book me a table at {restaurantName}",
+                        "make a table for {restaurantName}",
+                        "i need to reserve a reservation for {restaurantName} for {numPeople} people",
+                        "i need to reserve a reservation at {restaurantName} for {numPeople} people",
+                        "book a restaurant for me",
+                        "book a reservation for {numPeople} {date}",
+                        "book a table for {restaurantName}",
+                        "book a table at {restaurantName}",
+                        "reserve a table for {date}",
+                        "reserve a table at {time}",
                         "reserve a table for {meal} at {restaurantName} for {numPeople} {date} ",
                         "reserve a table for {meal} at {restaurantName} ",
                         "reserve a table for {numPeople} people {date} for {meal} at {time} at {restaurantName}",
@@ -120,13 +178,19 @@
                         {
                             "name": {
                                 "value": "No",
-                                "synonyms": ["Nope"]
+                                "synonyms": [
+                                    "Nope"
+                                ]
                             }
                         },
                         {
                             "name": {
                                 "value": "Yes",
-                                "synonyms": ["Confirm", "Absolutely", "Sure"]
+                                "synonyms": [
+                                    "Confirm",
+                                    "Absolutely",
+                                    "Sure"
+                                ]
                             }
                         }
                     ]
@@ -151,6 +215,13 @@
                             "prompts": {
                                 "elicitation": "Elicit.Slot.1131910980557.1052744693404"
                             }
+                        },
+                        {
+                            "name": "location",
+                            "type": "AMAZON.City",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
                         },
                         {
                             "name": "date",

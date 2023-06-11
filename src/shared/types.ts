@@ -1,5 +1,6 @@
 export type RestaurantSlots = {
     restaurantName: string | undefined
+    location: string | undefined
     date: string | undefined
     time: string | undefined
     numPeople: string | undefined
@@ -15,6 +16,7 @@ export type LatLng = {
 export type Restaurant = {
     id: number
     imageName: string
+    embeddingName: string
     name: string
     address: string
     latitude: number
@@ -40,4 +42,26 @@ export type RestaurantSearchResult = {
     restaurant: Restaurant
     nameDistance: number
     locationDistance?: number
+}
+
+export type ReservationContext = {
+    id_restaurant: number
+    n_people: number
+    reservationLocation: LatLng
+    centroidDistance?: number
+    timeDistanceFromCurrent?: number
+    timeDistanceFromReservation?: number
+    currentDay: number
+    reservationDay: number
+    currentTime?: string
+    reservationTime?: string
+}
+
+export type DateComponents = {
+    day: number
+    weekday: number
+    month: number
+    year: number
+    hour: number
+    minute: number
 }
