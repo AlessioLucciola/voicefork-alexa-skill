@@ -17,10 +17,10 @@ exports.LOCALIZATION_ENABLED = true;
  * - VALUE_MAP: The distribution of how the contextDistance has to be normalized. Values in between are linearly interpolated;
  */
 exports.CONF = {
-    DISTANCE_THRESHOLD: 0.6,
+    DISTANCE_THRESHOLD: 0.7,
     CONTEXT_SOFT_THRESHOLD: 2,
     CONTEXT_HARD_THRESHOLD: 0.5,
-    CONTEXT_WEIGHT: 0.3,
+    CONTEXT_WEIGHT: 0.8,
     NULL_DISTANCE_SCALING_FACTOR: 0.5,
     VALUE_MAP: [
         [0, 0],
@@ -35,8 +35,8 @@ exports.CONF = {
         [100, 1],
     ],
     SCORE_THRESHOLDS: {
-        high: 0.7,
+        high: 0.6,
         medium: 0.4,
-        low: 0.2,
+        low: 0.1,
     },
 };
