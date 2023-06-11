@@ -90,7 +90,7 @@ export const handleSimilarRestaurants = async (
         return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse()
     }
 
-    if ('field' in handleResult && 'variance' in handleResult) {
+    if ('field' in handleResult && 'variance' in handleResult) { // devo disambiguare -> ho piú ristoranti tra cui scegliere
         const { field, variance } = handleResult as { field: string; variance: number }
         return handlerInput.responseBuilder
             .speak(
@@ -98,7 +98,7 @@ export const handleSimilarRestaurants = async (
             )
             .getResponse()
     } else {
-        const { restaurant, score } = handleResult as RestaurantWithScore
+        const { restaurant, score } = handleResult as RestaurantWithScore // non devo disambiguare -> ho solo un ristorante tra cui scegliere
         return handlerInput.responseBuilder
             .speak(
                 `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
