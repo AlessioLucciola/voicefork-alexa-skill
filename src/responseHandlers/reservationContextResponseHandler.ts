@@ -2,13 +2,13 @@ import { HandlerInput } from 'ask-sdk-core'
 import { Response } from 'ask-sdk-model'
 import { LatLng, ReservationContext, Restaurant, RestaurantSearchResult, RestaurantSlots } from '../shared/types'
 import getCoordinates, { distanceBetweenCoordinates } from '../utils/localizationFeatures'
-import { searchRestaurants } from '../apiCalls'
-import { getDistanceFromContext } from '../apiCalls'
-import { CONF, TEST_LATLNG } from '../shared/constants'
+import { getDistanceFromContext, searchRestaurants, getCityCoordinates } from '../apiCalls'
+import { CONF, TEST_LATLNG, MAX_DISTANCE } from '../shared/constants'
 import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../utils/dateTimeUtils'
 import { beautify } from '../utils/debugUtils'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
+let isSearchRestaurantCompleted = false
 
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -30,18 +30,48 @@ export const handleSimilarRestaurants = async (
         return handlerInput.responseBuilder.addDelegateDirective().getResponse()
     }
 
-    if (coordinates) {
-        const locationInfo = { location: coordinates, maxDistance: 40000 }
-        searchResults = await searchRestaurants(restaurantName, locationInfo)
-    } else {
-        searchResults = await searchRestaurants(restaurantName, undefined, location ?? 'Rome')
+    if (!isSearchRestaurantCompleted) {
+        console.log(`DEBUG: SEARCHING FOR RESTAURANTS`)
+        if (coordinates !== undefined && location !== undefined) {
+            // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
+            console.log('DEBUG INSIDE COORDINATES BUT CITY CASE')
+            const cityCoordinates = await getCityCoordinates(location)
+            const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            isSearchRestaurantCompleted = true
+            console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
+        } else if (coordinates !== undefined && location === undefined) {
+            // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
+            console.log('DEBUG INSIDE COORDINATES BUT NOT CITY CASE')
+            const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
+            isSearchRestaurantCompleted = true
+        } else if (coordinates === undefined && location !== undefined) {
+            // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
+            console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE')
+            const cityCoordinates = await getCityCoordinates(location)
+            const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            isSearchRestaurantCompleted = true
+            console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
+        } else {
+            // Altrimenti (non ho né coordinate, né città)..
+            return handlerInput.responseBuilder
+                .speak(
+                    `Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`,
+                )
+                .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
+                .addElicitSlotDirective('location')
+                .getResponse()
+        }
     }
 
     let plausibleContexts: { restaurant: Restaurant; contextDistance: number | null; nameDistance: number }[] = []
 
     //Examine the search results
     for (let result of searchResults) {
-        if (result.nameDistance < DISTANCE_THRESHOLD) continue // TODO: da rivedere?
+        if (result.nameDistance >= DISTANCE_THRESHOLD) continue //TODO: maybe remove it
 
         const { id } = result.restaurant
 
@@ -69,19 +99,26 @@ export const handleSimilarRestaurants = async (
             nameDistance: result.nameDistance,
         })
     }
-    console.log(beautify(plausibleContexts)) //TODO: debug
+    console.log('DEBUG_PLAUSIBLE_CONTEXT: ', beautify(plausibleContexts)) //TODO: debug
     let scores: RestaurantWithScore[] = []
-    for (let context of plausibleContexts) {
-        //TODO: For debug reasons I inserted also nameDistance and contextDistance, this have to be removed later.
-        scores.push({
-            restaurant: context.restaurant,
-            // nameDistance: context.nameDistance,
-            // contextDistance: context.contextDistance,
-            score: computeAggregateScore(context),
-        })
+    if (plausibleContexts.every(context => context === null)) {
+        //If all the context are null, then the score is just 1 - nameDistnace
+        for (let context of plausibleContexts) {
+            scores.push({
+                restaurant: context.restaurant,
+                score: context.nameDistance,
+            })
+        }
+    } else {
+        //If a non-null context exists, I have to adjust all the scores accordingly in order to push the restaurant with a context up in the list
+        for (let context of plausibleContexts) {
+            scores.push({
+                restaurant: context.restaurant,
+                score: computeAggregateScore(context),
+            })
+        }
     }
     scores.sort((a, b) => b.score - a.score)
-    //Examine the plausible restaurants
     console.log(`DEBUG SCORES: ${beautify(scores)}`) //TODO: debug
 
     const handleResult = handleScores(scores)
@@ -119,7 +156,6 @@ const computeAggregateScore = (context: {
 }): number => {
     const { contextDistance, nameDistance } = context
     if (contextDistance == null) {
-        //TODO: There is a problem with this, because if each restaurant has the distance == null, the nameDistance score gets too distorted
         const minNameDistance = Math.max(nameDistance, 0.05) // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
         return 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1)
     }

@@ -12,11 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleSimilarRestaurants = void 0;
 const localizationFeatures_1 = require("../utils/localizationFeatures");
 const apiCalls_1 = require("../apiCalls");
-const apiCalls_2 = require("../apiCalls");
 const constants_1 = require("../shared/constants");
 const dateTimeUtils_1 = require("../utils/dateTimeUtils");
 const debugUtils_1 = require("../utils/debugUtils");
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = constants_1.CONF;
+let isSearchRestaurantCompleted = false;
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
  * @param handlerInput
@@ -31,18 +31,48 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         //Ask for the data that's missing before disambiguation
         return handlerInput.responseBuilder.addDelegateDirective().getResponse();
     }
-    if (coordinates) {
-        const locationInfo = { location: coordinates, maxDistance: 40000 };
-        searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo);
-    }
-    else {
-        searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, undefined, location !== null && location !== void 0 ? location : 'Rome');
+    if (!isSearchRestaurantCompleted) {
+        console.log(`DEBUG: SEARCHING FOR RESTAURANTS`);
+        if (coordinates !== undefined && location !== undefined) {
+            // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
+            console.log('DEBUG INSIDE COORDINATES BUT CITY CASE');
+            const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
+            const locationInfo = { location: cityCoordinates, maxDistance: constants_1.MAX_DISTANCE };
+            searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
+            isSearchRestaurantCompleted = true;
+            console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
+        }
+        else if (coordinates !== undefined && location === undefined) {
+            // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
+            console.log('DEBUG INSIDE COORDINATES BUT NOT CITY CASE');
+            const locationInfo = { location: coordinates, maxDistance: constants_1.MAX_DISTANCE };
+            searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
+            console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
+            isSearchRestaurantCompleted = true;
+        }
+        else if (coordinates === undefined && location !== undefined) {
+            // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
+            console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE');
+            const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
+            const locationInfo = { location: cityCoordinates, maxDistance: constants_1.MAX_DISTANCE };
+            searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
+            isSearchRestaurantCompleted = true;
+            console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
+        }
+        else {
+            // Altrimenti (non ho né coordinate, né città)..
+            return handlerInput.responseBuilder
+                .speak(`Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`)
+                .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
+                .addElicitSlotDirective('location')
+                .getResponse();
+        }
     }
     let plausibleContexts = [];
     //Examine the search results
     for (let result of searchResults) {
-        if (result.nameDistance < DISTANCE_THRESHOLD)
-            continue; // TODO: da rivedere?
+        if (result.nameDistance >= DISTANCE_THRESHOLD)
+            continue; //TODO: maybe remove it
         const { id } = result.restaurant;
         const { weekday: currentDay, hour: currentHour, minute: currentMinute } = (0, dateTimeUtils_1.getDateComponentsFromDate)();
         const currentTime = (0, dateTimeUtils_1.parseTime)(currentHour, currentMinute);
@@ -59,26 +89,34 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             currentTime,
             reservationTime,
         };
-        const contextDistance = yield (0, apiCalls_2.getDistanceFromContext)(context);
+        const contextDistance = yield (0, apiCalls_1.getDistanceFromContext)(context);
         plausibleContexts.push({
             restaurant: result.restaurant,
             contextDistance: contextDistance,
             nameDistance: result.nameDistance,
         });
     }
-    console.log((0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
+    console.log('DEBUG_PLAUSIBLE_CONTEXT: ', (0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
     let scores = [];
-    for (let context of plausibleContexts) {
-        //TODO: For debug reasons I inserted also nameDistance and contextDistance, this have to be removed later.
-        scores.push({
-            restaurant: context.restaurant,
-            // nameDistance: context.nameDistance,
-            // contextDistance: context.contextDistance,
-            score: computeAggregateScore(context),
-        });
+    if (plausibleContexts.every(context => context === null)) {
+        //If all the context are null, then the score is just 1 - nameDistnace
+        for (let context of plausibleContexts) {
+            scores.push({
+                restaurant: context.restaurant,
+                score: context.nameDistance,
+            });
+        }
+    }
+    else {
+        //If a non-null context exists, I have to adjust all the scores accordingly in order to push the restaurant with a context up in the list
+        for (let context of plausibleContexts) {
+            scores.push({
+                restaurant: context.restaurant,
+                score: computeAggregateScore(context),
+            });
+        }
     }
     scores.sort((a, b) => b.score - a.score);
-    //Examine the plausible restaurants
     console.log(`DEBUG SCORES: ${(0, debugUtils_1.beautify)(scores)}`); //TODO: debug
     const handleResult = handleScores(scores);
     if (!handleResult) {
@@ -106,7 +144,6 @@ exports.handleSimilarRestaurants = handleSimilarRestaurants;
 const computeAggregateScore = (context) => {
     const { contextDistance, nameDistance } = context;
     if (contextDistance == null) {
-        //TODO: There is a problem with this, because if each restaurant has the distance == null, the nameDistance score gets too distorted
         const minNameDistance = Math.max(nameDistance, 0.05); // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
         return 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1);
     }

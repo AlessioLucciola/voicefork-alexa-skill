@@ -2,9 +2,12 @@ import { LatLng } from './types'
 
 // Coordinates to test the localization features
 export const TEST_LATLNG: LatLng = { latitude: 41.909734, longitude: 12.349999 }
+// Coordinates of Rome
+export const ROME_LATLNG: LatLng = { latitude: 41.90290, longitude: 12.47959 }
+export const MAX_DISTANCE: number = 50000
 
 // Change this if you want to enable the localization. Remember that coordinates are constants.
-export const LOCALIZATION_ENABLED: boolean = true
+export const LOCALIZATION_ENABLED: boolean = false
 
 //TODO: Insert here thresholds and weights configuration for taking decisions
 /**
@@ -18,10 +21,10 @@ export const LOCALIZATION_ENABLED: boolean = true
  * - VALUE_MAP: The distribution of how the contextDistance has to be normalized. Values in between are linearly interpolated;
  */
 export const CONF = {
-    DISTANCE_THRESHOLD: 0.6,
+    DISTANCE_THRESHOLD: 0.7,
     CONTEXT_SOFT_THRESHOLD: 2,
     CONTEXT_HARD_THRESHOLD: 0.5,
-    CONTEXT_WEIGHT: 0.3,
+    CONTEXT_WEIGHT: 0.8, //TODO: 0.8 seems fine, but maybe it's too high
     NULL_DISTANCE_SCALING_FACTOR: 0.5,
     VALUE_MAP: [
         [0, 0],
@@ -36,8 +39,8 @@ export const CONF = {
         [100, 1],
     ],
     SCORE_THRESHOLDS: {
-        high: 0.7,
+        high: 0.6,
         medium: 0.4,
-        low: 0.2,
+        low: 0.1,
     },
 }

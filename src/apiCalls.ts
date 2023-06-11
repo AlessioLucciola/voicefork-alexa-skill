@@ -2,15 +2,15 @@ import { LatLng } from './shared/types'
 import { RESTAURANTS_URL, RESERVATIONS_URL } from './shared/urls'
 import axios from 'axios'
 import { RestaurantSearchResult, ReservationContext } from './shared/types'
-import getCoordinates from './utils/localizationFeatures'
+import { ROME_LATLNG } from './shared/constants'
 
 export const searchNearbyRestaurants = async (
     query: string,
     coordinates: LatLng,
 ): Promise<RestaurantSearchResult[]> => {
     const { latitude, longitude } = coordinates
-    const MAX_DISTANCE = 50000
-    const LIMIT = 100
+    const MAX_DISTANCE = 50_000
+    const LIMIT = 500
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
     const URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`
 
@@ -38,12 +38,13 @@ export const searchRestaurants = async (
     city?: string,
 ): Promise<RestaurantSearchResult[]> => {
     let URL = ''
+    const LIMIT = 500
     if (locationInfo) {
         const { location, maxDistance } = locationInfo
         const { latitude, longitude } = location
-        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=150`
+        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=${LIMIT}`
     } else {
-        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`
+        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=${LIMIT}`
     }
     console.log(`Made api call to ${URL}`)
     const data: RestaurantSearchResult[] = (await axios.get(URL)).data
@@ -66,4 +67,24 @@ export const getDistanceFromContext = async (context: ReservationContext): Promi
     const data = (await axios.get(URL)).data
     console.log(`${URL} returned ${JSON.stringify(data, null, 2)}`)
     return data.distance
+}
+
+export const getCityCoordinates = async (city: string): Promise<LatLng> => {
+    const URL = `https://geocode.maps.co/search?city=${city}`
+    const response = await axios.get(URL)
+    console.log(`Made api call to ${URL}`)
+    if (response.status === 200) {
+        if (response.data.length > 0) {
+            const lat = response.data[0].lat
+            const lon = response.data[0].lon
+            console.log(`${URL} returned these coordinates: lat = (${lat}), lon = (${lon})}`)
+            const cityCoordinates: LatLng = {latitude: lat, longitude: lon}
+            return cityCoordinates
+        }
+        console.log(`${city} not found. Setting coordinates to "Rome" ones.`)
+        return ROME_LATLNG
+    } else {
+        console.log(`${URL} call returned an error. Setting coordinates to "Rome" ones.`)
+        return ROME_LATLNG
+    }
 }
