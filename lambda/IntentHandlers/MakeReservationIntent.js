@@ -161,9 +161,10 @@ const MakeReservationIntentHandler = {
                         .getResponse();
                 }
             }
-            if (!restaurantName || !date || !time || !numPeople)
+            if (!restaurantName || !date || !time || !numPeople) {
                 console.log('DEBUG: INSIDE GENERIC RESOLUTION');
-            return handlerInput.responseBuilder.addDelegateDirective().getResponse();
+                return handlerInput.responseBuilder.addDelegateDirective().getResponse();
+            }
             return handlerInput.responseBuilder
                 .speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`)
                 .withShouldEndSession(true)
