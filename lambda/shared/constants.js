@@ -1,10 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CONF = exports.LOCALIZATION_ENABLED = exports.TEST_LATLNG = void 0;
+exports.CONF = exports.LOCALIZATION_ENABLED = exports.MAX_DISTANCE = exports.ROME_LATLNG = exports.TEST_LATLNG = void 0;
 // Coordinates to test the localization features
 exports.TEST_LATLNG = { latitude: 41.909734, longitude: 12.349999 };
+// Coordinates of Rome
+exports.ROME_LATLNG = { latitude: 41.90290, longitude: 12.47959 };
+exports.MAX_DISTANCE = 50000;
 // Change this if you want to enable the localization. Remember that coordinates are constants.
-exports.LOCALIZATION_ENABLED = true;
+exports.LOCALIZATION_ENABLED = false;
 //TODO: Insert here thresholds and weights configuration for taking decisions
 /**
  * Configuration file for parameters.

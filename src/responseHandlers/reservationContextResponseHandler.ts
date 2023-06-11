@@ -2,13 +2,13 @@ import { HandlerInput } from 'ask-sdk-core'
 import { Response } from 'ask-sdk-model'
 import { LatLng, ReservationContext, Restaurant, RestaurantSearchResult, RestaurantSlots } from '../shared/types'
 import getCoordinates, { distanceBetweenCoordinates } from '../utils/localizationFeatures'
-import { searchRestaurants } from '../apiCalls'
-import { getDistanceFromContext } from '../apiCalls'
-import { CONF, TEST_LATLNG } from '../shared/constants'
+import { getDistanceFromContext, searchRestaurants, getCityCoordinates } from '../apiCalls'
+import { CONF, TEST_LATLNG, MAX_DISTANCE } from '../shared/constants'
 import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../utils/dateTimeUtils'
 import { beautify } from '../utils/debugUtils'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
+let isSearchRestaurantCompleted = false
 
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -30,11 +30,41 @@ export const handleSimilarRestaurants = async (
         return handlerInput.responseBuilder.addDelegateDirective().getResponse()
     }
 
-    if (coordinates) {
-        const locationInfo = { location: coordinates, maxDistance: 40000 }
-        searchResults = await searchRestaurants(restaurantName, locationInfo)
-    } else {
-        searchResults = await searchRestaurants(restaurantName, undefined, location ?? 'Rome')
+    if (!isSearchRestaurantCompleted) {
+        console.log(`DEBUG: SEARCHING FOR RESTAURANTS`)
+        if (coordinates !== undefined && location !== undefined) {
+            // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
+            console.log('DEBUG INSIDE COORDINATES BUT CITY CASE')
+            const cityCoordinates = await getCityCoordinates(location)
+            const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            isSearchRestaurantCompleted = true
+            console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
+        } else if (coordinates !== undefined && location === undefined) {
+            // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
+            console.log('DEBUG INSIDE COORDINATES BUT NOT CITY CASE')
+            const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
+            isSearchRestaurantCompleted = true
+        } else if (coordinates === undefined && location !== undefined) {
+            // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
+            console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE')
+            const cityCoordinates = await getCityCoordinates(location)
+            const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            isSearchRestaurantCompleted = true
+            console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
+        } else {
+            // Altrimenti (non ho né coordinate, né città)..
+            return handlerInput.responseBuilder
+                .speak(
+                    `Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`,
+                )
+                .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
+                .addElicitSlotDirective('location')
+                .getResponse()
+        }
     }
 
     let plausibleContexts: { restaurant: Restaurant; contextDistance: number | null; nameDistance: number }[] = []

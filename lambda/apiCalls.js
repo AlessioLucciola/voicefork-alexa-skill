@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDistanceFromContext = exports.searchRestaurants = exports.searchNearbyRestaurants = void 0;
+exports.getCityCoordinates = exports.getDistanceFromContext = exports.searchRestaurants = exports.searchNearbyRestaurants = void 0;
 const urls_1 = require("./shared/urls");
 const axios_1 = require("axios");
+const constants_1 = require("./shared/constants");
 const searchNearbyRestaurants = (query, coordinates) => __awaiter(void 0, void 0, void 0, function* () {
     const { latitude, longitude } = coordinates;
     const MAX_DISTANCE = 50000;
@@ -40,7 +41,7 @@ const searchRestaurants = (query, locationInfo, city) => __awaiter(void 0, void 
     if (locationInfo) {
         const { location, maxDistance } = locationInfo;
         const { latitude, longitude } = location;
-        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=150`;
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=500`;
     }
     else {
         URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`;
@@ -67,3 +68,24 @@ const getDistanceFromContext = (context) => __awaiter(void 0, void 0, void 0, fu
     return data.distance;
 });
 exports.getDistanceFromContext = getDistanceFromContext;
+const getCityCoordinates = (city) => __awaiter(void 0, void 0, void 0, function* () {
+    const URL = `https://geocode.maps.co/search?city=${city}`;
+    const response = yield axios_1.default.get(URL);
+    console.log(`Made api call to ${URL}`);
+    if (response.status === 200) {
+        if (response.data.length > 0) {
+            const lat = response.data[0].lat;
+            const lon = response.data[0].lon;
+            console.log(`${URL} returned these coordinates: lat = (${lat}), lon = (${lon})}`);
+            const cityCoordinates = { latitude: lat, longitude: lon };
+            return cityCoordinates;
+        }
+        console.log(`${city} not found. Setting coordinates to "Rome" ones.`);
+        return constants_1.ROME_LATLNG;
+    }
+    else {
+        console.log(`${URL} call returned an error. Setting coordinates to "Rome" ones.`);
+        return constants_1.ROME_LATLNG;
+    }
+});
+exports.getCityCoordinates = getCityCoordinates;

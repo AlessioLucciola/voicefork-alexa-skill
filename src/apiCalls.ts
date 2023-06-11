@@ -2,7 +2,7 @@ import { LatLng } from './shared/types'
 import { RESTAURANTS_URL, RESERVATIONS_URL } from './shared/urls'
 import axios from 'axios'
 import { RestaurantSearchResult, ReservationContext } from './shared/types'
-import getCoordinates from './utils/localizationFeatures'
+import { ROME_LATLNG } from './shared/constants'
 
 export const searchNearbyRestaurants = async (
     query: string,
@@ -41,7 +41,7 @@ export const searchRestaurants = async (
     if (locationInfo) {
         const { location, maxDistance } = locationInfo
         const { latitude, longitude } = location
-        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=150`
+        URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=500`
     } else {
         URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=150`
     }
@@ -66,4 +66,24 @@ export const getDistanceFromContext = async (context: ReservationContext): Promi
     const data = (await axios.get(URL)).data
     console.log(`${URL} returned ${JSON.stringify(data, null, 2)}`)
     return data.distance
+}
+
+export const getCityCoordinates = async (city: string): Promise<LatLng> => {
+    const URL = `https://geocode.maps.co/search?city=${city}`
+    const response = await axios.get(URL)
+    console.log(`Made api call to ${URL}`)
+    if (response.status === 200) {
+        if (response.data.length > 0) {
+            const lat = response.data[0].lat
+            const lon = response.data[0].lon
+            console.log(`${URL} returned these coordinates: lat = (${lat}), lon = (${lon})}`)
+            const cityCoordinates: LatLng = {latitude: lat, longitude: lon}
+            return cityCoordinates
+        }
+        console.log(`${city} not found. Setting coordinates to "Rome" ones.`)
+        return ROME_LATLNG
+    } else {
+        console.log(`${URL} call returned an error. Setting coordinates to "Rome" ones.`)
+        return ROME_LATLNG
+    }
 }

@@ -2,9 +2,12 @@ import { LatLng } from './types'
 
 // Coordinates to test the localization features
 export const TEST_LATLNG: LatLng = { latitude: 41.909734, longitude: 12.349999 }
+// Coordinates of Rome
+export const ROME_LATLNG: LatLng = { latitude: 41.90290, longitude: 12.47959 }
+export const MAX_DISTANCE: number = 50000
 
 // Change this if you want to enable the localization. Remember that coordinates are constants.
-export const LOCALIZATION_ENABLED: boolean = true
+export const LOCALIZATION_ENABLED: boolean = false
 
 //TODO: Insert here thresholds and weights configuration for taking decisions
 /**
