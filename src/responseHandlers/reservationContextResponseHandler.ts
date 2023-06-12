@@ -8,10 +8,13 @@ import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../
 import { beautify } from '../utils/debugUtils'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
+let coordinates = getCoordinates()
 let isSearchRestaurantCompleted = false
 let isRestaurantContextComputationCompleted = false
 let restaurantsToDisambiguate: RestaurantWithScore[]
 let fieldsForDisambiguation: Variances
+let lastAnalyzedRestaurant: RestaurantWithScore
+let usedFields: []
 
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -24,9 +27,9 @@ export const handleSimilarRestaurants = async (
     slots: RestaurantSlots,
 ): Promise<Response> => {
     const { restaurantName, location, date, time, numPeople, yesNo } = slots
+    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes() || {};
 
     let searchResults: RestaurantSearchResult[] = []
-    const coordinates = getCoordinates()
 
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
@@ -39,7 +42,8 @@ export const handleSimilarRestaurants = async (
             // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
             console.log('DEBUG INSIDE COORDINATES BUT CITY CASE')
             const cityCoordinates = await getCityCoordinates(location)
-            const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
+            coordinates = cityCoordinates
+            const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
             searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
             isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
@@ -54,7 +58,8 @@ export const handleSimilarRestaurants = async (
             // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
             console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE')
             const cityCoordinates = await getCityCoordinates(location)
-            const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
+            coordinates = cityCoordinates
+            const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
             searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
             isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
@@ -148,14 +153,38 @@ export const handleSimilarRestaurants = async (
                 .getResponse()
         }
         */
-        if ('restaurants' in handleResult && 'fieldAndVariances' in handleResult) {
+       console.log(handleResult)
+        if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
            const { restaurants, fieldsAndVariances } = handleResult as { restaurants: RestaurantWithScore[], fieldsAndVariances: Variances }
            restaurantsToDisambiguate = restaurants
            fieldsForDisambiguation = fieldsAndVariances
+           isRestaurantContextComputationCompleted = true
         } else {
-            return handlerInput.responseBuilder.speak(`TO DO: Case in which tou only have a restaurant`).getResponse()
+            const { restaurant, score } = handleResult as RestaurantWithScore
+            isRestaurantContextComputationCompleted = true
+            return handlerInput.responseBuilder
+            .speak(
+                `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
+            )
+            .getResponse()
         }
     }
+    console.log(yesNo)
+
+    if (lastAnalyzedRestaurant) {
+        if (yesNo === 'yes') {
+            return handlerInput.responseBuilder
+            .speak(
+                `You seem that you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address}`,
+            )
+            .getResponse()
+        } else {
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== lastAnalyzedRestaurant.restaurant.id);
+        }
+    }
+
+    console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(restaurantsToDisambiguate)}`)
+    console.log(`DISAMBIGUATION_DEBUG: Fields for disambiguation left ${beautify(fieldsForDisambiguation)}`)
 
     if (restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = restaurantsToDisambiguate[0]
@@ -166,15 +195,42 @@ export const handleSimilarRestaurants = async (
         .getResponse()
     }
 
+    const disambiguationField = getBestField(fieldsForDisambiguation)
+    if (disambiguationField.field === "latLng" && coordinates !== undefined) {
+        let nearestRestaurant: RestaurantWithScore | null = null;
+        let nearestDistance: number | null = null
+        for (const item of restaurantsToDisambiguate) {
+            const distance = distanceBetweenCoordinates(
+                {latitude: item.restaurant.latitude, longitude: item.restaurant.longitude},
+                {latitude: coordinates?.latitude, longitude: coordinates?.longitude});
+        
+            if (nearestDistance === null || distance < nearestDistance) {
+                nearestRestaurant = item;
+                nearestDistance = distance;
+            }
+        }
+
+        if (nearestRestaurant !== null) {
+            lastAnalyzedRestaurant = nearestRestaurant
+            return handlerInput.responseBuilder
+            .speak(
+                `Do you want to reserve to ${nearestRestaurant.restaurant.name} in ${nearestRestaurant.restaurant.address}?`,
+            )
+            .addElicitSlotDirective('yesNo')
+            .getResponse()
+        }
+    }
+
+    //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
     return handlerInput.responseBuilder
     .speak(
-        `Test`,
+        `You reached the bottom. I can't make the reservation.`,
     )
     .getResponse()
 
 }
 
-const getBestField = (fieldsAndVariances: Variances): {field: string, variance: number} | null => {
+const getBestField = (fieldsAndVariances: Variances): {field: string, variance: number}  => {
     const [maxPropertyName, maxValue] = Object.entries(fieldsAndVariances).reduce(
         (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
         ['', -Infinity],
@@ -232,7 +288,7 @@ const normalizeContext = (inputValue: number): number => {
 
 const handleScores = (
     items: RestaurantWithScore[],
-): RestaurantWithScore[] | ContextResults | null => {
+): RestaurantWithScore | ContextResults | null => {
     const { SCORE_THRESHOLDS } = CONF
     let highChoices: RestaurantWithScore[] = []
     let mediumChoices: RestaurantWithScore[] = []
@@ -252,11 +308,11 @@ const handleScores = (
                 highChoices,
             )}`,
         )
-        const fieldsAndVariances = computeVariances(lowChoices)
+        const fieldsAndVariances = computeVariances(highChoices)
         if (fieldsAndVariances) {
             return {restaurants: highChoices, fieldsAndVariances: fieldsAndVariances}
         }
-        return highChoices
+        return highChoices[0]
     }
     if (mediumChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
@@ -269,7 +325,7 @@ const handleScores = (
         if (fieldsAndVariances) {
             return {restaurants: highChoices, fieldsAndVariances: fieldsAndVariances}
         }
-        return mediumChoices
+        return mediumChoices[0]
     }
     if (lowChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
@@ -282,7 +338,7 @@ const handleScores = (
         if (fieldsAndVariances) {
             return {restaurants: highChoices, fieldsAndVariances: fieldsAndVariances}
         }
-        return lowChoices
+        return lowChoices[0]
     }
     return null
 }

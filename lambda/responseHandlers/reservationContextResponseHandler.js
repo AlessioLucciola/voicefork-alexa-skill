@@ -16,10 +16,13 @@ const constants_1 = require("../shared/constants");
 const dateTimeUtils_1 = require("../utils/dateTimeUtils");
 const debugUtils_1 = require("../utils/debugUtils");
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = constants_1.CONF;
+let coordinates = (0, localizationFeatures_1.default)();
 let isSearchRestaurantCompleted = false;
 let isRestaurantContextComputationCompleted = false;
 let restaurantsToDisambiguate;
 let fieldsForDisambiguation;
+let lastAnalyzedRestaurant;
+let usedFields;
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
  * @param handlerInput
@@ -28,8 +31,8 @@ let fieldsForDisambiguation;
  */
 const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void 0, void 0, function* () {
     const { restaurantName, location, date, time, numPeople, yesNo } = slots;
+    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes() || {};
     let searchResults = [];
-    const coordinates = (0, localizationFeatures_1.default)();
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
         return handlerInput.responseBuilder.addDelegateDirective().getResponse();
@@ -40,7 +43,8 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
             console.log('DEBUG INSIDE COORDINATES BUT CITY CASE');
             const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
-            const locationInfo = { location: cityCoordinates, maxDistance: constants_1.MAX_DISTANCE };
+            coordinates = cityCoordinates;
+            const locationInfo = { location: coordinates, maxDistance: constants_1.MAX_DISTANCE };
             searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
             isSearchRestaurantCompleted = true;
             console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
@@ -57,7 +61,8 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
             console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE');
             const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
-            const locationInfo = { location: cityCoordinates, maxDistance: constants_1.MAX_DISTANCE };
+            coordinates = cityCoordinates;
+            const locationInfo = { location: coordinates, maxDistance: constants_1.MAX_DISTANCE };
             searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
             isSearchRestaurantCompleted = true;
             console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
@@ -143,23 +148,62 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 .getResponse()
         }
         */
-        if ('restaurants' in handleResult && 'fieldAndVariances' in handleResult) {
+        console.log(handleResult);
+        if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
             const { restaurants, fieldsAndVariances } = handleResult;
             restaurantsToDisambiguate = restaurants;
             fieldsForDisambiguation = fieldsAndVariances;
+            isRestaurantContextComputationCompleted = true;
         }
         else {
-            return handlerInput.responseBuilder.speak(`TO DO: Case in which tou only have a restaurant`).getResponse();
+            const { restaurant, score } = handleResult;
+            isRestaurantContextComputationCompleted = true;
+            return handlerInput.responseBuilder
+                .speak(`I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`)
+                .getResponse();
         }
     }
+    console.log(yesNo);
+    if (lastAnalyzedRestaurant) {
+        if (yesNo === 'yes') {
+            return handlerInput.responseBuilder
+                .speak(`You seem that you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address}`)
+                .getResponse();
+        }
+        else {
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== lastAnalyzedRestaurant.restaurant.id);
+        }
+    }
+    console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${(0, debugUtils_1.beautify)(restaurantsToDisambiguate)}`);
+    console.log(`DISAMBIGUATION_DEBUG: Fields for disambiguation left ${(0, debugUtils_1.beautify)(fieldsForDisambiguation)}`);
     if (restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = restaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
             .speak(`The final restaurant is ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, with a score of ${finalRestaurant.score}`)
             .getResponse();
     }
+    const disambiguationField = getBestField(fieldsForDisambiguation);
+    if (disambiguationField.field === "latLng" && coordinates !== undefined) {
+        let nearestRestaurant = null;
+        let nearestDistance = null;
+        for (const item of restaurantsToDisambiguate) {
+            const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude: item.restaurant.latitude, longitude: item.restaurant.longitude }, { latitude: coordinates === null || coordinates === void 0 ? void 0 : coordinates.latitude, longitude: coordinates === null || coordinates === void 0 ? void 0 : coordinates.longitude });
+            if (nearestDistance === null || distance < nearestDistance) {
+                nearestRestaurant = item;
+                nearestDistance = distance;
+            }
+        }
+        if (nearestRestaurant !== null) {
+            lastAnalyzedRestaurant = nearestRestaurant;
+            return handlerInput.responseBuilder
+                .speak(`Do you want to reserve to ${nearestRestaurant.restaurant.name} in ${nearestRestaurant.restaurant.address}?`)
+                .addElicitSlotDirective('yesNo')
+                .getResponse();
+        }
+    }
+    //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
     return handlerInput.responseBuilder
-        .speak(`Test`)
+        .speak(`You reached the bottom. I can't make the reservation.`)
         .getResponse();
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
@@ -225,11 +269,11 @@ const handleScores = (items) => {
     }
     if (highChoices.length > 0) {
         console.log(`CHOICES_DEBUG: Inside high choices with length of ${highChoices.length}. The object is ${(0, debugUtils_1.beautify)(highChoices)}`);
-        const fieldsAndVariances = computeVariances(lowChoices);
+        const fieldsAndVariances = computeVariances(highChoices);
         if (fieldsAndVariances) {
             return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
         }
-        return highChoices;
+        return highChoices[0];
     }
     if (mediumChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
@@ -238,7 +282,7 @@ const handleScores = (items) => {
         if (fieldsAndVariances) {
             return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
         }
-        return mediumChoices;
+        return mediumChoices[0];
     }
     if (lowChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
@@ -247,7 +291,7 @@ const handleScores = (items) => {
         if (fieldsAndVariances) {
             return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
         }
-        return lowChoices;
+        return lowChoices[0];
     }
     return null;
 };
