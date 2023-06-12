@@ -7,7 +7,7 @@ export const ROME_LATLNG: LatLng = { latitude: 41.90290, longitude: 12.47959 }
 export const MAX_DISTANCE: number = 50000
 
 // Change this if you want to enable the localization. Remember that coordinates are constants.
-export const LOCALIZATION_ENABLED: boolean = false
+export const LOCALIZATION_ENABLED: boolean = true
 
 //TODO: Insert here thresholds and weights configuration for taking decisions
 /**

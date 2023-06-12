@@ -17,6 +17,9 @@ const dateTimeUtils_1 = require("../utils/dateTimeUtils");
 const debugUtils_1 = require("../utils/debugUtils");
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = constants_1.CONF;
 let isSearchRestaurantCompleted = false;
+let isRestaurantContextComputationCompleted = false;
+let restaurantsToDisambiguate;
+let fieldsForDisambiguation;
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
  * @param handlerInput
@@ -68,74 +71,102 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 .getResponse();
         }
     }
-    let plausibleContexts = [];
-    //Examine the search results
-    for (let result of searchResults) {
-        if (result.nameDistance >= DISTANCE_THRESHOLD)
-            continue; //TODO: maybe remove it
-        const { id } = result.restaurant;
-        const { weekday: currentDay, hour: currentHour, minute: currentMinute } = (0, dateTimeUtils_1.getDateComponentsFromDate)();
-        const currentTime = (0, dateTimeUtils_1.parseTime)(currentHour, currentMinute);
-        const reservationDateTime = (0, dateTimeUtils_1.convertAmazonDateTime)(date, time);
-        const reservationDateComponents = (0, dateTimeUtils_1.getDateComponentsFromDate)(reservationDateTime);
-        const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute } = reservationDateComponents;
-        const reservationTime = (0, dateTimeUtils_1.parseTime)(reservationHour, reservationMinute);
-        const context = {
-            id_restaurant: id,
-            n_people: parseInt(numPeople),
-            reservationLocation: constants_1.TEST_LATLNG,
-            currentDay,
-            reservationDay,
-            currentTime,
-            reservationTime,
-        };
-        const contextDistance = yield (0, apiCalls_1.getDistanceFromContext)(context);
-        plausibleContexts.push({
-            restaurant: result.restaurant,
-            contextDistance: contextDistance,
-            nameDistance: result.nameDistance,
-        });
-    }
-    console.log('DEBUG_PLAUSIBLE_CONTEXT: ', (0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
-    let scores = [];
-    if (plausibleContexts.every(context => context === null)) {
-        //If all the context are null, then the score is just 1 - nameDistnace
-        for (let context of plausibleContexts) {
-            scores.push({
-                restaurant: context.restaurant,
-                score: context.nameDistance,
+    if (!isRestaurantContextComputationCompleted) {
+        let plausibleContexts = [];
+        //Examine the search results
+        for (let result of searchResults) {
+            if (result.nameDistance >= DISTANCE_THRESHOLD)
+                continue; //TODO: maybe remove it
+            const { id } = result.restaurant;
+            const { weekday: currentDay, hour: currentHour, minute: currentMinute } = (0, dateTimeUtils_1.getDateComponentsFromDate)();
+            const currentTime = (0, dateTimeUtils_1.parseTime)(currentHour, currentMinute);
+            const reservationDateTime = (0, dateTimeUtils_1.convertAmazonDateTime)(date, time);
+            const reservationDateComponents = (0, dateTimeUtils_1.getDateComponentsFromDate)(reservationDateTime);
+            const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute } = reservationDateComponents;
+            const reservationTime = (0, dateTimeUtils_1.parseTime)(reservationHour, reservationMinute);
+            const context = {
+                id_restaurant: id,
+                n_people: parseInt(numPeople),
+                reservationLocation: constants_1.TEST_LATLNG,
+                currentDay,
+                reservationDay,
+                currentTime,
+                reservationTime,
+            };
+            const contextDistance = yield (0, apiCalls_1.getDistanceFromContext)(context);
+            plausibleContexts.push({
+                restaurant: result.restaurant,
+                contextDistance: contextDistance,
+                nameDistance: result.nameDistance,
             });
         }
-    }
-    else {
-        //If a non-null context exists, I have to adjust all the scores accordingly in order to push the restaurant with a context up in the list
-        for (let context of plausibleContexts) {
-            scores.push({
-                restaurant: context.restaurant,
-                score: computeAggregateScore(context),
-            });
+        console.log('DEBUG_PLAUSIBLE_CONTEXT: ', (0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
+        let scores = [];
+        if (plausibleContexts.every(context => context === null)) {
+            //If all the context are null, then the score is just 1 - nameDistnace
+            for (let context of plausibleContexts) {
+                scores.push({
+                    restaurant: context.restaurant,
+                    score: context.nameDistance,
+                });
+            }
+        }
+        else {
+            //If a non-null context exists, I have to adjust all the scores accordingly in order to push the restaurant with a context up in the list
+            for (let context of plausibleContexts) {
+                scores.push({
+                    restaurant: context.restaurant,
+                    score: computeAggregateScore(context),
+                });
+            }
+        }
+        scores.sort((a, b) => b.score - a.score);
+        console.log(`DEBUG SCORES: ${(0, debugUtils_1.beautify)(scores)}`); //TODO: debug
+        const handleResult = handleScores(scores);
+        if (!handleResult) {
+            return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse();
+        }
+        //TO DO: VA ESAMINATO IL CASO IN CUI C'E' SOLO UN RISTORANTE
+        /*if ('field' in handleResult && 'variance' in handleResult) {
+            const { field, variance } = handleResult as { field: string; variance: number }
+            return handlerInput.responseBuilder
+                .speak(
+                    `I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`,
+                )
+                .getResponse()
+        } else {
+            const { restaurant, score } = handleResult as RestaurantWithScore
+            return handlerInput.responseBuilder
+                .speak(
+                    `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
+                )
+                .getResponse()
+        }
+        */
+        if ('restaurants' in handleResult && 'fieldAndVariances' in handleResult) {
+            const { restaurants, fieldsAndVariances } = handleResult;
+            restaurantsToDisambiguate = restaurants;
+            fieldsForDisambiguation = fieldsAndVariances;
+        }
+        else {
+            return handlerInput.responseBuilder.speak(`TO DO: Case in which tou only have a restaurant`).getResponse();
         }
     }
-    scores.sort((a, b) => b.score - a.score);
-    console.log(`DEBUG SCORES: ${(0, debugUtils_1.beautify)(scores)}`); //TODO: debug
-    const handleResult = handleScores(scores);
-    if (!handleResult) {
-        return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse();
-    }
-    if ('field' in handleResult && 'variance' in handleResult) {
-        const { field, variance } = handleResult;
+    if (restaurantsToDisambiguate.length === 1) {
+        const finalRestaurant = restaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
-            .speak(`I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`)
+            .speak(`The final restaurant is ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, with a score of ${finalRestaurant.score}`)
             .getResponse();
     }
-    else {
-        const { restaurant, score } = handleResult;
-        return handlerInput.responseBuilder
-            .speak(`I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`)
-            .getResponse();
-    }
+    return handlerInput.responseBuilder
+        .speak(`Test`)
+        .getResponse();
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
+const getBestField = (fieldsAndVariances) => {
+    const [maxPropertyName, maxValue] = Object.entries(fieldsAndVariances).reduce((acc, [property, value]) => (value > acc[1] ? [property, value] : acc), ['', -Infinity]);
+    return { field: maxPropertyName, variance: maxValue };
+};
 /**
  * Computes the aggregate score between the contextDistance and the nameDistance. The higher the score, the better.
  * @param context
@@ -194,33 +225,36 @@ const handleScores = (items) => {
     }
     if (highChoices.length > 0) {
         console.log(`CHOICES_DEBUG: Inside high choices with length of ${highChoices.length}. The object is ${(0, debugUtils_1.beautify)(highChoices)}`);
-        const fieldAndVariance = computeHighestVariance(highChoices);
-        if (fieldAndVariance) {
-            return fieldAndVariance;
+        const fieldsAndVariances = computeVariances(lowChoices);
+        if (fieldsAndVariances) {
+            return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
         }
-        return highChoices[0]; //If variance is null, then it means that there is only an element
+        return highChoices;
     }
     if (mediumChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
         console.log(`CHOICES_DEBUG: Inside medium choices with length of ${mediumChoices.length}. The object is ${(0, debugUtils_1.beautify)(mediumChoices)}`);
-        const fieldAndVariance = computeHighestVariance(mediumChoices);
-        if (fieldAndVariance) {
-            return fieldAndVariance;
+        const fieldsAndVariances = computeVariances(mediumChoices);
+        if (fieldsAndVariances) {
+            return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
         }
-        return mediumChoices[0]; //If variance is null, then it means that there is only an element
+        return mediumChoices;
     }
     if (lowChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
         console.log(`CHOICES_DEBUG: Inside low choices with length of ${lowChoices.length}. The object is ${(0, debugUtils_1.beautify)(lowChoices)}`);
-        const fieldAndVariance = computeHighestVariance(lowChoices);
-        if (fieldAndVariance) {
-            return fieldAndVariance;
+        const fieldsAndVariances = computeVariances(lowChoices);
+        if (fieldsAndVariances) {
+            return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
         }
-        return lowChoices[0]; //If variance is null, then it means that there is only an element
+        return lowChoices;
     }
     return null;
 };
-const computeHighestVariance = (items) => {
+//******************************************//
+//********COMPUTING VARIANCES***************//
+//******************************************//
+const computeVariances = (items) => {
     if (items.length <= 1)
         return null;
     let allLatLng = [];
@@ -249,8 +283,14 @@ const computeHighestVariance = (items) => {
     console.log(`DEBUG VARIANCES (before normalization): ${(0, debugUtils_1.beautify)(variances)}`);
     const normalizedVariances = normalizeVariances(variances);
     console.log(`DEBUG NORMALIZED VARIANCES: ${(0, debugUtils_1.beautify)(normalizedVariances)}`);
-    const [maxPropertyName, maxValue] = Object.entries(normalizedVariances).reduce((acc, [property, value]) => (value > acc[1] ? [property, value] : acc), ['', -Infinity]);
-    return { field: maxPropertyName, variance: maxValue };
+    /*const [maxPropertyName, maxValue] = Object.entries(normalizedVariances).reduce(
+        (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
+        ['', -Infinity],
+    )
+
+    return { field: maxPropertyName, variance: maxValue as number }
+    */
+    return normalizedVariances;
 };
 const computeSimpleVariance = (values) => {
     const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
