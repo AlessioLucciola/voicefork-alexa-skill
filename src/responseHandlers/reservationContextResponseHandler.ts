@@ -1,6 +1,6 @@
 import { HandlerInput } from 'ask-sdk-core'
 import { Response } from 'ask-sdk-model'
-import { LatLng, ReservationContext, Restaurant, RestaurantSearchResult, RestaurantSlots } from '../shared/types'
+import { LatLng, ReservationContext, Restaurant, RestaurantSearchResult, RestaurantSlots, RestaurantWithScore, Variances, VarianceResult, ContextResults } from '../shared/types'
 import getCoordinates, { distanceBetweenCoordinates } from '../utils/localizationFeatures'
 import { getDistanceFromContext, searchRestaurants, getCityCoordinates } from '../apiCalls'
 import { CONF, TEST_LATLNG, MAX_DISTANCE } from '../shared/constants'
@@ -9,6 +9,9 @@ import { beautify } from '../utils/debugUtils'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
 let isSearchRestaurantCompleted = false
+let isRestaurantContextComputationCompleted = false
+let restaurantsToDisambiguate: RestaurantWithScore[]
+let fieldsForDisambiguation: Variances
 
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -67,81 +70,117 @@ export const handleSimilarRestaurants = async (
         }
     }
 
-    let plausibleContexts: { restaurant: Restaurant; contextDistance: number | null; nameDistance: number }[] = []
+    if (!isRestaurantContextComputationCompleted) {
+        let plausibleContexts: { restaurant: Restaurant; contextDistance: number | null; nameDistance: number }[] = []
 
-    //Examine the search results
-    for (let result of searchResults) {
-        if (result.nameDistance >= DISTANCE_THRESHOLD) continue //TODO: maybe remove it
+        //Examine the search results
+        for (let result of searchResults) {
+            if (result.nameDistance >= DISTANCE_THRESHOLD) continue //TODO: maybe remove it
 
-        const { id } = result.restaurant
+            const { id } = result.restaurant
 
-        const { weekday: currentDay, hour: currentHour, minute: currentMinute } = getDateComponentsFromDate()
-        const currentTime = parseTime(currentHour, currentMinute)
-        const reservationDateTime = convertAmazonDateTime(date, time)
-        const reservationDateComponents = getDateComponentsFromDate(reservationDateTime)
-        const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute } = reservationDateComponents
-        const reservationTime = parseTime(reservationHour, reservationMinute)
+            const { weekday: currentDay, hour: currentHour, minute: currentMinute } = getDateComponentsFromDate()
+            const currentTime = parseTime(currentHour, currentMinute)
+            const reservationDateTime = convertAmazonDateTime(date, time)
+            const reservationDateComponents = getDateComponentsFromDate(reservationDateTime)
+            const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute } = reservationDateComponents
+            const reservationTime = parseTime(reservationHour, reservationMinute)
 
-        const context: ReservationContext = {
-            id_restaurant: id,
-            n_people: parseInt(numPeople),
-            reservationLocation: TEST_LATLNG, //TODO: for now because the context api only works with coordinates and not with the city
-            currentDay,
-            reservationDay,
-            currentTime,
-            reservationTime,
-        }
-        const contextDistance = await getDistanceFromContext(context)
+            const context: ReservationContext = {
+                id_restaurant: id,
+                n_people: parseInt(numPeople),
+                reservationLocation: TEST_LATLNG, //TODO: for now because the context api only works with coordinates and not with the city
+                currentDay,
+                reservationDay,
+                currentTime,
+                reservationTime,
+            }
+            const contextDistance = await getDistanceFromContext(context)
 
-        plausibleContexts.push({
-            restaurant: result.restaurant,
-            contextDistance: contextDistance,
-            nameDistance: result.nameDistance,
-        })
-    }
-    console.log('DEBUG_PLAUSIBLE_CONTEXT: ', beautify(plausibleContexts)) //TODO: debug
-    let scores: RestaurantWithScore[] = []
-    if (plausibleContexts.every(context => context === null)) {
-        //If all the context are null, then the score is just 1 - nameDistnace
-        for (let context of plausibleContexts) {
-            scores.push({
-                restaurant: context.restaurant,
-                score: context.nameDistance,
+            plausibleContexts.push({
+                restaurant: result.restaurant,
+                contextDistance: contextDistance,
+                nameDistance: result.nameDistance,
             })
         }
-    } else {
-        //If a non-null context exists, I have to adjust all the scores accordingly in order to push the restaurant with a context up in the list
-        for (let context of plausibleContexts) {
-            scores.push({
-                restaurant: context.restaurant,
-                score: computeAggregateScore(context),
-            })
+        console.log('DEBUG_PLAUSIBLE_CONTEXT: ', beautify(plausibleContexts)) //TODO: debug
+        let scores: RestaurantWithScore[] = []
+        if (plausibleContexts.every(context => context === null)) {
+            //If all the context are null, then the score is just 1 - nameDistnace
+            for (let context of plausibleContexts) {
+                scores.push({
+                    restaurant: context.restaurant,
+                    score: context.nameDistance,
+                })
+            }
+        } else {
+            //If a non-null context exists, I have to adjust all the scores accordingly in order to push the restaurant with a context up in the list
+            for (let context of plausibleContexts) {
+                scores.push({
+                    restaurant: context.restaurant,
+                    score: computeAggregateScore(context),
+                })
+            }
+        }
+        scores.sort((a, b) => b.score - a.score)
+        console.log(`DEBUG SCORES: ${beautify(scores)}`) //TODO: debug
+
+        const handleResult = handleScores(scores)
+
+        if (!handleResult) {
+            return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse()
+        }
+
+        //TO DO: VA ESAMINATO IL CASO IN CUI C'E' SOLO UN RISTORANTE
+        /*if ('field' in handleResult && 'variance' in handleResult) {
+            const { field, variance } = handleResult as { field: string; variance: number }
+            return handlerInput.responseBuilder
+                .speak(
+                    `I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`,
+                )
+                .getResponse()
+        } else {
+            const { restaurant, score } = handleResult as RestaurantWithScore
+            return handlerInput.responseBuilder
+                .speak(
+                    `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
+                )
+                .getResponse()
+        }
+        */
+        if ('restaurants' in handleResult && 'fieldAndVariances' in handleResult) {
+           const { restaurants, fieldsAndVariances } = handleResult as { restaurants: RestaurantWithScore[], fieldsAndVariances: Variances }
+           restaurantsToDisambiguate = restaurants
+           fieldsForDisambiguation = fieldsAndVariances
+        } else {
+            return handlerInput.responseBuilder.speak(`TO DO: Case in which tou only have a restaurant`).getResponse()
         }
     }
-    scores.sort((a, b) => b.score - a.score)
-    console.log(`DEBUG SCORES: ${beautify(scores)}`) //TODO: debug
 
-    const handleResult = handleScores(scores)
-
-    if (!handleResult) {
-        return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse()
+    if (restaurantsToDisambiguate.length === 1) {
+        const finalRestaurant = restaurantsToDisambiguate[0]
+        return handlerInput.responseBuilder
+        .speak(
+            `The final restaurant is ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, with a score of ${finalRestaurant.score}`,
+        )
+        .getResponse()
     }
 
-    if ('field' in handleResult && 'variance' in handleResult) {
-        const { field, variance } = handleResult as { field: string; variance: number }
-        return handlerInput.responseBuilder
-            .speak(
-                `I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`,
-            )
-            .getResponse()
-    } else {
-        const { restaurant, score } = handleResult as RestaurantWithScore
-        return handlerInput.responseBuilder
-            .speak(
-                `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
-            )
-            .getResponse()
-    }
+    return handlerInput.responseBuilder
+    .speak(
+        `Test`,
+    )
+    .getResponse()
+
+}
+
+const getBestField = (fieldsAndVariances: Variances): {field: string, variance: number} | null => {
+    const [maxPropertyName, maxValue] = Object.entries(fieldsAndVariances).reduce(
+        (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
+        ['', -Infinity],
+    )
+
+    return { field: maxPropertyName, variance: maxValue as number }
 }
 
 /**
@@ -190,13 +229,10 @@ const normalizeContext = (inputValue: number): number => {
         return prevNormalizedValue + (nextNormalizedValue - prevNormalizedValue) * t
     }
 }
-type RestaurantWithScore = {
-    restaurant: Restaurant
-    score: number
-}
+
 const handleScores = (
     items: RestaurantWithScore[],
-): { field: string; variance: number } | RestaurantWithScore | null => {
+): RestaurantWithScore[] | ContextResults | null => {
     const { SCORE_THRESHOLDS } = CONF
     let highChoices: RestaurantWithScore[] = []
     let mediumChoices: RestaurantWithScore[] = []
@@ -216,11 +252,11 @@ const handleScores = (
                 highChoices,
             )}`,
         )
-        const fieldAndVariance = computeHighestVariance(highChoices)
-        if (fieldAndVariance) {
-            return fieldAndVariance
+        const fieldsAndVariances = computeVariances(lowChoices)
+        if (fieldsAndVariances) {
+            return {restaurants: highChoices, fieldsAndVariances: fieldsAndVariances}
         }
-        return highChoices[0] //If variance is null, then it means that there is only an element
+        return highChoices
     }
     if (mediumChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
@@ -229,11 +265,11 @@ const handleScores = (
                 mediumChoices,
             )}`,
         )
-        const fieldAndVariance = computeHighestVariance(mediumChoices)
-        if (fieldAndVariance) {
-            return fieldAndVariance
+        const fieldsAndVariances = computeVariances(mediumChoices)
+        if (fieldsAndVariances) {
+            return {restaurants: highChoices, fieldsAndVariances: fieldsAndVariances}
         }
-        return mediumChoices[0] //If variance is null, then it means that there is only an element
+        return mediumChoices
     }
     if (lowChoices.length > 0) {
         //TODO: Change this, for now it's just a copy of the highChoices
@@ -242,11 +278,11 @@ const handleScores = (
                 lowChoices,
             )}`,
         )
-        const fieldAndVariance = computeHighestVariance(lowChoices)
-        if (fieldAndVariance) {
-            return fieldAndVariance
+        const fieldsAndVariances = computeVariances(lowChoices)
+        if (fieldsAndVariances) {
+            return {restaurants: highChoices, fieldsAndVariances: fieldsAndVariances}
         }
-        return lowChoices[0] //If variance is null, then it means that there is only an element
+        return lowChoices
     }
     return null
 }
@@ -255,19 +291,7 @@ const handleScores = (
 //********COMPUTING VARIANCES***************//
 //******************************************//
 
-type Variances = {
-    latLng: VarianceResult | number
-    city: VarianceResult | number
-    cuisine: VarianceResult | number
-    avgRating: VarianceResult | number
-}
-
-type VarianceResult = {
-    mean: number
-    std: number
-    variance: number
-}
-const computeHighestVariance = (items: RestaurantWithScore[]): { field: string; variance: number } | null => {
+const computeVariances = (items: RestaurantWithScore[]): Variances | null => {
     if (items.length <= 1) return null
 
     let allLatLng: LatLng[] = []
@@ -304,12 +328,15 @@ const computeHighestVariance = (items: RestaurantWithScore[]): { field: string; 
 
     console.log(`DEBUG NORMALIZED VARIANCES: ${beautify(normalizedVariances)}`)
 
-    const [maxPropertyName, maxValue] = Object.entries(normalizedVariances).reduce(
+    /*const [maxPropertyName, maxValue] = Object.entries(normalizedVariances).reduce(
         (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
         ['', -Infinity],
     )
 
     return { field: maxPropertyName, variance: maxValue as number }
+    */
+
+    return normalizedVariances
 }
 
 const computeSimpleVariance = (values: number[]): VarianceResult => {

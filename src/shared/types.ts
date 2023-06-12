@@ -65,3 +65,26 @@ export type DateComponents = {
     hour: number
     minute: number
 }
+
+export type RestaurantWithScore = {
+    restaurant: Restaurant
+    score: number
+}
+
+export type VarianceResult = {
+    mean: number
+    std: number
+    variance: number
+}
+
+export type Variances = {
+    latLng: VarianceResult | number
+    city: VarianceResult | number
+    cuisine: VarianceResult | number
+    avgRating: VarianceResult | number
+}
+
+export type ContextResults = {
+    restaurants: RestaurantWithScore[]
+    fieldsAndVariances: Variances
+}
