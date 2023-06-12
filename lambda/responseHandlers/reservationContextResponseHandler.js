@@ -34,7 +34,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     if (!isSearchRestaurantCompleted) {
         console.log(`DEBUG: SEARCHING FOR RESTAURANTS`);
         if (coordinates !== undefined && location !== undefined) {
-            // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
+            //Case where I HAVE the user's coordinates BUT still want to book elsewhere
             console.log('DEBUG INSIDE COORDINATES BUT CITY CASE');
             const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
             const locationInfo = { location: cityCoordinates, maxDistance: constants_1.MAX_DISTANCE };
@@ -43,7 +43,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
         }
         else if (coordinates !== undefined && location === undefined) {
-            // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
+            //Case where I HAVE the coordinates of the user and was NOT told the city (so I have to search near the user)
             console.log('DEBUG INSIDE COORDINATES BUT NOT CITY CASE');
             const locationInfo = { location: coordinates, maxDistance: constants_1.MAX_DISTANCE };
             searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
@@ -51,7 +51,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             isSearchRestaurantCompleted = true;
         }
         else if (coordinates === undefined && location !== undefined) {
-            // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
+            //Case where I DO NOT have the coordinates of the user BUT was told the city
             console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE');
             const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
             const locationInfo = { location: cityCoordinates, maxDistance: constants_1.MAX_DISTANCE };
@@ -60,7 +60,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
         }
         else {
-            // Altrimenti (non ho né coordinate, né città)..
+            //Otherwise (I have no coordinates or city)...
             return handlerInput.responseBuilder
                 .speak(`Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`)
                 .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
@@ -99,7 +99,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     console.log('DEBUG_PLAUSIBLE_CONTEXT: ', (0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
     let scores = [];
     if (plausibleContexts.every(context => context === null)) {
-        //If all the context are null, then the score is just 1 - nameDistnace
+        //If all the context are null, then the score is just 1 - nameDistanace
         for (let context of plausibleContexts) {
             scores.push({
                 restaurant: context.restaurant,

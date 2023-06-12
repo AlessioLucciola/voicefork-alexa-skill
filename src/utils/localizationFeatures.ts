@@ -1,8 +1,8 @@
-import { TEST_LATLNG, LOCALIZATION_ENABLED } from '../shared/constants'
+import { TEST_LATLNG, ROME_LATLNG, LOCALIZATION_ENABLED } from '../shared/constants'
 import { LatLng } from '../shared/types'
 
 const getCoordinates = () => {
-    if (LOCALIZATION_ENABLED) return TEST_LATLNG
+    if (LOCALIZATION_ENABLED) return ROME_LATLNG
     else return undefined
 }
 

@@ -4,7 +4,7 @@ exports.distanceBetweenCoordinates = void 0;
 const constants_1 = require("../shared/constants");
 const getCoordinates = () => {
     if (constants_1.LOCALIZATION_ENABLED)
-        return constants_1.TEST_LATLNG;
+        return constants_1.ROME_LATLNG;
     else
         return undefined;
 };

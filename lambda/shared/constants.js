@@ -7,7 +7,7 @@ exports.TEST_LATLNG = { latitude: 41.909734, longitude: 12.349999 };
 exports.ROME_LATLNG = { latitude: 41.90290, longitude: 12.47959 };
 exports.MAX_DISTANCE = 50000;
 // Change this if you want to enable the localization. Remember that coordinates are constants.
-exports.LOCALIZATION_ENABLED = false;
+exports.LOCALIZATION_ENABLED = true;
 //TODO: Insert here thresholds and weights configuration for taking decisions
 /**
  * Configuration file for parameters.

@@ -33,7 +33,7 @@ export const handleSimilarRestaurants = async (
     if (!isSearchRestaurantCompleted) {
         console.log(`DEBUG: SEARCHING FOR RESTAURANTS`)
         if (coordinates !== undefined && location !== undefined) {
-            // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
+            //Case where I HAVE the user's coordinates BUT still want to book elsewhere
             console.log('DEBUG INSIDE COORDINATES BUT CITY CASE')
             const cityCoordinates = await getCityCoordinates(location)
             const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
@@ -41,14 +41,14 @@ export const handleSimilarRestaurants = async (
             isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
         } else if (coordinates !== undefined && location === undefined) {
-            // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
+            //Case where I HAVE the coordinates of the user and was NOT told the city (so I have to search near the user)
             console.log('DEBUG INSIDE COORDINATES BUT NOT CITY CASE')
             const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
             searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
             isSearchRestaurantCompleted = true
         } else if (coordinates === undefined && location !== undefined) {
-            // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
+            //Case where I DO NOT have the coordinates of the user BUT was told the city
             console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE')
             const cityCoordinates = await getCityCoordinates(location)
             const locationInfo = { location: cityCoordinates, maxDistance: MAX_DISTANCE }
@@ -56,7 +56,7 @@ export const handleSimilarRestaurants = async (
             isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
         } else {
-            // Altrimenti (non ho né coordinate, né città)..
+            //Otherwise (I have no coordinates or city)...
             return handlerInput.responseBuilder
                 .speak(
                     `Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`,
@@ -102,7 +102,7 @@ export const handleSimilarRestaurants = async (
     console.log('DEBUG_PLAUSIBLE_CONTEXT: ', beautify(plausibleContexts)) //TODO: debug
     let scores: RestaurantWithScore[] = []
     if (plausibleContexts.every(context => context === null)) {
-        //If all the context are null, then the score is just 1 - nameDistnace
+        //If all the context are null, then the score is just 1 - nameDistanace
         for (let context of plausibleContexts) {
             scores.push({
                 restaurant: context.restaurant,

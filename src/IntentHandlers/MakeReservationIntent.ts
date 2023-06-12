@@ -39,12 +39,14 @@ const MakeReservationIntentHandler: RequestHandler = {
         }
 
         if (restaurantName && date && time && numPeople) {
+            //I have all the fields, I find the restaurants similar to those in the query
             return await handleSimilarRestaurants(handlerInput, slotValues)
         }
 
         if (time !== undefined && date !== undefined) {
             const reservationDate = new Date(date + ' ' + time)
             if (reservationDate < new Date()) {
+                //Check if the user is trying to reserve a table for a date in the past (but with time)
                 return handlerInput.responseBuilder
                     .speak(
                         `Sorry, it seems that you are trying to reserve a table for a date in the past. You want to reserve a table at ${time} in which day?`,
@@ -58,6 +60,7 @@ const MakeReservationIntentHandler: RequestHandler = {
         if (date !== undefined) {
             const currentDate = new Date()
             if (currentDate > new Date(date)) {
+                //Check if the user is trying to reserve a table for a date in the past
                 return handlerInput.responseBuilder
                     .speak(
                         "Sorry, you can't reserve a table for a date in the past. Please, when do you want to reserve a table?",
@@ -67,12 +70,14 @@ const MakeReservationIntentHandler: RequestHandler = {
             }
         }
 
-        if (!restaurantName || !date || !time || !numPeople) {
-            console.log('DEBUG: INSIDE GENERIC RESOLUTION')
-            return handlerInput.responseBuilder.addDelegateDirective().getResponse()
-        }
+        //Just for debugging
+        // if (!restaurantName || !date || !time || !numPeople) {
+        //     console.log('DEBUG: INSIDE GENERIC RESOLUTION')
+        //     return handlerInput.responseBuilder.addDelegateDirective().getResponse()
+        // }
 
         return handlerInput.responseBuilder
+            //Display the final reservation details
             .speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`)
             .withShouldEndSession(true)
             .getResponse()
