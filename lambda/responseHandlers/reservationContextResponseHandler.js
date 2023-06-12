@@ -20,6 +20,7 @@ let coordinates = (0, localizationFeatures_1.default)();
 let isSearchRestaurantCompleted = false;
 let isRestaurantContextComputationCompleted = false;
 let restaurantsToDisambiguate;
+let searchResults = [];
 let fieldsForDisambiguation;
 let lastAnalyzedRestaurant;
 let usedFields;
@@ -31,8 +32,6 @@ let usedFields;
  */
 const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void 0, void 0, function* () {
     const { restaurantName, location, date, time, numPeople, yesNo } = slots;
-    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes() || {};
-    let searchResults = [];
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
         return handlerInput.responseBuilder.addDelegateDirective().getResponse();
@@ -127,43 +126,10 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         }
         scores.sort((a, b) => b.score - a.score);
         console.log(`DEBUG SCORES: ${(0, debugUtils_1.beautify)(scores)}`); //TODO: debug
-        const handleResult = handleScores(scores);
-        if (!handleResult) {
-            return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse();
-        }
-        //TO DO: VA ESAMINATO IL CASO IN CUI C'E' SOLO UN RISTORANTE
-        /*if ('field' in handleResult && 'variance' in handleResult) {
-            const { field, variance } = handleResult as { field: string; variance: number }
-            return handlerInput.responseBuilder
-                .speak(
-                    `I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`,
-                )
-                .getResponse()
-        } else {
-            const { restaurant, score } = handleResult as RestaurantWithScore
-            return handlerInput.responseBuilder
-                .speak(
-                    `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
-                )
-                .getResponse()
-        }
-        */
-        console.log(handleResult);
-        if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
-            const { restaurants, fieldsAndVariances } = handleResult;
-            restaurantsToDisambiguate = restaurants;
-            fieldsForDisambiguation = fieldsAndVariances;
-            isRestaurantContextComputationCompleted = true;
-        }
-        else {
-            const { restaurant, score } = handleResult;
-            isRestaurantContextComputationCompleted = true;
-            return handlerInput.responseBuilder
-                .speak(`I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`)
-                .getResponse();
-        }
+        // I save all the restaurants in the restaurant to disambiguate list and iterate over that list until there is one restaurant left
+        restaurantsToDisambiguate = scores;
     }
-    console.log(yesNo);
+    // Remove the restaurant discarded in the previous iteration or accept it if the decision was "yes"
     if (lastAnalyzedRestaurant) {
         if (yesNo === 'yes') {
             return handlerInput.responseBuilder
@@ -173,6 +139,34 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         else {
             restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== lastAnalyzedRestaurant.restaurant.id);
         }
+    }
+    const handleResult = handleScores(restaurantsToDisambiguate);
+    if (!handleResult) {
+        return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse();
+    }
+    //TO DO: VA ESAMINATO IL CASO IN CUI C'E' SOLO UN RISTORANTE
+    /*if ('field' in handleResult && 'variance' in handleResult) {
+        const { field, variance } = handleResult as { field: string; variance: number }
+        return handlerInput.responseBuilder
+            .speak(
+                `I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`,
+            )
+            .getResponse()
+    } else {
+        const { restaurant, score } = handleResult as RestaurantWithScore
+        return handlerInput.responseBuilder
+            .speak(
+                `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
+            )
+            .getResponse()
+    }
+    */
+    console.log(handleResult);
+    if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
+        const { restaurants, fieldsAndVariances } = handleResult;
+        restaurantsToDisambiguate = restaurants;
+        fieldsForDisambiguation = fieldsAndVariances;
+        isRestaurantContextComputationCompleted = true;
     }
     console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${(0, debugUtils_1.beautify)(restaurantsToDisambiguate)}`);
     console.log(`DISAMBIGUATION_DEBUG: Fields for disambiguation left ${(0, debugUtils_1.beautify)(fieldsForDisambiguation)}`);
@@ -200,6 +194,9 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 .addElicitSlotDirective('yesNo')
                 .getResponse();
         }
+    }
+    else {
+        console.log(disambiguationField.field);
     }
     //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
     return handlerInput.responseBuilder
@@ -280,7 +277,7 @@ const handleScores = (items) => {
         console.log(`CHOICES_DEBUG: Inside medium choices with length of ${mediumChoices.length}. The object is ${(0, debugUtils_1.beautify)(mediumChoices)}`);
         const fieldsAndVariances = computeVariances(mediumChoices);
         if (fieldsAndVariances) {
-            return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
+            return { restaurants: mediumChoices, fieldsAndVariances: fieldsAndVariances };
         }
         return mediumChoices[0];
     }
@@ -289,7 +286,7 @@ const handleScores = (items) => {
         console.log(`CHOICES_DEBUG: Inside low choices with length of ${lowChoices.length}. The object is ${(0, debugUtils_1.beautify)(lowChoices)}`);
         const fieldsAndVariances = computeVariances(lowChoices);
         if (fieldsAndVariances) {
-            return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances };
+            return { restaurants: lowChoices, fieldsAndVariances: fieldsAndVariances };
         }
         return lowChoices[0];
     }
