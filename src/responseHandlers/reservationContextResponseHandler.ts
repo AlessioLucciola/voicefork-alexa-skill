@@ -6,6 +6,7 @@ import { getDistanceFromContext, searchRestaurants, getCityCoordinates } from '.
 import { CONF, TEST_LATLNG, MAX_DISTANCE } from '../shared/constants'
 import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../utils/dateTimeUtils'
 import { beautify } from '../utils/debugUtils'
+import { MakeReservationIntentHandler } from '../IntentHandlers/MakeReservationIntent'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
 let coordinates = getCoordinates()
@@ -27,7 +28,7 @@ export const handleSimilarRestaurants = async (
     handlerInput: HandlerInput,
     slots: RestaurantSlots,
 ): Promise<Response> => {
-    const { restaurantName, location, date, time, numPeople, yesNo } = slots
+    let { restaurantName, location, date, time, numPeople, yesNo } = slots
 
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
@@ -184,9 +185,29 @@ export const handleSimilarRestaurants = async (
         const finalRestaurant = restaurantsToDisambiguate[0]
         return handlerInput.responseBuilder
         .speak(
-            `The final restaurant is ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, with a score of ${finalRestaurant.score}`,
+            `Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}`,
         )
+        .addElicitSlotDirective('YesNoSlot')
         .getResponse()
+    }
+
+    if (restaurantsToDisambiguate.length === 2) {
+        const restaurantWithHighestScore = restaurantsToDisambiguate.reduce(
+            (highestScoreRestaurant, currentRestaurant) => {
+              if (currentRestaurant.score > highestScoreRestaurant.score) {
+                return currentRestaurant
+              }
+              return highestScoreRestaurant
+            }
+        )
+        lastAnalyzedRestaurant = restaurantWithHighestScore
+        return handlerInput.responseBuilder
+            .speak(
+                `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
+
     }
 
     const disambiguationField = getBestField(fieldsForDisambiguation)
@@ -203,18 +224,16 @@ export const handleSimilarRestaurants = async (
                 nearestDistance = distance;
             }
         }
-
+        
         if (nearestRestaurant !== null) {
             lastAnalyzedRestaurant = nearestRestaurant
             return handlerInput.responseBuilder
             .speak(
                 `Do you want to reserve to ${nearestRestaurant.restaurant.name} in ${nearestRestaurant.restaurant.address}?`,
             )
-            .addElicitSlotDirective('yesNo')
+            .addElicitSlotDirective('YesNoSlot')
             .getResponse()
         }
-    } else {
-        console.log(disambiguationField.field)
     }
 
     //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.

@@ -31,7 +31,7 @@ let usedFields;
  * @returns
  */
 const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void 0, void 0, function* () {
-    const { restaurantName, location, date, time, numPeople, yesNo } = slots;
+    let { restaurantName, location, date, time, numPeople, yesNo } = slots;
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
         return handlerInput.responseBuilder.addDelegateDirective().getResponse();
@@ -173,7 +173,21 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     if (restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = restaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
-            .speak(`The final restaurant is ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, with a score of ${finalRestaurant.score}`)
+            .speak(`Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}`)
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse();
+    }
+    if (restaurantsToDisambiguate.length === 2) {
+        const restaurantWithHighestScore = restaurantsToDisambiguate.reduce((highestScoreRestaurant, currentRestaurant) => {
+            if (currentRestaurant.score > highestScoreRestaurant.score) {
+                return currentRestaurant;
+            }
+            return highestScoreRestaurant;
+        });
+        lastAnalyzedRestaurant = restaurantWithHighestScore;
+        return handlerInput.responseBuilder
+            .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`)
+            .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
     const disambiguationField = getBestField(fieldsForDisambiguation);
@@ -191,12 +205,9 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             lastAnalyzedRestaurant = nearestRestaurant;
             return handlerInput.responseBuilder
                 .speak(`Do you want to reserve to ${nearestRestaurant.restaurant.name} in ${nearestRestaurant.restaurant.address}?`)
-                .addElicitSlotDirective('yesNo')
+                .addElicitSlotDirective('YesNoSlot')
                 .getResponse();
         }
-    }
-    else {
-        console.log(disambiguationField.field);
     }
     //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
     return handlerInput.responseBuilder
