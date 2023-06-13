@@ -180,7 +180,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     if (restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = restaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
-            .speak(`Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}`)
+            .speak(`Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}?`)
             .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
@@ -197,6 +197,8 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
+    //TO DO: EVERYTHING HERE MUST BE CHANGED WITH THE DISAMBIGUATION LOGIC
+    //Take the most discriminative field and remove unwanted resturants until to remain with 1 (it will the one to confirm)
     const disambiguationField = getBestField(fieldsForDisambiguation);
     if (disambiguationField.field === "latLng" && coordinates !== undefined) {
         let nearestRestaurant = null;
