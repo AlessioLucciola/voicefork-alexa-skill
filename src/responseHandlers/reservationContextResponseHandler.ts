@@ -171,10 +171,16 @@ export const handleSimilarRestaurants = async (
     */
 
     console.log(handleResult)
+    // More restaurant to disambiguate
     if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
         const { restaurants, fieldsAndVariances } = handleResult as { restaurants: RestaurantWithScore[], fieldsAndVariances: Variances }
         restaurantsToDisambiguate = restaurants
         fieldsForDisambiguation = fieldsAndVariances
+        isRestaurantContextComputationCompleted = true
+    } else {
+        // No variance, one a restaurant left. I immediatly take it.
+        restaurantsToDisambiguate = [handleResult]
+        lastAnalyzedRestaurant = handleResult
         isRestaurantContextComputationCompleted = true
     }
 
@@ -398,14 +404,6 @@ const computeVariances = (items: RestaurantWithScore[]): Variances | null => {
     const normalizedVariances: Variances = normalizeVariances(variances)
 
     console.log(`DEBUG NORMALIZED VARIANCES: ${beautify(normalizedVariances)}`)
-
-    /*const [maxPropertyName, maxValue] = Object.entries(normalizedVariances).reduce(
-        (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
-        ['', -Infinity],
-    )
-
-    return { field: maxPropertyName, variance: maxValue as number }
-    */
 
     return normalizedVariances
 }

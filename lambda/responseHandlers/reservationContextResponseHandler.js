@@ -162,10 +162,17 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     }
     */
     console.log(handleResult);
+    // More restaurant to disambiguate
     if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
         const { restaurants, fieldsAndVariances } = handleResult;
         restaurantsToDisambiguate = restaurants;
         fieldsForDisambiguation = fieldsAndVariances;
+        isRestaurantContextComputationCompleted = true;
+    }
+    else {
+        // No variance, one a restaurant left. I immediatly take it.
+        restaurantsToDisambiguate = [handleResult];
+        lastAnalyzedRestaurant = handleResult;
         isRestaurantContextComputationCompleted = true;
     }
     console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${(0, debugUtils_1.beautify)(restaurantsToDisambiguate)}`);
@@ -335,13 +342,6 @@ const computeVariances = (items) => {
     console.log(`DEBUG VARIANCES (before normalization): ${(0, debugUtils_1.beautify)(variances)}`);
     const normalizedVariances = normalizeVariances(variances);
     console.log(`DEBUG NORMALIZED VARIANCES: ${(0, debugUtils_1.beautify)(normalizedVariances)}`);
-    /*const [maxPropertyName, maxValue] = Object.entries(normalizedVariances).reduce(
-        (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
-        ['', -Infinity],
-    )
-
-    return { field: maxPropertyName, variance: maxValue as number }
-    */
     return normalizedVariances;
 };
 const computeSimpleVariance = (values) => {
