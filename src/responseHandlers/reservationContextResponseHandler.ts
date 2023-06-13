@@ -144,31 +144,17 @@ export const handleSimilarRestaurants = async (
         } else {
             restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== lastAnalyzedRestaurant.restaurant.id)
         }
+        //TO DO: Here we may put the logic to deal with other "yesNo" values
     }
 
+    // I compute the variance (and the buckets) again
+    // This is done at each iteration
     const handleResult = handleScores(restaurantsToDisambiguate)
 
+    // If the are no restaurants found
     if (!handleResult) {
-        return handlerInput.responseBuilder.speak(`No restaurant matches the query`).getResponse()
+        return handlerInput.responseBuilder.speak(`Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`).getResponse()
     }
-
-    //TO DO: VA ESAMINATO IL CASO IN CUI C'E' SOLO UN RISTORANTE
-    /*if ('field' in handleResult && 'variance' in handleResult) {
-        const { field, variance } = handleResult as { field: string; variance: number }
-        return handlerInput.responseBuilder
-            .speak(
-                `I examined the results, the restaurants can be disambiguated via the ${field} property, that has a variance of ${variance}`,
-            )
-            .getResponse()
-    } else {
-        const { restaurant, score } = handleResult as RestaurantWithScore
-        return handlerInput.responseBuilder
-            .speak(
-                `I examined the results, I think the restaurant you mean is ${restaurant.name}, which has a score of ${score}`,
-            )
-            .getResponse()
-    }
-    */
 
     console.log(handleResult)
     // More restaurant to disambiguate
