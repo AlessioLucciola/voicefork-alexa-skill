@@ -15,7 +15,8 @@ let isRestaurantContextComputationCompleted = false
 let restaurantsToDisambiguate: RestaurantWithScore[]
 let searchResults: RestaurantSearchResult[] = []
 let fieldsForDisambiguation: Variances
-let lastAnalyzedRestaurant: RestaurantWithScore
+let lastAnalyzedRestaurant: RestaurantWithScore | null
+let cityBestRestaurant: string
 let usedFields: []
 
 /**
@@ -35,6 +36,7 @@ export const handleSimilarRestaurants = async (
         return handlerInput.responseBuilder.addDelegateDirective().getResponse()
     }
 
+    //The following control checks if it's necessary to retrieve restaurant and in that case it search for them based on a query
     if (!isSearchRestaurantCompleted) {
         console.log(`DEBUG: SEARCHING FOR RESTAURANTS`)
         if (coordinates !== undefined && location !== undefined) {
@@ -74,6 +76,7 @@ export const handleSimilarRestaurants = async (
         }
     }
 
+    //The following control checks if the restaurant scores were computed. If not it computes the scores and save the restaurants with score in a variable.
     if (!isRestaurantContextComputationCompleted) {
         let plausibleContexts: { restaurant: Restaurant; contextDistance: number | null; nameDistance: number }[] = []
 
@@ -142,12 +145,22 @@ export const handleSimilarRestaurants = async (
             )
             .getResponse()
         } else {
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== lastAnalyzedRestaurant.restaurant.id)
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== lastAnalyzedRestaurant?.restaurant.id)
         }
-        //TO DO: Here we may put the logic to deal with other "yesNo" values
+        lastAnalyzedRestaurant = null
     }
 
-    // I compute the variance (and the buckets) again
+    // Disambiguation with city result
+    if (cityBestRestaurant && cityBestRestaurant !== "") {
+        if (yesNo === 'yes') { //If the response was "yes" it means that the user wants to reserve to the city of the best restaurant so let's remove the ones that are in other cities
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.city === cityBestRestaurant)
+        } else { // Otherwise, remove the restaurant in the same city of the best restaurant
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.city !== cityBestRestaurant)
+        }
+        cityBestRestaurant = "" // Reset city best restaurant
+    }
+
+    // I compute the variance (and the buckets)
     // This is done at each iteration
     const handleResult = handleScores(restaurantsToDisambiguate)
 
@@ -157,7 +170,7 @@ export const handleSimilarRestaurants = async (
     }
 
     console.log(handleResult)
-    // More restaurant to disambiguate
+    // If there are more restaurant to disambiguate I save them (as well as the variances)
     if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
         const { restaurants, fieldsAndVariances } = handleResult as { restaurants: RestaurantWithScore[], fieldsAndVariances: Variances }
         restaurantsToDisambiguate = restaurants
@@ -173,6 +186,7 @@ export const handleSimilarRestaurants = async (
     console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(restaurantsToDisambiguate)}`)
     console.log(`DISAMBIGUATION_DEBUG: Fields for disambiguation left ${beautify(fieldsForDisambiguation)}`)
 
+    // If there is one restaurant left, take it and ask for confirmation
     if (restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = restaurantsToDisambiguate[0]
         return handlerInput.responseBuilder
@@ -183,51 +197,47 @@ export const handleSimilarRestaurants = async (
         .getResponse()
     }
 
+    // If there are two restaurants left, ask immediatly if the user wants to reserve to the one with the highest score
     if (restaurantsToDisambiguate.length === 2) {
-        const restaurantWithHighestScore = restaurantsToDisambiguate.reduce(
-            (highestScoreRestaurant, currentRestaurant) => {
-              if (currentRestaurant.score > highestScoreRestaurant.score) {
-                return currentRestaurant
-              }
-              return highestScoreRestaurant
-            }
-        )
+        const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
         lastAnalyzedRestaurant = restaurantWithHighestScore
         return handlerInput.responseBuilder
-            .speak(
-                `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
-            )
-            .addElicitSlotDirective('YesNoSlot')
-            .getResponse()
+        .speak(
+            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+        )
+        .addElicitSlotDirective('YesNoSlot')
+        .getResponse()
 
     }
 
-    //TO DO: EVERYTHING HERE MUST BE CHANGED WITH THE DISAMBIGUATION LOGIC
-    //Take the most discriminative field and remove unwanted resturants until to remain with 1 (it will the one to confirm)
+    // Otherwise (if there are more than 2 resturants) -> disambiguation
+    // Take the most discriminative field and remove unwanted resturants until to remain with 1 (it will the one to confirm)
     const disambiguationField = getBestField(fieldsForDisambiguation)
+    // If the best field is latLng, try to understand if there are some ways to disambiguate
+    const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
     if (disambiguationField.field === "latLng" && coordinates !== undefined) {
-        let nearestRestaurant: RestaurantWithScore | null = null;
-        let nearestDistance: number | null = null
-        for (const item of restaurantsToDisambiguate) {
-            const distance = distanceBetweenCoordinates(
-                {latitude: item.restaurant.latitude, longitude: item.restaurant.longitude},
-                {latitude: coordinates?.latitude, longitude: coordinates?.longitude});
-        
-            if (nearestDistance === null || distance < nearestDistance) {
-                nearestRestaurant = item;
-                nearestDistance = distance;
-            }
-        }
-        
-        if (nearestRestaurant !== null) {
-            lastAnalyzedRestaurant = nearestRestaurant
+        // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+        const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
+        if (allCities.length > 1) {
+            cityBestRestaurant = restaurantWithHighestScore.restaurant.city
             return handlerInput.responseBuilder
             .speak(
-                `Do you want to reserve to ${nearestRestaurant.restaurant.name} in ${nearestRestaurant.restaurant.address}?`,
+                `Is the restaurant in ${cityBestRestaurant}?`,
             )
             .addElicitSlotDirective('YesNoSlot')
             .getResponse()
         }
+
+        // TO DO: ADD NEIGHBOORHOOD LOGIC
+
+        // Otherwise, simply ask to confirm the best restaurant
+        lastAnalyzedRestaurant = restaurantWithHighestScore
+        return handlerInput.responseBuilder
+        .speak(
+            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+        )
+        .addElicitSlotDirective('YesNoSlot')
+        .getResponse()
     }
 
     //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
@@ -239,7 +249,18 @@ export const handleSimilarRestaurants = async (
 
 }
 
-const getBestField = (fieldsAndVariances: Variances): {field: string, variance: number}  => {
+const getBestRestaurant = (restaurants: RestaurantWithScore[]): RestaurantWithScore => {
+    return restaurants.reduce(
+        (highestScoreRestaurant, currentRestaurant) => {
+          if (currentRestaurant.score > highestScoreRestaurant.score) {
+            return currentRestaurant
+          }
+          return highestScoreRestaurant
+        }
+    )
+}
+
+const getBestField = (fieldsAndVariances: Variances): {field: string, variance: number} => {
     const [maxPropertyName, maxValue] = Object.entries(fieldsAndVariances).reduce(
         (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
         ['', -Infinity],
