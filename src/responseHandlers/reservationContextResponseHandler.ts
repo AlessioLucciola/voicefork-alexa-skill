@@ -13,10 +13,10 @@ let coordinates = getCoordinates()
 let isSearchRestaurantCompleted = false
 let isRestaurantContextComputationCompleted = false
 let restaurantsToDisambiguate: RestaurantWithScore[]
-let searchResults: RestaurantSearchResult[] = []
 let fieldsForDisambiguation: Variances
 let lastAnalyzedRestaurant: RestaurantWithScore | null
 let cityBestRestaurant: string
+let zoneBestRestaurant: string
 let usedFields: []
 
 /**
@@ -30,6 +30,7 @@ export const handleSimilarRestaurants = async (
     slots: RestaurantSlots,
 ): Promise<Response> => {
     let { restaurantName, location, date, time, numPeople, yesNo } = slots
+    let searchResults: RestaurantSearchResult[] = []
 
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
@@ -160,6 +161,16 @@ export const handleSimilarRestaurants = async (
         cityBestRestaurant = "" // Reset city best restaurant
     }
 
+    // Disambiguation with zones result
+    if (zoneBestRestaurant && zoneBestRestaurant !== "") {
+        if (yesNo === 'yes') { //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone === zoneBestRestaurant)
+        } else { // Otherwise, remove the restaurant in the same zone of the best restaurant
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone !== zoneBestRestaurant)
+        }
+        zoneBestRestaurant = "" // Reset zone best restaurant
+    }
+
     // I compute the variance (and the buckets)
     // This is done at each iteration
     const handleResult = handleScores(restaurantsToDisambiguate)
@@ -222,13 +233,24 @@ export const handleSimilarRestaurants = async (
             cityBestRestaurant = restaurantWithHighestScore.restaurant.city
             return handlerInput.responseBuilder
             .speak(
-                `Is the restaurant in ${cityBestRestaurant}?`,
+                `Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`,
             )
             .addElicitSlotDirective('YesNoSlot')
             .getResponse()
         }
-
-        // TO DO: ADD NEIGHBOORHOOD LOGIC
+        
+        // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+        const allZones = restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.zone).filter(zone=> !zone.toLowerCase().startsWith('via '));
+        console.log(allZones)
+        if (allZones.length > 1 && getRestaurantCity(restaurantWithHighestScore).toLowerCase() !== restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
+            zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone
+            return handlerInput.responseBuilder
+            .speak(
+                `Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
+        }
 
         // Otherwise, simply ask to confirm the best restaurant
         lastAnalyzedRestaurant = restaurantWithHighestScore
@@ -247,6 +269,12 @@ export const handleSimilarRestaurants = async (
     )
     .getResponse()
 
+}
+
+const getRestaurantCity = (restaurant: RestaurantWithScore): string => {
+    let city = restaurant.restaurant.city
+    if (city === "ome") city = "rome"
+    return city.charAt(0).toUpperCase() + city.slice(1);
 }
 
 const getBestRestaurant = (restaurants: RestaurantWithScore[]): RestaurantWithScore => {

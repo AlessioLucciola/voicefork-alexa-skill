@@ -20,10 +20,10 @@ let coordinates = (0, localizationFeatures_1.default)();
 let isSearchRestaurantCompleted = false;
 let isRestaurantContextComputationCompleted = false;
 let restaurantsToDisambiguate;
-let searchResults = [];
 let fieldsForDisambiguation;
 let lastAnalyzedRestaurant;
 let cityBestRestaurant;
+let zoneBestRestaurant;
 let usedFields;
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -33,6 +33,7 @@ let usedFields;
  */
 const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void 0, void 0, function* () {
     let { restaurantName, location, date, time, numPeople, yesNo } = slots;
+    let searchResults = [];
     if (!restaurantName || !date || !time || !numPeople) {
         //Ask for the data that's missing before disambiguation
         return handlerInput.responseBuilder.addDelegateDirective().getResponse();
@@ -154,6 +155,16 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         }
         cityBestRestaurant = ""; // Reset city best restaurant
     }
+    // Disambiguation with zones result
+    if (zoneBestRestaurant && zoneBestRestaurant !== "") {
+        if (yesNo === 'yes') { //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone === zoneBestRestaurant);
+        }
+        else { // Otherwise, remove the restaurant in the same zone of the best restaurant
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone !== zoneBestRestaurant);
+        }
+        zoneBestRestaurant = ""; // Reset zone best restaurant
+    }
     // I compute the variance (and the buckets)
     // This is done at each iteration
     const handleResult = handleScores(restaurantsToDisambiguate);
@@ -205,11 +216,20 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         if (allCities.length > 1) {
             cityBestRestaurant = restaurantWithHighestScore.restaurant.city;
             return handlerInput.responseBuilder
-                .speak(`Is the restaurant in ${cityBestRestaurant}?`)
+                .speak(`Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`)
                 .addElicitSlotDirective('YesNoSlot')
                 .getResponse();
         }
-        // TO DO: ADD NEIGHBOORHOOD LOGIC
+        // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+        const allZones = restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.zone).filter(zone => !zone.toLowerCase().startsWith('via '));
+        console.log(allZones);
+        if (allZones.length > 1 && getRestaurantCity(restaurantWithHighestScore).toLowerCase() !== restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
+            zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone;
+            return handlerInput.responseBuilder
+                .speak(`Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`)
+                .addElicitSlotDirective('YesNoSlot')
+                .getResponse();
+        }
         // Otherwise, simply ask to confirm the best restaurant
         lastAnalyzedRestaurant = restaurantWithHighestScore;
         return handlerInput.responseBuilder
@@ -223,6 +243,12 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         .getResponse();
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
+const getRestaurantCity = (restaurant) => {
+    let city = restaurant.restaurant.city;
+    if (city === "ome")
+        city = "rome";
+    return city.charAt(0).toUpperCase() + city.slice(1);
+};
 const getBestRestaurant = (restaurants) => {
     return restaurants.reduce((highestScoreRestaurant, currentRestaurant) => {
         if (currentRestaurant.score > highestScoreRestaurant.score) {

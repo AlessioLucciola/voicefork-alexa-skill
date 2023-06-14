@@ -38,11 +38,12 @@ exports.searchNearbyRestaurants = searchNearbyRestaurants;
  */
 const searchRestaurants = (query, locationInfo, city) => __awaiter(void 0, void 0, void 0, function* () {
     let URL = '';
+    const MAX_DISTANCE = 50000;
     const LIMIT = 500;
     if (locationInfo) {
         const { location, maxDistance } = locationInfo;
         const { latitude, longitude } = location;
-        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}&limit=${LIMIT}`;
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`;
     }
     else {
         URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=${LIMIT}`;

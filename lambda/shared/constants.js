@@ -20,7 +20,7 @@ exports.LOCALIZATION_ENABLED = true;
  * - VALUE_MAP: The distribution of how the contextDistance has to be normalized. Values in between are linearly interpolated;
  */
 exports.CONF = {
-    DISTANCE_THRESHOLD: 0.7,
+    DISTANCE_THRESHOLD: 0.90,
     CONTEXT_SOFT_THRESHOLD: 2,
     CONTEXT_HARD_THRESHOLD: 0.5,
     CONTEXT_WEIGHT: 0.8,
