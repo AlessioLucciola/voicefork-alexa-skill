@@ -21,7 +21,7 @@ export const LOCALIZATION_ENABLED: boolean = true
  * - VALUE_MAP: The distribution of how the contextDistance has to be normalized. Values in between are linearly interpolated;
  */
 export const CONF = {
-    DISTANCE_THRESHOLD: 0.7,
+    DISTANCE_THRESHOLD: 0.90,
     CONTEXT_SOFT_THRESHOLD: 2,
     CONTEXT_HARD_THRESHOLD: 0.5,
     CONTEXT_WEIGHT: 0.8, //TODO: 0.8 seems fine, but maybe it's too high

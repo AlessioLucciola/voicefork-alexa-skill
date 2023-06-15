@@ -225,8 +225,8 @@ export const handleSimilarRestaurants = async (
     // Take the most discriminative field and remove unwanted resturants until to remain with 1 (it will the one to confirm)
     const disambiguationField = getBestField(fieldsForDisambiguation)
     // If the best field is latLng, try to understand if there are some ways to disambiguate
-    const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
-    // if (disambiguationField.field === "latLng" && coordinates !== undefined) { // TODO: Disable this if if you want to test the other field
+    // const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
+    // if (disambiguationField.field === "latLng" && coordinates !== undefined) { // TODO: Disable this if if you want to test the other fields
     //     // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
     //     const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
     //     if (allCities.length > 1) {
@@ -263,7 +263,7 @@ export const handleSimilarRestaurants = async (
     // }
 
     // If the best field is avgRating, try to understand if there are some ways to disambiguate
-    if (disambiguationField.field === "avgRating") { // TODO: Change to latLng if you want to test it
+    if (disambiguationField.field === "latLng") { // TODO: Change to latLng if you want to test it (Original value: avgRating)
         // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
         // Creates a copy of the original array
         const copyRestaurantsToDisambiguate = restaurantsToDisambiguate.slice();
@@ -271,11 +271,14 @@ export const handleSimilarRestaurants = async (
         // Sort the copy by avgRating in descending order
         copyRestaurantsToDisambiguate.sort((a, b) => b.restaurant.avgRating - a.restaurant.avgRating);
 
+        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(copyRestaurantsToDisambiguate)}`)
+        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(restaurantsToDisambiguate.length)}`)
+
         // Get the restaurant with the highest avgRating
         lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
         .speak(
-            `Do you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${restaurantWithHighestScore.restaurant.address} with an average rating of ${lastAnalyzedRestaurant.restaurant.avgRating}?`,
+            `Do you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address} with an average rating of ${lastAnalyzedRestaurant.restaurant.avgRating}?`,
         )
         .addElicitSlotDirective('YesNoSlot')
         .getResponse()

@@ -35,6 +35,8 @@ export type Restaurant = {
     veganFriendly: boolean
     glutenFree: boolean
     reviewsNumber: number
+    macroCuisines: string
+    zone: string
 }
 
 //This is the type of the SearchRestaurants API response, so has to be changed accordingly.
