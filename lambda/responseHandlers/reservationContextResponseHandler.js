@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleSimilarRestaurants = void 0;
+exports.latLngDistanceBoost = exports.handleSimilarRestaurants = void 0;
 const localizationFeatures_1 = require("../utils/localizationFeatures");
 const apiCalls_1 = require("../apiCalls");
 const constants_1 = require("../shared/constants");
@@ -32,6 +32,7 @@ let usedFields;
  * @returns
  */
 const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     let { restaurantName, location, date, time, numPeople, yesNo } = slots;
     let searchResults = [];
     if (!restaurantName || !date || !time || !numPeople) {
@@ -106,6 +107,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 restaurant: result.restaurant,
                 contextDistance: contextDistance,
                 nameDistance: result.nameDistance,
+                locationDistance: (_a = result.locationDistance) !== null && _a !== void 0 ? _a : null,
             });
         }
         console.log('DEBUG_PLAUSIBLE_CONTEXT: ', (0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
@@ -113,9 +115,21 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         if (plausibleContexts.every(context => context === null)) {
             //If all the context are null, then the score is just 1 - nameDistnace
             for (let context of plausibleContexts) {
+                const { restaurant, locationDistance, nameDistance } = context;
+                const { LOCATION_BOOST_FACTOR } = constants_1.CONF;
+                const score = nameDistance;
+                let locationBoost = 0;
+                if (locationDistance)
+                    locationBoost = LOCATION_BOOST_FACTOR * (0, exports.latLngDistanceBoost)(locationDistance, constants_1.MAX_DISTANCE);
+                console.log('DEBUG LOCATION BOOST: ', {
+                    originalScore: score,
+                    boosted: score + locationBoost,
+                    boostAmount: `${(0, exports.latLngDistanceBoost)(locationDistance !== null && locationDistance !== void 0 ? locationDistance : 0, constants_1.MAX_DISTANCE)} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
+                    locationDistance,
+                });
                 scores.push({
-                    restaurant: context.restaurant,
-                    score: context.nameDistance,
+                    restaurant: restaurant,
+                    score: score + locationBoost,
                 });
             }
         }
@@ -275,14 +289,34 @@ const getBestField = (fieldsAndVariances) => {
  * @returns
  */
 const computeAggregateScore = (context) => {
-    const { contextDistance, nameDistance } = context;
+    const { contextDistance, nameDistance, locationDistance } = context;
+    let locationBoost = 0;
+    const { LOCATION_BOOST_FACTOR } = constants_1.CONF;
     if (contextDistance == null) {
         const minNameDistance = Math.max(nameDistance, 0.05); // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
-        return 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1);
+        let score = 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1);
+        if (locationDistance)
+            locationBoost = LOCATION_BOOST_FACTOR * (0, exports.latLngDistanceBoost)(locationDistance, constants_1.MAX_DISTANCE);
+        console.log('DEBUG LOCATION BOOST: ', {
+            originalScore: score,
+            boosted: score + locationBoost,
+            boostAmount: `${(0, exports.latLngDistanceBoost)(locationDistance !== null && locationDistance !== void 0 ? locationDistance : 0, constants_1.MAX_DISTANCE)} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
+            locationDistance,
+        });
+        return score + locationBoost;
     }
     const normalizedContextDistance = normalizeContext(contextDistance);
     const avg = (1 - CONTEXT_WEIGHT) * nameDistance + CONTEXT_WEIGHT * normalizedContextDistance;
-    return 1 - avg;
+    let score = 1 - avg;
+    if (locationDistance)
+        locationBoost = LOCATION_BOOST_FACTOR * (0, exports.latLngDistanceBoost)(locationDistance, constants_1.MAX_DISTANCE);
+    console.log('DEBUG LOCATION BOOST: ', {
+        originalScore: score,
+        boosted: score + locationBoost,
+        boostAmount: `${(0, exports.latLngDistanceBoost)(locationDistance !== null && locationDistance !== void 0 ? locationDistance : 0, constants_1.MAX_DISTANCE)} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
+        locationDistance,
+    });
+    return score + locationBoost;
 };
 /**
  * Normalizes the inputValue according to the valueMap distribution, interpolating the values in between.
@@ -353,6 +387,16 @@ const handleScores = (items) => {
     }
     return null;
 };
+const latLngDistanceBoost = (locationDistance, maxDistance) => {
+    if (locationDistance > maxDistance / 3)
+        return 0;
+    const normalizedDistance = locationDistance / maxDistance;
+    const boost = 1 - (-Math.log(1 / normalizedDistance) / Math.log(100) + 1); // 1 - (-log_100(1/x)+1)
+    const MIN = 0;
+    const MAX = 1;
+    return Math.min(Math.max(boost, MIN), MAX); //Clamp between 0 and 1
+};
+exports.latLngDistanceBoost = latLngDistanceBoost;
 //******************************************//
 //********COMPUTING VARIANCES***************//
 //******************************************//
