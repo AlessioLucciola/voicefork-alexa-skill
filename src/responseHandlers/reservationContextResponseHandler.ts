@@ -226,37 +226,56 @@ export const handleSimilarRestaurants = async (
     const disambiguationField = getBestField(fieldsForDisambiguation)
     // If the best field is latLng, try to understand if there are some ways to disambiguate
     const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
-    if (disambiguationField.field === "latLng" && coordinates !== undefined) {
-        // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-        const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
-        if (allCities.length > 1) {
-            cityBestRestaurant = restaurantWithHighestScore.restaurant.city
-            return handlerInput.responseBuilder
-            .speak(
-                `Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`,
-            )
-            .addElicitSlotDirective('YesNoSlot')
-            .getResponse()
-        }
+    // if (disambiguationField.field === "latLng" && coordinates !== undefined) { // TODO: Disable this if if you want to test the other field
+    //     // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+    //     const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
+    //     if (allCities.length > 1) {
+    //         cityBestRestaurant = restaurantWithHighestScore.restaurant.city
+    //         return handlerInput.responseBuilder
+    //         .speak(
+    //             `Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`,
+    //         )
+    //         .addElicitSlotDirective('YesNoSlot')
+    //         .getResponse()
+    //     }
         
-        // // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-        // const allZones = restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.zone).filter(zone=> !zone.toLowerCase().startsWith('via '));
-        // console.log(allZones)
-        // if (allZones.length > 1 && getRestaurantCity(restaurantWithHighestScore).toLowerCase() !== restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
-        //     zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone
-        //     return handlerInput.responseBuilder
-        //     .speak(
-        //         `Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`,
-        //     )
-        //     .addElicitSlotDirective('YesNoSlot')
-        //     .getResponse()
-        // }
+    //     // // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+    //     // const allZones = restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.zone).filter(zone=> !zone.toLowerCase().startsWith('via '));
+    //     // console.log(allZones)
+    //     // if (allZones.length > 1 && getRestaurantCity(restaurantWithHighestScore).toLowerCase() !== restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
+    //     //     zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone
+    //     //     return handlerInput.responseBuilder
+    //     //     .speak(
+    //     //         `Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`,
+    //     //     )
+    //     //     .addElicitSlotDirective('YesNoSlot')
+    //     //     .getResponse()
+    //     // }
 
-        // Otherwise, simply ask to confirm the best restaurant
-        lastAnalyzedRestaurant = restaurantWithHighestScore
+    //     // Otherwise, simply ask to confirm the best restaurant
+    //     lastAnalyzedRestaurant = restaurantWithHighestScore
+    //     return handlerInput.responseBuilder
+    //     .speak(
+    //         `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+    //     )
+    //     .addElicitSlotDirective('YesNoSlot')
+    //     .getResponse()
+    // }
+
+    // If the best field is avgRating, try to understand if there are some ways to disambiguate
+    if (disambiguationField.field === "avgRating") { // TODO: Change to latLng if you want to test it
+        // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
+        // Creates a copy of the original array
+        const copyRestaurantsToDisambiguate = restaurantsToDisambiguate.slice();
+
+        // Sort the copy by avgRating in descending order
+        copyRestaurantsToDisambiguate.sort((a, b) => b.restaurant.avgRating - a.restaurant.avgRating);
+
+        // Get the restaurant with the highest avgRating
+        lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
         .speak(
-            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+            `Do you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${restaurantWithHighestScore.restaurant.address} with an average rating of ${lastAnalyzedRestaurant.restaurant.avgRating}?`,
         )
         .addElicitSlotDirective('YesNoSlot')
         .getResponse()
@@ -275,6 +294,10 @@ const getRestaurantCity = (restaurant: RestaurantWithScore): string => {
     let city = restaurant.restaurant.city
     if (city === "ome") city = "rome"
     return city.charAt(0).toUpperCase() + city.slice(1);
+}
+
+const getRestaurantAvgRating = (restaurant: RestaurantWithScore): number => {
+    return restaurant.restaurant.avgRating
 }
 
 const getBestRestaurant = (restaurants: RestaurantWithScore[]): RestaurantWithScore => {
