@@ -1,6 +1,16 @@
 import { HandlerInput } from 'ask-sdk-core'
 import { Response } from 'ask-sdk-model'
-import { LatLng, ReservationContext, Restaurant, RestaurantSearchResult, RestaurantSlots, RestaurantWithScore, Variances, VarianceResult, ContextResults } from '../shared/types'
+import {
+    LatLng,
+    ReservationContext,
+    Restaurant,
+    RestaurantSearchResult,
+    RestaurantSlots,
+    RestaurantWithScore,
+    Variances,
+    VarianceResult,
+    ContextResults,
+} from '../shared/types'
 import getCoordinates, { distanceBetweenCoordinates } from '../utils/localizationFeatures'
 import { getDistanceFromContext, searchRestaurants, getCityCoordinates } from '../apiCalls'
 import { CONF, TEST_LATLNG, MAX_DISTANCE } from '../shared/constants'
@@ -91,7 +101,11 @@ export const handleSimilarRestaurants = async (
             const currentTime = parseTime(currentHour, currentMinute)
             const reservationDateTime = convertAmazonDateTime(date, time)
             const reservationDateComponents = getDateComponentsFromDate(reservationDateTime)
-            const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute } = reservationDateComponents
+            const {
+                weekday: reservationDay,
+                hour: reservationHour,
+                minute: reservationMinute,
+            } = reservationDateComponents
             const reservationTime = parseTime(reservationHour, reservationMinute)
 
             const context: ReservationContext = {
@@ -141,34 +155,48 @@ export const handleSimilarRestaurants = async (
     if (lastAnalyzedRestaurant) {
         if (yesNo === 'yes') {
             return handlerInput.responseBuilder
-            .speak(
-                `You seem that you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address}`,
-            )
-            .getResponse()
+                .speak(
+                    `You seem that you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address}`,
+                )
+                .getResponse()
         } else {
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== lastAnalyzedRestaurant?.restaurant.id)
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
+                restaurant => restaurant.restaurant.id !== lastAnalyzedRestaurant?.restaurant.id,
+            )
         }
         lastAnalyzedRestaurant = null
     }
 
     // Disambiguation with city result
-    if (cityBestRestaurant && cityBestRestaurant !== "") {
-        if (yesNo === 'yes') { //If the response was "yes" it means that the user wants to reserve to the city of the best restaurant so let's remove the ones that are in other cities
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.city === cityBestRestaurant)
-        } else { // Otherwise, remove the restaurant in the same city of the best restaurant
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.city !== cityBestRestaurant)
+    if (cityBestRestaurant && cityBestRestaurant !== '') {
+        if (yesNo === 'yes') {
+            //If the response was "yes" it means that the user wants to reserve to the city of the best restaurant so let's remove the ones that are in other cities
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
+                restaurant => restaurant.restaurant.city === cityBestRestaurant,
+            )
+        } else {
+            // Otherwise, remove the restaurant in the same city of the best restaurant
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
+                restaurant => restaurant.restaurant.city !== cityBestRestaurant,
+            )
         }
-        cityBestRestaurant = "" // Reset city best restaurant
+        cityBestRestaurant = '' // Reset city best restaurant
     }
 
     // Disambiguation with zones result
-    if (zoneBestRestaurant && zoneBestRestaurant !== "") {
-        if (yesNo === 'yes') { //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone === zoneBestRestaurant)
-        } else { // Otherwise, remove the restaurant in the same zone of the best restaurant
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone !== zoneBestRestaurant)
+    if (zoneBestRestaurant && zoneBestRestaurant !== '') {
+        if (yesNo === 'yes') {
+            //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
+                restaurant => restaurant.restaurant.zone === zoneBestRestaurant,
+            )
+        } else {
+            // Otherwise, remove the restaurant in the same zone of the best restaurant
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
+                restaurant => restaurant.restaurant.zone !== zoneBestRestaurant,
+            )
         }
-        zoneBestRestaurant = "" // Reset zone best restaurant
+        zoneBestRestaurant = '' // Reset zone best restaurant
     }
 
     // I compute the variance (and the buckets)
@@ -177,13 +205,20 @@ export const handleSimilarRestaurants = async (
 
     // If the are no restaurants found
     if (!handleResult) {
-        return handlerInput.responseBuilder.speak(`Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`).getResponse()
+        return handlerInput.responseBuilder
+            .speak(
+                `Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`,
+            )
+            .getResponse()
     }
 
     console.log(handleResult)
     // If there are more restaurant to disambiguate I save them (as well as the variances)
     if ('restaurants' in handleResult && 'fieldsAndVariances' in handleResult) {
-        const { restaurants, fieldsAndVariances } = handleResult as { restaurants: RestaurantWithScore[], fieldsAndVariances: Variances }
+        const { restaurants, fieldsAndVariances } = handleResult as {
+            restaurants: RestaurantWithScore[]
+            fieldsAndVariances: Variances
+        }
         restaurantsToDisambiguate = restaurants
         fieldsForDisambiguation = fieldsAndVariances
         isRestaurantContextComputationCompleted = true
@@ -201,11 +236,11 @@ export const handleSimilarRestaurants = async (
     if (restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = restaurantsToDisambiguate[0]
         return handlerInput.responseBuilder
-        .speak(
-            `Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}?`,
-        )
-        .addElicitSlotDirective('YesNoSlot')
-        .getResponse()
+            .speak(
+                `Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
     }
 
     // If there are two restaurants left, ask immediatly if the user wants to reserve to the one with the highest score
@@ -213,12 +248,11 @@ export const handleSimilarRestaurants = async (
         const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
         lastAnalyzedRestaurant = restaurantWithHighestScore
         return handlerInput.responseBuilder
-        .speak(
-            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
-        )
-        .addElicitSlotDirective('YesNoSlot')
-        .getResponse()
-
+            .speak(
+                `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
     }
 
     // Otherwise (if there are more than 2 resturants) -> disambiguation
@@ -226,69 +260,68 @@ export const handleSimilarRestaurants = async (
     const disambiguationField = getBestField(fieldsForDisambiguation)
     // If the best field is latLng, try to understand if there are some ways to disambiguate
     const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
-    if (disambiguationField.field === "latLng" && coordinates !== undefined) {
+    if (disambiguationField.field === 'latLng' && coordinates !== undefined) {
         // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
         const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
         if (allCities.length > 1) {
             cityBestRestaurant = restaurantWithHighestScore.restaurant.city
             return handlerInput.responseBuilder
-            .speak(
-                `Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`,
-            )
-            .addElicitSlotDirective('YesNoSlot')
-            .getResponse()
+                .speak(`Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`)
+                .addElicitSlotDirective('YesNoSlot')
+                .getResponse()
         }
-        
+
         // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-        const allZones = restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.zone).filter(zone=> !zone.toLowerCase().startsWith('via '));
+        const allZones = restaurantsToDisambiguate
+            .map(restaurant => restaurant.restaurant.zone)
+            .filter(zone => !zone.toLowerCase().startsWith('via '))
         console.log(allZones)
-        if (allZones.length > 1 && getRestaurantCity(restaurantWithHighestScore).toLowerCase() !== restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
+        if (
+            allZones.length > 1 &&
+            getRestaurantCity(restaurantWithHighestScore).toLowerCase() !==
+                restaurantWithHighestScore.restaurant.zone.toLowerCase()
+        ) {
             zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone
             return handlerInput.responseBuilder
-            .speak(
-                `Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`,
-            )
-            .addElicitSlotDirective('YesNoSlot')
-            .getResponse()
+                .speak(
+                    `Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(
+                        restaurantWithHighestScore,
+                    )}?`,
+                )
+                .addElicitSlotDirective('YesNoSlot')
+                .getResponse()
         }
 
         // Otherwise, simply ask to confirm the best restaurant
         lastAnalyzedRestaurant = restaurantWithHighestScore
         return handlerInput.responseBuilder
-        .speak(
-            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
-        )
-        .addElicitSlotDirective('YesNoSlot')
-        .getResponse()
+            .speak(
+                `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
     }
 
     //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
-    return handlerInput.responseBuilder
-    .speak(
-        `You reached the bottom. I can't make the reservation.`,
-    )
-    .getResponse()
-
+    return handlerInput.responseBuilder.speak(`You reached the bottom. I can't make the reservation.`).getResponse()
 }
 
 const getRestaurantCity = (restaurant: RestaurantWithScore): string => {
     let city = restaurant.restaurant.city
-    if (city === "ome") city = "rome"
-    return city.charAt(0).toUpperCase() + city.slice(1);
+    if (city === 'ome') city = 'rome'
+    return city.charAt(0).toUpperCase() + city.slice(1)
 }
 
 const getBestRestaurant = (restaurants: RestaurantWithScore[]): RestaurantWithScore => {
-    return restaurants.reduce(
-        (highestScoreRestaurant, currentRestaurant) => {
-          if (currentRestaurant.score > highestScoreRestaurant.score) {
+    return restaurants.reduce((highestScoreRestaurant, currentRestaurant) => {
+        if (currentRestaurant.score > highestScoreRestaurant.score) {
             return currentRestaurant
-          }
-          return highestScoreRestaurant
         }
-    )
+        return highestScoreRestaurant
+    })
 }
 
-const getBestField = (fieldsAndVariances: Variances): {field: string, variance: number} => {
+const getBestField = (fieldsAndVariances: Variances): { field: string; variance: number } => {
     const [maxPropertyName, maxValue] = Object.entries(fieldsAndVariances).reduce(
         (acc, [property, value]) => (value > acc[1] ? [property, value] : acc),
         ['', -Infinity],
@@ -344,9 +377,7 @@ const normalizeContext = (inputValue: number): number => {
     }
 }
 
-const handleScores = (
-    items: RestaurantWithScore[],
-): RestaurantWithScore | ContextResults | null => {
+const handleScores = (items: RestaurantWithScore[]): RestaurantWithScore | ContextResults | null => {
     const { SCORE_THRESHOLDS } = CONF
     let highChoices: RestaurantWithScore[] = []
     let mediumChoices: RestaurantWithScore[] = []
@@ -368,7 +399,7 @@ const handleScores = (
         )
         const fieldsAndVariances = computeVariances(highChoices)
         if (fieldsAndVariances) {
-            return {restaurants: highChoices, fieldsAndVariances: fieldsAndVariances}
+            return { restaurants: highChoices, fieldsAndVariances: fieldsAndVariances }
         }
         return highChoices[0]
     }
@@ -381,7 +412,7 @@ const handleScores = (
         )
         const fieldsAndVariances = computeVariances(mediumChoices)
         if (fieldsAndVariances) {
-            return {restaurants: mediumChoices, fieldsAndVariances: fieldsAndVariances}
+            return { restaurants: mediumChoices, fieldsAndVariances: fieldsAndVariances }
         }
         return mediumChoices[0]
     }
@@ -394,7 +425,7 @@ const handleScores = (
         )
         const fieldsAndVariances = computeVariances(lowChoices)
         if (fieldsAndVariances) {
-            return {restaurants: lowChoices, fieldsAndVariances: fieldsAndVariances}
+            return { restaurants: lowChoices, fieldsAndVariances: fieldsAndVariances }
         }
         return lowChoices[0]
     }
@@ -430,19 +461,13 @@ const computeVariances = (items: RestaurantWithScore[]): Variances | null => {
     )
 
     const variances: Variances = {
-        latLng: computeLatLngVariance(allLatLng),
-        city: computeStringArrayVariance(allCities),
-        cuisine: computeStringArrayVariance(allCuisines),
-        avgRating: computeSimpleVariance(allAvgRating),
+        latLng: computeLatLngVariance(allLatLng).variance,
+        city: computeStringArrayVariance(allCities).variance,
+        cuisine: computeStringArrayVariance(allCuisines).variance,
+        avgRating: computeSimpleVariance(allAvgRating).variance,
     }
 
-    console.log(`DEBUG VARIANCES (before normalization): ${beautify(variances)}`)
-
-    const normalizedVariances: Variances = normalizeVariances(variances)
-
-    console.log(`DEBUG NORMALIZED VARIANCES: ${beautify(normalizedVariances)}`)
-
-    return normalizedVariances
+    return variances
 }
 
 const computeSimpleVariance = (values: number[]): VarianceResult => {
@@ -464,20 +489,20 @@ const computeLatLngVariance = (values: LatLng[]): VarianceResult => {
 
     // Calculate the sum of squared distances
     const sumSquaredDistances = values.reduce((sum, { latitude, longitude }) => {
-        const distance = distanceBetweenCoordinates(
-            { latitude, longitude },
-            { latitude: avgLatitude, longitude: avgLongitude },
-        )
+        const distance =
+            distanceBetweenCoordinates({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude }) /
+            1000 //Distance in km instead of meters
         return sum + distance * distance
     }, 0)
 
     // Calculate the sum of distances
     const mean =
         values.reduce((sum, { latitude, longitude }) => {
-            const distance = distanceBetweenCoordinates(
-                { latitude, longitude },
-                { latitude: avgLatitude, longitude: avgLongitude },
-            )
+            const distance =
+                distanceBetweenCoordinates(
+                    { latitude, longitude },
+                    { latitude: avgLatitude, longitude: avgLongitude },
+                ) / 1000 //Distance in km instead of meters
             return sum + distance
         }, 0) / values.length
 
@@ -488,48 +513,31 @@ const computeLatLngVariance = (values: LatLng[]): VarianceResult => {
 }
 
 const computeStringArrayVariance = (values: string[][]): VarianceResult => {
-    const countUniqueStrings = (arr: string[]): number => {
-        const uniqueStrings = new Set(arr)
-        return uniqueStrings.size
+    const uniqueCategories = new Set<string>()
+
+    for (const arr of values) {
+        for (const str of arr) {
+            uniqueCategories.add(str)
+        }
     }
 
-    // Calculate the average count of different strings
-    const sumCounts = values.reduce((sum, arr) => sum + countUniqueStrings(arr), 0)
-    const avgCount = sumCounts / values.length
+    const numUniqueCategories = uniqueCategories.size
+
+    // Calculate the average count of unique categories
+    const avgCount = numUniqueCategories / values.length
 
     // Calculate the sum of squared differences from the average count
     const sumSquaredDifferences = values.reduce((sum, arr) => {
-        const difference = countUniqueStrings(arr) - avgCount
+        const numUniqueInArr = new Set<string>(arr).size
+        const difference = numUniqueInArr - avgCount
         return sum + difference * difference
     }, 0)
 
-    const mean =
-        values.reduce((sum, arr) => {
-            const difference = countUniqueStrings(arr) - avgCount
-            return sum + difference * difference
-        }, 0) / values.length
+    const mean = sumSquaredDifferences / values.length
 
     // Calculate the variance
     const variance = sumSquaredDifferences / (values.length - 1)
     const standardDeviation = Math.sqrt(variance)
 
     return { mean, std: standardDeviation, variance }
-}
-
-const normalizeVariances = (variances: Variances): Variances => {
-    let { latLng, city, cuisine, avgRating } = variances
-    latLng = latLng as VarianceResult
-    city = city as VarianceResult
-    cuisine = cuisine as VarianceResult
-    avgRating = avgRating as VarianceResult
-
-    const zScore = (item: VarianceResult): number => {
-        return (item.variance - item.mean) / item.std
-    }
-    return {
-        latLng: zScore(latLng),
-        city: zScore(city),
-        cuisine: zScore(cuisine),
-        avgRating: zScore(avgRating),
-    }
 }
