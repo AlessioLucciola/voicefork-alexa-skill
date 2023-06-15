@@ -18,7 +18,8 @@
                 "--region",
                 "EU"
             ],
-            "cwd": "${workspaceFolder}/lambda"
+            "cwd": "${workspaceFolder}/lambda",
+            "console": "integratedTerminal" // questo é per Danilo 😔
         }
     ]
 }
