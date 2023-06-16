@@ -2,14 +2,13 @@ import { LatLng } from './shared/types'
 import { RESTAURANTS_URL, RESERVATIONS_URL } from './shared/urls'
 import axios from 'axios'
 import { RestaurantSearchResult, ReservationContext } from './shared/types'
-import { MAX_DISTANCE, ROME_LATLNG } from './shared/constants'
+import { LIMIT, MAX_DISTANCE, ROME_LATLNG } from './shared/constants'
 
 export const searchNearbyRestaurants = async (
     query: string,
     coordinates: LatLng,
 ): Promise<RestaurantSearchResult[]> => {
     const { latitude, longitude } = coordinates
-    const LIMIT = 500
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
     const URL = `${RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`
 
@@ -37,8 +36,6 @@ export const searchRestaurants = async (
     city?: string,
 ): Promise<RestaurantSearchResult[]> => {
     let URL = ''
-    const MAX_DISTANCE = 50000
-    const LIMIT = 500
     if (locationInfo) {
         const { location, maxDistance } = locationInfo
         const { latitude, longitude } = location

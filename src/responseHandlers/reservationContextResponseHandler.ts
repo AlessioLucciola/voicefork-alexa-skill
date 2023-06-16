@@ -323,11 +323,19 @@ export const handleSimilarRestaurants = async (
             .getResponse()
     }
 
+
+    // Creates a copy of the original array
+    const copyRestaurantsToDisambiguate = restaurantsToDisambiguate.slice();
+
+    const minScore = copyRestaurantsToDisambiguate.reduce((min, restaurant) => restaurant.score < min ? restaurant.score : min, copyRestaurantsToDisambiguate[0].score);
+    const maxScore = copyRestaurantsToDisambiguate.reduce((max, restaurant) => restaurant.score > max ? restaurant.score : max, copyRestaurantsToDisambiguate[0].score);
+
+    console.log(`DISAMBIGUATION_DEBUG: Min score ${beautify(minScore)}`)
+    console.log(`DISAMBIGUATION_DEBUG: Max score ${beautify(maxScore)}`)
+
     // If the best field is avgRating, try to understand if there are some ways to disambiguate
-    if (disambiguationField.field === "latLng") { // TODO: Change to latLng if you want to test it (Original value: avgRating)
+    if (disambiguationField.field === "avgRating") { // TODO: Change to latLng if you want to test it (Original value: avgRating)
         // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
-        // Creates a copy of the original array
-        const copyRestaurantsToDisambiguate = restaurantsToDisambiguate.slice();
 
         // Sort the copy by avgRating in descending order
         copyRestaurantsToDisambiguate.sort((a, b) => b.restaurant.avgRating - a.restaurant.avgRating);

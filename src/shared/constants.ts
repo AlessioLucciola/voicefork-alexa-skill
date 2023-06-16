@@ -7,6 +7,9 @@ export const TEST_LATLNG: LatLng = { latitude: 41.90083485186245, longitude: 12.
 export const ROME_LATLNG: LatLng = { latitude: 41.9029, longitude: 12.47959 }
 export const MAX_DISTANCE: number = 50000
 
+// Maximum number of restaurants to be considered
+export const LIMIT: number = 500
+
 // Change this if you want to enable the localization. Remember that coordinates are constants.
 export const LOCALIZATION_ENABLED: boolean = true
 

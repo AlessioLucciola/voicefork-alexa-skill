@@ -15,10 +15,8 @@ const axios_1 = require("axios");
 const constants_1 = require("./shared/constants");
 const searchNearbyRestaurants = (query, coordinates) => __awaiter(void 0, void 0, void 0, function* () {
     const { latitude, longitude } = coordinates;
-    const MAX_DISTANCE = 50000;
-    const LIMIT = 500;
     // Search for the restaurants in a range of MAX_DISTANCE meters, ordered by simlarity to the query and capped at LIMIT results.
-    const URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`;
+    const URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${constants_1.MAX_DISTANCE}&limit=${constants_1.LIMIT}`;
     const config = {
         headers: {
             'ngrok-skip-browser-warning ': 'true',
@@ -38,15 +36,13 @@ exports.searchNearbyRestaurants = searchNearbyRestaurants;
  */
 const searchRestaurants = (query, locationInfo, city) => __awaiter(void 0, void 0, void 0, function* () {
     let URL = '';
-    const MAX_DISTANCE = 50000;
-    const LIMIT = 500;
     if (locationInfo) {
         const { location, maxDistance } = locationInfo;
         const { latitude, longitude } = location;
-        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${MAX_DISTANCE}&limit=${LIMIT}`;
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&latitude=${latitude}&longitude=${longitude}&maxDistance=${constants_1.MAX_DISTANCE}&limit=${constants_1.LIMIT}`;
     }
     else {
-        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=${LIMIT}`;
+        URL = `${urls_1.RESTAURANTS_URL}/search-restaurants?query=${query}&city=${city}&limit=${constants_1.LIMIT}`;
     }
     console.log(`Made api call to ${URL}`);
     const data = (yield axios_1.default.get(URL)).data;
