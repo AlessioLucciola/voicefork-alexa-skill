@@ -132,14 +132,15 @@ export const handleSimilarRestaurants = async (
         }
         console.log('DEBUG_PLAUSIBLE_CONTEXT: ', beautify(plausibleContexts)) //TODO: debug
         let scores: RestaurantWithScore[] = []
-        if (plausibleContexts.every(context => context === null)) {
+        if (plausibleContexts.every(context => context.contextDistance === null)) {
             //If all the context are null, then the score is just 1 - nameDistnace
+            console.log("DEBUG CONTEXT: I'm in the case in which every context is null")
             for (let context of plausibleContexts) {
                 const { restaurant, locationDistance, nameDistance } = context
                 const { LOCATION_BOOST_FACTOR } = CONF
-                const score = nameDistance
+                const score = 1 - nameDistance
                 let locationBoost = 0
-                if (locationDistance)
+                if (locationDistance !== null)
                     locationBoost = LOCATION_BOOST_FACTOR * latLngDistanceBoost(locationDistance, MAX_DISTANCE)
                 console.log('DEBUG LOCATION BOOST: ', {
                     originalScore: score,
@@ -152,7 +153,7 @@ export const handleSimilarRestaurants = async (
                 })
                 scores.push({
                     restaurant: restaurant,
-                    score: score + locationBoost,
+                    score: Math.min(1, score + locationBoost),
                 })
             }
         } else {
@@ -367,7 +368,7 @@ const computeAggregateScore = (context: {
     if (contextDistance == null) {
         const minNameDistance = Math.max(nameDistance, 0.05) // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
         let score = 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1)
-        if (locationDistance)
+        if (locationDistance !== null)
             locationBoost = LOCATION_BOOST_FACTOR * latLngDistanceBoost(locationDistance, MAX_DISTANCE)
         console.log('DEBUG LOCATION BOOST: ', {
             originalScore: score,
@@ -378,12 +379,13 @@ const computeAggregateScore = (context: {
             )} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
             locationDistance,
         })
-        return score + locationBoost
+        return Math.min(1, score + locationBoost)
     }
     const normalizedContextDistance = normalizeContext(contextDistance)
     const avg = (1 - CONTEXT_WEIGHT) * nameDistance + CONTEXT_WEIGHT * normalizedContextDistance
     let score = 1 - avg
-    if (locationDistance) locationBoost = LOCATION_BOOST_FACTOR * latLngDistanceBoost(locationDistance, MAX_DISTANCE)
+    if (locationDistance !== null)
+        locationBoost = LOCATION_BOOST_FACTOR * latLngDistanceBoost(locationDistance, MAX_DISTANCE)
     console.log('DEBUG LOCATION BOOST: ', {
         originalScore: score,
         boosted: score + locationBoost,
@@ -393,7 +395,7 @@ const computeAggregateScore = (context: {
         )} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
         locationDistance,
     })
-    return score + locationBoost
+    return Math.min(1, score + locationBoost)
 }
 
 /**
@@ -480,6 +482,7 @@ const handleScores = (items: RestaurantWithScore[]): RestaurantWithScore | Conte
 
 export const latLngDistanceBoost = (locationDistance: number, maxDistance: number): number => {
     if (locationDistance > maxDistance / 3) return 0
+    locationDistance += 50 //Avoid log(0)
     const normalizedDistance = locationDistance / maxDistance
     const boost = 1 - (-Math.log(1 / normalizedDistance) / Math.log(100) + 1) // 1 - (-log_100(1/x)+1)
     const MIN = 0

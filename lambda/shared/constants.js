@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CONF = exports.LOCALIZATION_ENABLED = exports.MAX_DISTANCE = exports.ROME_LATLNG = exports.TEST_LATLNG = void 0;
 // Coordinates to test the localization features
 // export const TEST_LATLNG: LatLng = { latitude: 41.909734, longitude: 12.349999 } //Standard coordinates
-exports.TEST_LATLNG = { latitude: 41.90083485186245, longitude: 12.5160087189505 }; //Coordinates near lab paolo ercoli
+// export const TEST_LATLNG: LatLng = { latitude: 41.90083485186245, longitude: 12.5160087189505 } //Coordinates near lab paolo ercoli
+exports.TEST_LATLNG = { latitude: 41.713497, longitude: 12.444199 }; //Coordinates near roadhouse
 // Coordinates of Rome
 exports.ROME_LATLNG = { latitude: 41.9029, longitude: 12.47959 };
 exports.MAX_DISTANCE = 50000;

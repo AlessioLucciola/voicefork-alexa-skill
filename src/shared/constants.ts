@@ -2,8 +2,11 @@ import { LatLng } from './types'
 
 // Coordinates to test the localization features
 // export const TEST_LATLNG: LatLng = { latitude: 41.909734, longitude: 12.349999 } //Standard coordinates
-export const TEST_LATLNG: LatLng = { latitude: 41.90083485186245, longitude: 12.5160087189505 } //Coordinates near lab paolo ercoli
+// export const TEST_LATLNG: LatLng = { latitude: 41.90083485186245, longitude: 12.5160087189505 } //Coordinates near lab paolo ercoli
+export const TEST_LATLNG: LatLng = { latitude: 41.713497, longitude: 12.444199 } //Coordinates near roadhouse
+
 // Coordinates of Rome
+
 export const ROME_LATLNG: LatLng = { latitude: 41.9029, longitude: 12.47959 }
 export const MAX_DISTANCE: number = 50000
 
