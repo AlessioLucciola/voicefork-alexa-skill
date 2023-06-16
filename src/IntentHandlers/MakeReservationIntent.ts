@@ -1,12 +1,10 @@
-import { HandlerInput, RequestHandler } from 'ask-sdk-core'
+import { RequestHandler } from 'ask-sdk-core'
 import { IntentRequest } from 'ask-sdk-model'
-import { LatLng, RestaurantSlots } from '../shared/types'
-import { searchNearbyRestaurants } from '../apiCalls'
-import getCoordinates from '../utils/localizationFeatures'
+import { RestaurantSlots } from '../shared/types'
 import { handleSimilarRestaurants } from '../responseHandlers/reservationContextResponseHandler'
 
 const MakeReservationIntentHandler: RequestHandler = {
-    canHandle(handlerInput: HandlerInput) {
+    canHandle(handlerInput) {
         const request = handlerInput.requestEnvelope.request as IntentRequest
         const { type } = request
         if (type === 'IntentRequest') {
@@ -15,13 +13,14 @@ const MakeReservationIntentHandler: RequestHandler = {
         }
         return false
     },
-    async handle(handlerInput: HandlerInput) {
+    async handle(handlerInput) {
         const { intent: currentIntent } = handlerInput.requestEnvelope.request as IntentRequest
         const slots = currentIntent?.slots
 
-        const { attributesManager } = handlerInput
-
-        const coordinates = getCoordinates()
+        const attributesManager = handlerInput.attributesManager
+        const sessionAttributes = attributesManager.getSessionAttributes()
+        //const retrievedRestaurantsList = sessionAttributes.restaurantList
+        handlerInput.attributesManager.setSessionAttributes(sessionAttributes)
 
         const slotValues: RestaurantSlots = {
             restaurantName: slots?.restaurantName.value,
@@ -32,7 +31,7 @@ const MakeReservationIntentHandler: RequestHandler = {
             yesNo: slots?.YesNoSlot.value,
         }
 
-        const { restaurantName, location, date, time, numPeople, yesNo } = slotValues
+        const { restaurantName, date, time, numPeople} = slotValues
 
         if (!restaurantName || !date || !time || !numPeople) {
             //Ask for the data that's missing before disambiguation
@@ -41,68 +40,6 @@ const MakeReservationIntentHandler: RequestHandler = {
 
         if (restaurantName && date && time && numPeople) {
             return await handleSimilarRestaurants(handlerInput, slotValues)
-        }
-
-        const findNearbyRestaurants = async (coordinates: LatLng) => {
-            return await searchNearbyRestaurants(restaurantName !== undefined ? restaurantName : '', coordinates)
-        }
-
-        const findSimilarRestaurant = (restaurants: any) => {
-            //TODO: Just a test: if the restaurant is not exactly what the user says, then ask if the best match is the wanted restaurant
-            if (
-                restaurantName &&
-                !yesNo &&
-                !restaurants
-                    .map((item: any) => item.restaurant.name.toLowerCase())
-                    .includes(restaurantName.toLowerCase())
-            ) {
-                const mostSimilarRestaurantName = restaurants[0].restaurant.name
-                attributesManager.setSessionAttributes({ disRestaurantName: mostSimilarRestaurantName })
-                return handlerInput.responseBuilder
-                    .speak(
-                        `The restaurant ${restaurantName} doesn't exist, the most similar is ${mostSimilarRestaurantName}, did you mean that?`,
-                    )
-                    .addElicitSlotDirective('YesNoSlot')
-                    .getResponse()
-            }
-            return
-        }
-
-        //Get the restaurant list nearby the user
-        if (restaurantName) {
-            if (coordinates !== undefined && location !== undefined) {
-                // TO DO: Caso in cui ho le coordinate dell'utente ma voglio comunque prenotare altrove
-                return handlerInput.responseBuilder
-                    .speak(`You are in the case in which you have the coordinates but you want to reserve elsewhere`)
-                    .getResponse()
-            } else if (coordinates !== undefined && location !== undefined) {
-                const restaurants = findNearbyRestaurants(coordinates)
-                findSimilarRestaurant(restaurants)
-            } else if (coordinates === undefined && location !== undefined) {
-                // TO DO: Caso in cui non ho le coordinate dell'utente ma mi è stata detta la città
-                return handlerInput.responseBuilder
-                    .speak(
-                        `You are in the case in which you don't have the coordinates but you already have the city. In case you only have to solve the disambiguation if necessary.`,
-                    )
-                    .getResponse()
-            } else {
-                return handlerInput.responseBuilder
-                    .speak(
-                        `Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`,
-                    )
-                    .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
-                    .addElicitSlotDirective('location')
-                    .getResponse()
-            }
-        }
-
-        //TODO: Just a test: If the user has already responded to the restaurant disambiguation prompt, show the results.
-        if (restaurantName && yesNo) {
-            const { disRestaurantName } = attributesManager.getSessionAttributes() //TODO: restaurantName remains unchanged
-            return handlerInput.responseBuilder
-                .speak(`Your decision was ${yesNo}! The restaurant is ${disRestaurantName}!`)
-                .addDelegateDirective()
-                .getResponse()
         }
 
         if (time !== undefined && date !== undefined) {
@@ -130,8 +67,10 @@ const MakeReservationIntentHandler: RequestHandler = {
             }
         }
 
-        if (!restaurantName || !date || !time || !numPeople)
+        if (!restaurantName || !date || !time || !numPeople) {
+            console.log('DEBUG: INSIDE GENERIC RESOLUTION')
             return handlerInput.responseBuilder.addDelegateDirective().getResponse()
+        }
 
         return handlerInput.responseBuilder
             .speak(`Final reservation details: ${restaurantName}, ${date}, ${time}, ${numPeople}`)

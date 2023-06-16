@@ -35,6 +35,8 @@ export type Restaurant = {
     veganFriendly: boolean
     glutenFree: boolean
     reviewsNumber: number
+    macroCuisines: string
+    zone: string
 }
 
 //This is the type of the SearchRestaurants API response, so has to be changed accordingly.
@@ -64,4 +66,27 @@ export type DateComponents = {
     year: number
     hour: number
     minute: number
+}
+
+export type RestaurantWithScore = {
+    restaurant: Restaurant
+    score: number
+}
+
+export type VarianceResult = {
+    mean: number
+    std: number
+    variance: number
+}
+
+export type Variances = {
+    latLng: VarianceResult | number
+    city: VarianceResult | number
+    cuisine: VarianceResult | number
+    avgRating: VarianceResult | number
+}
+
+export type ContextResults = {
+    restaurants: RestaurantWithScore[]
+    fieldsAndVariances: Variances
 }
