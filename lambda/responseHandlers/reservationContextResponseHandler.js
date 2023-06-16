@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleSimilarRestaurants = void 0;
+exports.latLngDistanceBoost = exports.handleSimilarRestaurants = void 0;
 const localizationFeatures_1 = require("../utils/localizationFeatures");
 const apiCalls_1 = require("../apiCalls");
 const constants_1 = require("../shared/constants");
@@ -32,6 +32,7 @@ let usedFields;
  * @returns
  */
 const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     let { restaurantName, location, date, time, numPeople, yesNo } = slots;
     let searchResults = [];
     if (!restaurantName || !date || !time || !numPeople) {
@@ -90,7 +91,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             const currentTime = (0, dateTimeUtils_1.parseTime)(currentHour, currentMinute);
             const reservationDateTime = (0, dateTimeUtils_1.convertAmazonDateTime)(date, time);
             const reservationDateComponents = (0, dateTimeUtils_1.getDateComponentsFromDate)(reservationDateTime);
-            const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute } = reservationDateComponents;
+            const { weekday: reservationDay, hour: reservationHour, minute: reservationMinute, } = reservationDateComponents;
             const reservationTime = (0, dateTimeUtils_1.parseTime)(reservationHour, reservationMinute);
             const context = {
                 id_restaurant: id,
@@ -106,6 +107,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 restaurant: result.restaurant,
                 contextDistance: contextDistance,
                 nameDistance: result.nameDistance,
+                locationDistance: (_a = result.locationDistance) !== null && _a !== void 0 ? _a : null,
             });
         }
         console.log('DEBUG_PLAUSIBLE_CONTEXT: ', (0, debugUtils_1.beautify)(plausibleContexts)); //TODO: debug
@@ -113,9 +115,21 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         if (plausibleContexts.every(context => context === null)) {
             //If all the context are null, then the score is just 1 - nameDistnace
             for (let context of plausibleContexts) {
+                const { restaurant, locationDistance, nameDistance } = context;
+                const { LOCATION_BOOST_FACTOR } = constants_1.CONF;
+                const score = nameDistance;
+                let locationBoost = 0;
+                if (locationDistance)
+                    locationBoost = LOCATION_BOOST_FACTOR * (0, exports.latLngDistanceBoost)(locationDistance, constants_1.MAX_DISTANCE);
+                console.log('DEBUG LOCATION BOOST: ', {
+                    originalScore: score,
+                    boosted: score + locationBoost,
+                    boostAmount: `${(0, exports.latLngDistanceBoost)(locationDistance !== null && locationDistance !== void 0 ? locationDistance : 0, constants_1.MAX_DISTANCE)} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
+                    locationDistance,
+                });
                 scores.push({
-                    restaurant: context.restaurant,
-                    score: context.nameDistance,
+                    restaurant: restaurant,
+                    score: score + locationBoost,
                 });
             }
         }
@@ -141,35 +155,42 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 .getResponse();
         }
         else {
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.id !== (lastAnalyzedRestaurant === null || lastAnalyzedRestaurant === void 0 ? void 0 : lastAnalyzedRestaurant.restaurant.id));
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.id !== (lastAnalyzedRestaurant === null || lastAnalyzedRestaurant === void 0 ? void 0 : lastAnalyzedRestaurant.restaurant.id));
         }
         lastAnalyzedRestaurant = null;
     }
     // Disambiguation with city result
-    if (cityBestRestaurant && cityBestRestaurant !== "") {
-        if (yesNo === 'yes') { //If the response was "yes" it means that the user wants to reserve to the city of the best restaurant so let's remove the ones that are in other cities
+    if (cityBestRestaurant && cityBestRestaurant !== '') {
+        if (yesNo === 'yes') {
+            //If the response was "yes" it means that the user wants to reserve to the city of the best restaurant so let's remove the ones that are in other cities
             restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.city === cityBestRestaurant);
         }
-        else { // Otherwise, remove the restaurant in the same city of the best restaurant
+        else {
+            // Otherwise, remove the restaurant in the same city of the best restaurant
             restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.city !== cityBestRestaurant);
         }
-        cityBestRestaurant = ""; // Reset city best restaurant
+        cityBestRestaurant = ''; // Reset city best restaurant
     }
-    // // Disambiguation with zones result
-    // if (zoneBestRestaurant && zoneBestRestaurant !== "") {
-    //     if (yesNo === 'yes') { //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
-    //         restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone === zoneBestRestaurant)
-    //     } else { // Otherwise, remove the restaurant in the same zone of the best restaurant
-    //         restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone !== zoneBestRestaurant)
-    //     }
-    //     zoneBestRestaurant = "" // Reset zone best restaurant
-    // }
+    // Disambiguation with zones result
+    if (zoneBestRestaurant && zoneBestRestaurant !== '') {
+        if (yesNo === 'yes') {
+            //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone === zoneBestRestaurant);
+        }
+        else {
+            // Otherwise, remove the restaurant in the same zone of the best restaurant
+            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.zone !== zoneBestRestaurant);
+        }
+        zoneBestRestaurant = ''; // Reset zone best restaurant
+    }
     // I compute the variance (and the buckets)
     // This is done at each iteration
     const handleResult = handleScores(restaurantsToDisambiguate);
     // If the are no restaurants found
     if (!handleResult) {
-        return handlerInput.responseBuilder.speak(`Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`).getResponse();
+        return handlerInput.responseBuilder
+            .speak(`Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`)
+            .getResponse();
     }
     console.log(handleResult);
     // If there are more restaurant to disambiguate I save them (as well as the variances)
@@ -208,70 +229,47 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     // Take the most discriminative field and remove unwanted resturants until to remain with 1 (it will the one to confirm)
     const disambiguationField = getBestField(fieldsForDisambiguation);
     // If the best field is latLng, try to understand if there are some ways to disambiguate
-    // const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
-    // if (disambiguationField.field === "latLng" && coordinates !== undefined) { // TODO: Disable this if if you want to test the other fields
-    //     // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-    //     const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
-    //     if (allCities.length > 1) {
-    //         cityBestRestaurant = restaurantWithHighestScore.restaurant.city
-    //         return handlerInput.responseBuilder
-    //         .speak(
-    //             `Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`,
-    //         )
-    //         .addElicitSlotDirective('YesNoSlot')
-    //         .getResponse()
-    //     }
-    //     // // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-    //     // const allZones = restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.zone).filter(zone=> !zone.toLowerCase().startsWith('via '));
-    //     // console.log(allZones)
-    //     // if (allZones.length > 1 && getRestaurantCity(restaurantWithHighestScore).toLowerCase() !== restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
-    //     //     zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone
-    //     //     return handlerInput.responseBuilder
-    //     //     .speak(
-    //     //         `Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`,
-    //     //     )
-    //     //     .addElicitSlotDirective('YesNoSlot')
-    //     //     .getResponse()
-    //     // }
-    //     // Otherwise, simply ask to confirm the best restaurant
-    //     lastAnalyzedRestaurant = restaurantWithHighestScore
-    //     return handlerInput.responseBuilder
-    //     .speak(
-    //         `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
-    //     )
-    //     .addElicitSlotDirective('YesNoSlot')
-    //     .getResponse()
-    // }
-    // If the best field is avgRating, try to understand if there are some ways to disambiguate
-    if (disambiguationField.field === "latLng") { // TODO: Change to latLng if you want to test it (Original value: avgRating)
-        // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
-        // Creates a copy of the original array
-        const copyRestaurantsToDisambiguate = restaurantsToDisambiguate.slice();
-        // Sort the copy by avgRating in descending order
-        copyRestaurantsToDisambiguate.sort((a, b) => b.restaurant.avgRating - a.restaurant.avgRating);
-        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${(0, debugUtils_1.beautify)(copyRestaurantsToDisambiguate)}`);
-        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${(0, debugUtils_1.beautify)(restaurantsToDisambiguate.length)}`);
-        // Get the restaurant with the highest avgRating
-        lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
+    const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate);
+    if (disambiguationField.field === 'latLng' && coordinates !== undefined) {
+        // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+        const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))];
+        if (allCities.length > 1) {
+            cityBestRestaurant = restaurantWithHighestScore.restaurant.city;
+            return handlerInput.responseBuilder
+                .speak(`Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`)
+                .addElicitSlotDirective('YesNoSlot')
+                .getResponse();
+        }
+        // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+        const allZones = restaurantsToDisambiguate
+            .map(restaurant => restaurant.restaurant.zone)
+            .filter(zone => !zone.toLowerCase().startsWith('via '));
+        console.log(allZones);
+        if (allZones.length > 1 &&
+            getRestaurantCity(restaurantWithHighestScore).toLowerCase() !==
+                restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
+            zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone;
+            return handlerInput.responseBuilder
+                .speak(`Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`)
+                .addElicitSlotDirective('YesNoSlot')
+                .getResponse();
+        }
+        // Otherwise, simply ask to confirm the best restaurant
+        lastAnalyzedRestaurant = restaurantWithHighestScore;
         return handlerInput.responseBuilder
-            .speak(`Do you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address} with an average rating of ${lastAnalyzedRestaurant.restaurant.avgRating}?`)
+            .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`)
             .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
     //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
-    return handlerInput.responseBuilder
-        .speak(`You reached the bottom. I can't make the reservation.`)
-        .getResponse();
+    return handlerInput.responseBuilder.speak(`You reached the bottom. I can't make the reservation.`).getResponse();
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
 const getRestaurantCity = (restaurant) => {
     let city = restaurant.restaurant.city;
-    if (city === "ome")
-        city = "rome";
+    if (city === 'ome')
+        city = 'rome';
     return city.charAt(0).toUpperCase() + city.slice(1);
-};
-const getRestaurantAvgRating = (restaurant) => {
-    return restaurant.restaurant.avgRating;
 };
 const getBestRestaurant = (restaurants) => {
     return restaurants.reduce((highestScoreRestaurant, currentRestaurant) => {
@@ -291,14 +289,34 @@ const getBestField = (fieldsAndVariances) => {
  * @returns
  */
 const computeAggregateScore = (context) => {
-    const { contextDistance, nameDistance } = context;
+    const { contextDistance, nameDistance, locationDistance } = context;
+    let locationBoost = 0;
+    const { LOCATION_BOOST_FACTOR } = constants_1.CONF;
     if (contextDistance == null) {
         const minNameDistance = Math.max(nameDistance, 0.05); // The name distance won't ever be 0 because of floats, so it has to be increased a little bit for the scaling to work
-        return 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1);
+        let score = 1 - Math.min(Math.pow(minNameDistance, NULL_DISTANCE_SCALING_FACTOR), 1);
+        if (locationDistance)
+            locationBoost = LOCATION_BOOST_FACTOR * (0, exports.latLngDistanceBoost)(locationDistance, constants_1.MAX_DISTANCE);
+        console.log('DEBUG LOCATION BOOST: ', {
+            originalScore: score,
+            boosted: score + locationBoost,
+            boostAmount: `${(0, exports.latLngDistanceBoost)(locationDistance !== null && locationDistance !== void 0 ? locationDistance : 0, constants_1.MAX_DISTANCE)} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
+            locationDistance,
+        });
+        return score + locationBoost;
     }
     const normalizedContextDistance = normalizeContext(contextDistance);
     const avg = (1 - CONTEXT_WEIGHT) * nameDistance + CONTEXT_WEIGHT * normalizedContextDistance;
-    return 1 - avg;
+    let score = 1 - avg;
+    if (locationDistance)
+        locationBoost = LOCATION_BOOST_FACTOR * (0, exports.latLngDistanceBoost)(locationDistance, constants_1.MAX_DISTANCE);
+    console.log('DEBUG LOCATION BOOST: ', {
+        originalScore: score,
+        boosted: score + locationBoost,
+        boostAmount: `${(0, exports.latLngDistanceBoost)(locationDistance !== null && locationDistance !== void 0 ? locationDistance : 0, constants_1.MAX_DISTANCE)} * ${LOCATION_BOOST_FACTOR} = ${locationBoost}`,
+        locationDistance,
+    });
+    return score + locationBoost;
 };
 /**
  * Normalizes the inputValue according to the valueMap distribution, interpolating the values in between.
@@ -369,6 +387,16 @@ const handleScores = (items) => {
     }
     return null;
 };
+const latLngDistanceBoost = (locationDistance, maxDistance) => {
+    if (locationDistance > maxDistance / 3)
+        return 0;
+    const normalizedDistance = locationDistance / maxDistance;
+    const boost = 1 - (-Math.log(1 / normalizedDistance) / Math.log(100) + 1); // 1 - (-log_100(1/x)+1)
+    const MIN = 0;
+    const MAX = 1;
+    return Math.min(Math.max(boost, MIN), MAX); //Clamp between 0 and 1
+};
+exports.latLngDistanceBoost = latLngDistanceBoost;
 //******************************************//
 //********COMPUTING VARIANCES***************//
 //******************************************//
@@ -393,15 +421,12 @@ const computeVariances = (items) => {
         allAvgRating: allAvgRating,
     })}`);
     const variances = {
-        latLng: computeLatLngVariance(allLatLng),
-        city: computeStringArrayVariance(allCities),
-        cuisine: computeStringArrayVariance(allCuisines),
-        avgRating: computeSimpleVariance(allAvgRating),
+        latLng: computeLatLngVariance(allLatLng).variance,
+        city: computeStringArrayVariance(allCities).variance,
+        cuisine: computeStringArrayVariance(allCuisines).variance,
+        avgRating: computeSimpleVariance(allAvgRating).variance,
     };
-    console.log(`DEBUG VARIANCES (before normalization): ${(0, debugUtils_1.beautify)(variances)}`);
-    const normalizedVariances = normalizeVariances(variances);
-    console.log(`DEBUG NORMALIZED VARIANCES: ${(0, debugUtils_1.beautify)(normalizedVariances)}`);
-    return normalizedVariances;
+    return variances;
 };
 const computeSimpleVariance = (values) => {
     const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -419,12 +444,13 @@ const computeLatLngVariance = (values) => {
     const avgLongitude = sumLongitude / values.length;
     // Calculate the sum of squared distances
     const sumSquaredDistances = values.reduce((sum, { latitude, longitude }) => {
-        const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude });
+        const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude }) /
+            1000; //Distance in km instead of meters
         return sum + distance * distance;
     }, 0);
     // Calculate the sum of distances
     const mean = values.reduce((sum, { latitude, longitude }) => {
-        const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude });
+        const distance = (0, localizationFeatures_1.distanceBetweenCoordinates)({ latitude, longitude }, { latitude: avgLatitude, longitude: avgLongitude }) / 1000; //Distance in km instead of meters
         return sum + distance;
     }, 0) / values.length;
     const variance = sumSquaredDistances / (values.length - 1);
@@ -432,40 +458,24 @@ const computeLatLngVariance = (values) => {
     return { mean, std: standardDeviation, variance };
 };
 const computeStringArrayVariance = (values) => {
-    const countUniqueStrings = (arr) => {
-        const uniqueStrings = new Set(arr);
-        return uniqueStrings.size;
-    };
-    // Calculate the average count of different strings
-    const sumCounts = values.reduce((sum, arr) => sum + countUniqueStrings(arr), 0);
-    const avgCount = sumCounts / values.length;
+    const uniqueCategories = new Set();
+    for (const arr of values) {
+        for (const str of arr) {
+            uniqueCategories.add(str);
+        }
+    }
+    const numUniqueCategories = uniqueCategories.size;
+    // Calculate the average count of unique categories
+    const avgCount = numUniqueCategories / values.length;
     // Calculate the sum of squared differences from the average count
     const sumSquaredDifferences = values.reduce((sum, arr) => {
-        const difference = countUniqueStrings(arr) - avgCount;
+        const numUniqueInArr = new Set(arr).size;
+        const difference = numUniqueInArr - avgCount;
         return sum + difference * difference;
     }, 0);
-    const mean = values.reduce((sum, arr) => {
-        const difference = countUniqueStrings(arr) - avgCount;
-        return sum + difference * difference;
-    }, 0) / values.length;
+    const mean = sumSquaredDifferences / values.length;
     // Calculate the variance
     const variance = sumSquaredDifferences / (values.length - 1);
     const standardDeviation = Math.sqrt(variance);
     return { mean, std: standardDeviation, variance };
-};
-const normalizeVariances = (variances) => {
-    let { latLng, city, cuisine, avgRating } = variances;
-    latLng = latLng;
-    city = city;
-    cuisine = cuisine;
-    avgRating = avgRating;
-    const zScore = (item) => {
-        return (item.variance - item.mean) / item.std;
-    };
-    return {
-        latLng: zScore(latLng),
-        city: zScore(city),
-        cuisine: zScore(cuisine),
-        avgRating: zScore(avgRating),
-    };
 };

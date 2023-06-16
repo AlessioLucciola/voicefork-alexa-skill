@@ -37,6 +37,7 @@ export const searchRestaurants = async (
     city?: string,
 ): Promise<RestaurantSearchResult[]> => {
     let URL = ''
+    const MAX_DISTANCE = 50000
     const LIMIT = 500
     if (locationInfo) {
         const { location, maxDistance } = locationInfo
