@@ -299,9 +299,6 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`)
         .addElicitSlotDirective('YesNoSlot')
         .getResponse();
-    return handlerInput.responseBuilder
-        .speak(`End`)
-        .getResponse();
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
 const getMostDiscriminativeCuisine = (restaurants, bestRestaurant) => {

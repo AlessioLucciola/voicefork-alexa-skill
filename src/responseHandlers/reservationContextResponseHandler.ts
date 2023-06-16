@@ -363,12 +363,6 @@ export const handleSimilarRestaurants = async (
     )
     .addElicitSlotDirective('YesNoSlot')
     .getResponse()
-
-    return handlerInput.responseBuilder
-            .speak(
-                `End`,
-            )
-            .getResponse()
 }
 
 const getMostDiscriminativeCuisine = (restaurants: RestaurantWithScore[], bestRestaurant: RestaurantWithScore) => {
