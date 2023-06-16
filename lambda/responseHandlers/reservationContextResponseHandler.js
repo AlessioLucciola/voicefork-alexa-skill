@@ -24,6 +24,7 @@ let fieldsForDisambiguation;
 let lastAnalyzedRestaurant;
 let cityBestRestaurant;
 let zoneBestRestaurant;
+let cuisineType;
 let usedFields;
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -160,6 +161,33 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         }
         lastAnalyzedRestaurant = null;
     }
+    // Remove the restaurants according to their cuisine types
+    if (cuisineType && cuisineType !== '') {
+        // If the user confirms that he wants that types of cuisines, remove the restaurants that doesn't have them
+        let restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.macroCuisines !== "");
+        if (yesNo === 'yes') {
+            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant) => {
+                const cuisines = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''));
+                return cuisines.includes(cuisineType);
+            });
+        }
+        else {
+            // If the user confirms that he doesn't want that types of cuisines, remove the restaurants that have them
+            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant) => {
+                const cuisines = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''));
+                return !cuisines.includes(cuisineType);
+            });
+        }
+        let filteredRestaurants = [];
+        for (const restaurant of restaurantsToDisambiguate) {
+            const found = restaurantsToDisambiguateWithNotNullCuisines.some((r) => r.restaurant.id === restaurant.restaurant.id);
+            if (found || restaurant.restaurant.macroCuisines === "") {
+                filteredRestaurants.push(restaurant);
+            }
+        }
+        restaurantsToDisambiguate = filteredRestaurants;
+        cuisineType = ''; // Reset cuisine type
+    }
     // Disambiguation with city result
     if (cityBestRestaurant && cityBestRestaurant !== '') {
         if (yesNo === 'yes') {
@@ -229,43 +257,102 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     // Otherwise (if there are more than 2 resturants) -> disambiguation
     // Take the most discriminative field and remove unwanted resturants until to remain with 1 (it will the one to confirm)
     const disambiguationField = getBestField(fieldsForDisambiguation);
-    // If the best field is latLng, try to understand if there are some ways to disambiguate
     const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate);
-    if (disambiguationField.field === 'latLng' && coordinates !== undefined) {
-        // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-        const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))];
-        if (allCities.length > 1) {
-            cityBestRestaurant = restaurantWithHighestScore.restaurant.city;
+    if (disambiguationField.field === 'cuisine') {
+        console.log('DISAMBIGUATION DEBUG: You are in the cuisine case!');
+        const discriminativeCuisine = getMostDiscriminativeCuisine(restaurantsToDisambiguate, restaurantWithHighestScore);
+        if (discriminativeCuisine !== undefined) {
+            cuisineType = discriminativeCuisine;
             return handlerInput.responseBuilder
-                .speak(`Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`)
+                .speak(`Does the restaurant you're looking have ${discriminativeCuisine} dishes in the menu?`)
                 .addElicitSlotDirective('YesNoSlot')
                 .getResponse();
         }
-        // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-        const allZones = restaurantsToDisambiguate
-            .map(restaurant => restaurant.restaurant.zone)
-            .filter(zone => !zone.toLowerCase().startsWith('via '));
-        console.log(allZones);
-        if (allZones.length > 1 &&
-            getRestaurantCity(restaurantWithHighestScore).toLowerCase() !==
-                restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
-            zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone;
-            return handlerInput.responseBuilder
-                .speak(`Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`)
-                .addElicitSlotDirective('YesNoSlot')
-                .getResponse();
-        }
-        // Otherwise, simply ask to confirm the best restaurant
-        lastAnalyzedRestaurant = restaurantWithHighestScore;
+    }
+    // Otherwise, try to disambiguate using latLon (standard behavior)
+    // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+    const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))];
+    if (allCities.length > 1) {
+        cityBestRestaurant = restaurantWithHighestScore.restaurant.city;
         return handlerInput.responseBuilder
-            .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`)
+            .speak(`Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`)
             .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
-    //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
-    return handlerInput.responseBuilder.speak(`You reached the bottom. I can't make the reservation.`).getResponse();
+    // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
+    const allZones = restaurantsToDisambiguate
+        .map(restaurant => restaurant.restaurant.zone)
+        .filter(zone => !zone.toLowerCase().startsWith('via '));
+    console.log(allZones);
+    if (allZones.length > 1 &&
+        getRestaurantCity(restaurantWithHighestScore).toLowerCase() !==
+            restaurantWithHighestScore.restaurant.zone.toLowerCase()) {
+        zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone;
+        return handlerInput.responseBuilder
+            .speak(`Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(restaurantWithHighestScore)}?`)
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse();
+    }
+    // Otherwise, simply ask to confirm the best restaurant
+    lastAnalyzedRestaurant = restaurantWithHighestScore;
+    return handlerInput.responseBuilder
+        .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`)
+        .addElicitSlotDirective('YesNoSlot')
+        .getResponse();
+    return handlerInput.responseBuilder
+        .speak(`End`)
+        .getResponse();
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
+const getMostDiscriminativeCuisine = (restaurants, bestRestaurant) => {
+    const cuisinesBestRestaurant = bestRestaurant.restaurant.macroCuisines.split(',').filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, '')); // Extract cuisines of the best resturant
+    if (cuisinesBestRestaurant.length === 0)
+        return undefined;
+    let restaurantsWithNotNullCuisines = 0; // Count the restaurants with with not null cuisines (macroCuisines !== "")
+    restaurants.forEach((restaurant) => {
+        if (restaurant.restaurant.macroCuisines.trim() !== "") {
+            restaurantsWithNotNullCuisines++;
+        }
+    });
+    const allCuisines = []; // Array to save all the cuisines
+    // Get all cuisines
+    restaurants.forEach(restaurant => {
+        const cuisines = restaurant.restaurant.macroCuisines.split(",").filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, ''));
+        allCuisines.push(...cuisines);
+    });
+    const cuisineCounts = {}; // Array to save the occcurrences for each cuisine
+    allCuisines.forEach(cuisine => {
+        cuisineCounts[cuisine] = (cuisineCounts[cuisine] || 0) + 1;
+    });
+    const cuisineCountsArray = Object.entries(cuisineCounts); // Convert object to array of key-value pairs
+    cuisineCountsArray.sort((a, b) => a[1] - b[1]); // Sort array based on number of occurrences
+    console.log(`DISAMBIGUATION DEBUG: I found ${cuisinesBestRestaurant.length} cuisines in the best resturant: ${(0, debugUtils_1.beautify)(cuisinesBestRestaurant)}`);
+    console.log(`DISAMBIGUATION DEBUG: I found these cuisines in the restaurants to disambiguate: ${(0, debugUtils_1.beautify)(cuisineCountsArray)}`);
+    let selectedCuisines;
+    for (const [cuisine, count] of cuisineCountsArray) {
+        // Get the cuisine in the best restaurant that has the lowest number of occurrences in restaurants to disambiguate
+        if (cuisinesBestRestaurant.includes(cuisine) && count !== restaurantsWithNotNullCuisines) {
+            selectedCuisines = cuisine;
+        }
+    }
+    // If there is no "unique" discriminative cuisine (the least common cuisine in the best restaurant is in all restaurants)
+    if (!selectedCuisines) {
+        console.log(`DISAMBIGUATION DEBUG: I didn't find a discriminative cuisines in the best restaurant so I will try to get the most discriminative one in the other restaurants`);
+        for (const [cuisine, count] of cuisineCountsArray) {
+            // Get the cuisine that has the highest number of occurrences in restaurants to disambiguate (but not in the best restaurant!)
+            if (count !== restaurantsWithNotNullCuisines) {
+                selectedCuisines = cuisine;
+            }
+        }
+    }
+    if (!selectedCuisines) {
+        console.log(`DISAMBIGUATION DEBUG: I couldn't find any discriminative cuisines. I'll abort the cuisine disambiguation!`);
+    }
+    else {
+        console.log(`DISAMBIGUATION DEBUG: Final discrivimative cuisines: ${(0, debugUtils_1.beautify)(selectedCuisines)}`);
+    }
+    return selectedCuisines;
+};
 const getRestaurantCity = (restaurant) => {
     let city = restaurant.restaurant.city;
     if (city === 'ome')
