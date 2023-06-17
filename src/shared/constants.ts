@@ -13,6 +13,9 @@ export const MAX_DISTANCE: number = 50000
 // Change this if you want to enable the localization. Remember that coordinates are constants.
 export const LOCALIZATION_ENABLED: boolean = true
 
+// ID of the user
+export const USER_ID = 1
+
 //TODO: Insert here thresholds and weights configuration for taking decisions
 /**
  * Configuration file for parameters.

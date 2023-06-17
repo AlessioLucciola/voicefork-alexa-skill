@@ -12,8 +12,8 @@ import {
     ContextResults,
 } from '../shared/types'
 import getCoordinates, { distanceBetweenCoordinates } from '../utils/localizationFeatures'
-import { getDistanceFromContext, searchRestaurants, getCityCoordinates } from '../apiCalls'
-import { CONF, TEST_LATLNG, MAX_DISTANCE } from '../shared/constants'
+import { getDistanceFromContext, searchRestaurants, getCityCoordinates, createReservation } from '../apiCalls'
+import { CONF, TEST_LATLNG, MAX_DISTANCE, USER_ID } from '../shared/constants'
 import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../utils/dateTimeUtils'
 import { beautify } from '../utils/debugUtils'
 
@@ -169,11 +169,37 @@ export const handleSimilarRestaurants = async (
     // Remove the restaurant discarded in the previous iteration or accept it if the decision was "yes"
     if (sessionAttributes.lastAnalyzedRestaurant) {
         if (yesNo === 'yes') {
-            return handlerInput.responseBuilder
+            /*return handlerInput.responseBuilder
                 .speak(
                     `You seem that you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address}`,
                 )
                 .getResponse()
+            */
+            const reservationDateTime = convertAmazonDateTime(date, time)
+            const reservationInfo = {
+                    id_user: USER_ID,
+                    id_restaurant: sessionAttributes.lastAnalyzedRestaurant.restaurant.id,
+                    dateTime: reservationDateTime.toString(),
+                    n_people: Number(numPeople),
+                    createdAtLatitude: coordinates?.latitude,
+                    createdAtLongitude: coordinates?.longitude
+                }
+            console.log(`DEBUG RESERVATION: ${beautify(reservationInfo)}`)
+            const addReservationResponse = await createReservation(reservationInfo)
+            console.log(`DEBUG RESERVATION: status ${addReservationResponse}`)
+            if (addReservationResponse === 200) {
+                return handlerInput.responseBuilder
+                .speak(
+                    `Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} added correctly`,
+                )
+                .getResponse()
+            } else {
+                return handlerInput.responseBuilder
+                .speak(
+                    `Error while making the reservation!`,
+                )
+                .getResponse()
+            }
         } else {
             sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
                 (restaurant: RestaurantWithScore) => restaurant.restaurant.id !== sessionAttributes.lastAnalyzedRestaurant?.restaurant.id,

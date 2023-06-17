@@ -145,9 +145,34 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     // Remove the restaurant discarded in the previous iteration or accept it if the decision was "yes"
     if (sessionAttributes.lastAnalyzedRestaurant) {
         if (yesNo === 'yes') {
-            return handlerInput.responseBuilder
-                .speak(`You seem that you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address}`)
-                .getResponse();
+            /*return handlerInput.responseBuilder
+                .speak(
+                    `You seem that you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address}`,
+                )
+                .getResponse()
+            */
+            const reservationDateTime = (0, dateTimeUtils_1.convertAmazonDateTime)(date, time);
+            const reservationInfo = {
+                id_user: constants_1.USER_ID,
+                id_restaurant: sessionAttributes.lastAnalyzedRestaurant.restaurant.id,
+                dateTime: reservationDateTime.toString(),
+                n_people: Number(numPeople),
+                createdAtLatitude: coordinates === null || coordinates === void 0 ? void 0 : coordinates.latitude,
+                createdAtLongitude: coordinates === null || coordinates === void 0 ? void 0 : coordinates.longitude
+            };
+            console.log(`DEBUG RESERVATION: ${(0, debugUtils_1.beautify)(reservationInfo)}`);
+            const addReservationResponse = yield (0, apiCalls_1.createReservation)(reservationInfo);
+            console.log(`DEBUG RESERVATION: status ${addReservationResponse}`);
+            if (addReservationResponse === 200) {
+                return handlerInput.responseBuilder
+                    .speak(`Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} added correctly`)
+                    .getResponse();
+            }
+            else {
+                return handlerInput.responseBuilder
+                    .speak(`Error while making the reservation!`)
+                    .getResponse();
+            }
         }
         else {
             sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter((restaurant) => { var _a; return restaurant.restaurant.id !== ((_a = sessionAttributes.lastAnalyzedRestaurant) === null || _a === void 0 ? void 0 : _a.restaurant.id); });

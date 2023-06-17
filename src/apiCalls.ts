@@ -1,7 +1,7 @@
 import { LatLng } from './shared/types'
 import { RESTAURANTS_URL, RESERVATIONS_URL } from './shared/urls'
 import axios from 'axios'
-import { RestaurantSearchResult, ReservationContext } from './shared/types'
+import { RestaurantSearchResult, ReservationContext, ReservationData } from './shared/types'
 import { MAX_DISTANCE, ROME_LATLNG } from './shared/constants'
 
 export const searchNearbyRestaurants = async (
@@ -68,6 +68,13 @@ export const getDistanceFromContext = async (context: ReservationContext): Promi
     const data = (await axios.get(URL)).data
     console.log(`${URL} returned ${JSON.stringify(data, null, 2)}`)
     return data.distance
+}
+
+export const createReservation = async (reservation: ReservationData): Promise<number> => {
+    const URL = `${RESERVATIONS_URL}/create-reservation`
+    console.log(`Made api call to ${URL}`)
+    const response = (await axios.post(URL, reservation))
+    return response.status
 }
 
 export const getCityCoordinates = async (city: string): Promise<LatLng> => {
