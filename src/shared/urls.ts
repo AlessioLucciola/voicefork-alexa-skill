@@ -1,5 +1,5 @@
 // This has to be changed each time ngrok is restarted
-const NGROK_URL = 'https://d7eb-94-34-145-237.eu.ngrok.io'
+const NGROK_URL = 'https://24cf-94-34-145-237.ngrok-free.app'
 
 export const RESTAURANTS_URL = `${NGROK_URL}/restaurants`
 export const USERS_URL = `${NGROK_URL}/users`

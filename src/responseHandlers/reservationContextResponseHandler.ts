@@ -17,6 +17,7 @@ import { CONF, TEST_LATLNG, MAX_DISTANCE } from '../shared/constants'
 import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../utils/dateTimeUtils'
 import { beautify } from '../utils/debugUtils'
 import { MakeReservationIntentHandler } from '../IntentHandlers/MakeReservationIntent'
+import { bool } from 'aws-sdk/clients/signer'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
 let coordinates = getCoordinates()
@@ -281,7 +282,7 @@ export const handleSimilarRestaurants = async (
     const disambiguationField = getBestField(fieldsForDisambiguation)
     // If the best field is latLng, try to understand if there are some ways to disambiguate
     const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
-    if (disambiguationField.field === 'latLng' && coordinates !== undefined) { // TODO: disable this "function" if you want to test other fields
+    if (disambiguationField.field === 'latLng' && coordinates !== undefined) { // TODO: disable this if you want to test other fields
         // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
         const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
         if (allCities.length > 1) {
@@ -323,38 +324,77 @@ export const handleSimilarRestaurants = async (
             .getResponse()
     }
 
+    // Choose to disambiguate with avgRating...
+    if (disambiguationField.field === "avgRating") { // TODO: Change it to latLng if you want to test it (Original value: avgRating)
+        // ...only if:
+        // - If it is the best field
+        // - If the similarity between the restaurants is high enough (have a very low score)
+        if (isAverageWithinThreshold() && isScoreSimilar()) {
+            // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
+            // Creates a copy of the original array
+            const copyRestaurantsToDisambiguate = restaurantsToDisambiguate.slice();     
 
-    // Creates a copy of the original array
-    const copyRestaurantsToDisambiguate = restaurantsToDisambiguate.slice();
+            // Sort the copy by avgRating in descending order
+            copyRestaurantsToDisambiguate.sort((a, b) => b.restaurant.avgRating - a.restaurant.avgRating);
 
-    const minScore = copyRestaurantsToDisambiguate.reduce((min, restaurant) => restaurant.score < min ? restaurant.score : min, copyRestaurantsToDisambiguate[0].score);
-    const maxScore = copyRestaurantsToDisambiguate.reduce((max, restaurant) => restaurant.score > max ? restaurant.score : max, copyRestaurantsToDisambiguate[0].score);
+            console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(copyRestaurantsToDisambiguate)}`)
 
-    console.log(`DISAMBIGUATION_DEBUG: Min score ${beautify(minScore)}`)
-    console.log(`DISAMBIGUATION_DEBUG: Max score ${beautify(maxScore)}`)
+            // Get the restaurant with the highest avgRating
+            lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
+            return handlerInput.responseBuilder
+            .speak(
+                `Do you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address} with an average rating of ${lastAnalyzedRestaurant.restaurant.avgRating}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
+        }
 
-    // If the best field is avgRating, try to understand if there are some ways to disambiguate
-    if (disambiguationField.field === "avgRating") { // TODO: Change to latLng if you want to test it (Original value: avgRating)
-        // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
-
-        // Sort the copy by avgRating in descending order
-        copyRestaurantsToDisambiguate.sort((a, b) => b.restaurant.avgRating - a.restaurant.avgRating);
-
-        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(copyRestaurantsToDisambiguate)}`)
-        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(restaurantsToDisambiguate.length)}`)
-
-        // Get the restaurant with the highest avgRating
-        lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
+        // Otherwise, simply ask to confirm the best restaurant
+        lastAnalyzedRestaurant = restaurantWithHighestScore
         return handlerInput.responseBuilder
-        .speak(
-            `Do you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address} with an average rating of ${lastAnalyzedRestaurant.restaurant.avgRating}?`,
-        )
-        .addElicitSlotDirective('YesNoSlot')
-        .getResponse()
+            .speak(
+                `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
     }
 
     //TO DO: THIS SHOULDN'T EXIST. ALL POSSIBLE CASES MUST BE DONE.
     return handlerInput.responseBuilder.speak(`You reached the bottom. I can't make the reservation.`).getResponse()
+}
+
+const isAverageWithinThreshold = (): bool => {
+    // Calculates the average of score values
+    const scores = restaurantsToDisambiguate.map((restaurant) => restaurant.score);
+    const averageScore = scores.reduce((total, score) => total + score, 0) / scores.length;
+
+    // Set the desired threshold
+    // (the highest since the restaurants in this case must all have a very low score)
+    const threshold = CONF.SCORE_THRESHOLDS.high;
+
+    // Check whether the average falls within the threshold
+    const isAverageWithinThreshold = averageScore >= threshold;
+
+    console.log(`DISAMBIGUATION_DEBUG: isAverageWithinThreshold ${beautify(isAverageWithinThreshold)}`)
+    return isAverageWithinThreshold
+}
+
+const isScoreSimilar = (): bool => {
+    // Calculate the average of the "score" values
+    const scores = restaurantsToDisambiguate.map(restaurant => restaurant.score);
+    const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+
+    console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(scores)}`)
+    console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(averageScore)}`)
+
+    // Set the tolerance value
+    const tolerance = 0.1;
+
+    // Check whether the "score" values are similar within tolerance
+    const isScoreSimilar = scores.every(score => Math.abs(score - averageScore) <= tolerance);
+
+    console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(isScoreSimilar)}`)
+    return isScoreSimilar
 }
 
 const getRestaurantCity = (restaurant: RestaurantWithScore): string => {
