@@ -300,6 +300,7 @@ const isAverageWithinThreshold = () => {
     const threshold = constants_1.CONF.SCORE_THRESHOLDS.high;
     // Check whether the average falls within the threshold
     const isAverageWithinThreshold = averageScore >= threshold;
+    console.log(`DISAMBIGUATION_DEBUG: isAverageWithinThreshold ${(0, debugUtils_1.beautify)(averageScore)}`);
     console.log(`DISAMBIGUATION_DEBUG: isAverageWithinThreshold ${(0, debugUtils_1.beautify)(isAverageWithinThreshold)}`);
     return isAverageWithinThreshold;
 };

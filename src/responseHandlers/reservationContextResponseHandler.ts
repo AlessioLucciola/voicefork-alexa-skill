@@ -375,6 +375,7 @@ const isAverageWithinThreshold = (): bool => {
     // Check whether the average falls within the threshold
     const isAverageWithinThreshold = averageScore >= threshold;
 
+    console.log(`DISAMBIGUATION_DEBUG: isAverageWithinThreshold ${beautify(averageScore)}`)
     console.log(`DISAMBIGUATION_DEBUG: isAverageWithinThreshold ${beautify(isAverageWithinThreshold)}`)
     return isAverageWithinThreshold
 }
