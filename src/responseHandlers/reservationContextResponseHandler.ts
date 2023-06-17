@@ -346,6 +346,7 @@ export const handleSimilarRestaurants = async (
 
     // Choose to disambiguate with avgRating...
     if (disambiguationField.field === "avgRating") {
+        console.log('DISAMBIGUATION DEBUG: You are in the avgRating case!')
         // ...only if:
         // - If it is the best field
         // - If the similarity between the restaurants is high enough (have a very low score)
