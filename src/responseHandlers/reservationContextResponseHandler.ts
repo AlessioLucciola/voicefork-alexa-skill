@@ -19,15 +19,6 @@ import { beautify } from '../utils/debugUtils'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
 let coordinates = getCoordinates()
-let isSearchRestaurantCompleted = false
-let isRestaurantContextComputationCompleted = false
-let restaurantsToDisambiguate: RestaurantWithScore[]
-let fieldsForDisambiguation: Variances
-let lastAnalyzedRestaurant: RestaurantWithScore | null
-let cityBestRestaurant: string
-let zoneBestRestaurant: string
-let cuisineType: string
-let usedFields: []
 
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
@@ -40,6 +31,8 @@ export const handleSimilarRestaurants = async (
     slots: RestaurantSlots,
 ): Promise<Response> => {
     let { restaurantName, location, date, time, numPeople, yesNo } = slots
+    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes()
+    //handlerInput.attributesManager.setSessionAttributes(sessionAttributes)
     let searchResults: RestaurantSearchResult[] = []
 
     if (!restaurantName || !date || !time || !numPeople) {
@@ -48,7 +41,7 @@ export const handleSimilarRestaurants = async (
     }
 
     //The following control checks if it's necessary to retrieve restaurant and in that case it search for them based on a query
-    if (!isSearchRestaurantCompleted) {
+    if (!sessionAttributes.isSearchRestaurantCompleted) {
         console.log(`DEBUG: SEARCHING FOR RESTAURANTS`)
         if (coordinates !== undefined && location !== undefined) {
             // Caso in cui HO le coordinate dell'utente MA voglio comunque prenotare altrove
@@ -57,7 +50,7 @@ export const handleSimilarRestaurants = async (
             coordinates = cityCoordinates
             const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
             searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
-            isSearchRestaurantCompleted = true
+            sessionAttributes.isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
         } else if (coordinates !== undefined && location === undefined) {
             // Caso in cui HO le coordinate dell'utente e NON mi è stata detta la città (quindi devo cercare vicino all'utente)
@@ -65,7 +58,7 @@ export const handleSimilarRestaurants = async (
             const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
             searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
-            isSearchRestaurantCompleted = true
+            sessionAttributes.isSearchRestaurantCompleted = true
         } else if (coordinates === undefined && location !== undefined) {
             // Caso in cui NON HO le coordinate dell'utente MA mi è stata detta la città
             console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE')
@@ -73,7 +66,7 @@ export const handleSimilarRestaurants = async (
             coordinates = cityCoordinates
             const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
             searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
-            isSearchRestaurantCompleted = true
+            sessionAttributes.isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
         } else {
             // Altrimenti (non ho né coordinate, né città)..
@@ -88,7 +81,7 @@ export const handleSimilarRestaurants = async (
     }
 
     //The following control checks if the restaurant scores were computed. If not it computes the scores and save the restaurants with score in a variable.
-    if (!isRestaurantContextComputationCompleted) {
+    if (!sessionAttributes.isRestaurantContextComputationCompleted) {
         let plausibleContexts: {
             restaurant: Restaurant
             contextDistance: number | null
@@ -170,87 +163,87 @@ export const handleSimilarRestaurants = async (
         console.log(`DEBUG SCORES: ${beautify(scores)}`) //TODO: debug
 
         // I save all the restaurants in the restaurant to disambiguate list and iterate over that list until there is one restaurant left
-        restaurantsToDisambiguate = scores
+        sessionAttributes.restaurantsToDisambiguate = scores
     }
 
     // Remove the restaurant discarded in the previous iteration or accept it if the decision was "yes"
-    if (lastAnalyzedRestaurant) {
+    if (sessionAttributes.lastAnalyzedRestaurant) {
         if (yesNo === 'yes') {
             return handlerInput.responseBuilder
                 .speak(
-                    `You seem that you want to reserve to ${lastAnalyzedRestaurant.restaurant.name} in ${lastAnalyzedRestaurant.restaurant.address}`,
+                    `You seem that you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address}`,
                 )
                 .getResponse()
         } else {
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
-                restaurant => restaurant.restaurant.id !== lastAnalyzedRestaurant?.restaurant.id,
+            sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
+                (restaurant: RestaurantWithScore) => restaurant.restaurant.id !== sessionAttributes.lastAnalyzedRestaurant?.restaurant.id,
             )
         }
-        lastAnalyzedRestaurant = null
+        sessionAttributes.lastAnalyzedRestaurant = null
     }
 
     // Remove the restaurants according to their cuisine types
-    if (cuisineType && cuisineType !== '') {
+    if (sessionAttributes.cuisineType && sessionAttributes.cuisineType !== '') {
         // If the user confirms that he wants that types of cuisines, remove the restaurants that doesn't have them
-        let restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguate.filter(restaurant => restaurant.restaurant.macroCuisines !== "")
+        let restaurantsToDisambiguateWithNotNullCuisines = sessionAttributes.restaurantsToDisambiguate.filter((restaurant: RestaurantWithScore) => restaurant.restaurant.macroCuisines !== "")
         if (yesNo === 'yes') {
-            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant) => {
+            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant: RestaurantWithScore) => {
                 const cuisines: string[] = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''))
-                return cuisines.includes(cuisineType)
+                return cuisines.includes(sessionAttributes.cuisineType)
             })
         } else {
         // If the user confirms that he doesn't want that types of cuisines, remove the restaurants that have them
-            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant) => {
+            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant: RestaurantWithScore) => {
                 const cuisines: string[] = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''))
-                return !cuisines.includes(cuisineType)
+                return !cuisines.includes(sessionAttributes.cuisineType)
             })
         }
         let filteredRestaurants: RestaurantWithScore[] = []
-        for (const restaurant of restaurantsToDisambiguate) {
-            const found = restaurantsToDisambiguateWithNotNullCuisines.some((r) => r.restaurant.id === restaurant.restaurant.id);
+        for (const restaurant of sessionAttributes.restaurantsToDisambiguate) {
+            const found = restaurantsToDisambiguateWithNotNullCuisines.some((r: RestaurantWithScore) => r.restaurant.id === restaurant.restaurant.id);
             if (found || restaurant.restaurant.macroCuisines === "") {
                 filteredRestaurants.push(restaurant);
             }
         }
-        restaurantsToDisambiguate = filteredRestaurants
-        cuisineType = '' // Reset cuisine type
+        sessionAttributes.restaurantsToDisambiguate = filteredRestaurants
+        sessionAttributes.cuisineType = '' // Reset cuisine type
     }
 
     // Disambiguation with city result
-    if (cityBestRestaurant && cityBestRestaurant !== '') {
+    if (sessionAttributes.cityBestRestaurant && sessionAttributes.cityBestRestaurant !== '') {
         if (yesNo === 'yes') {
             //If the response was "yes" it means that the user wants to reserve to the city of the best restaurant so let's remove the ones that are in other cities
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
-                restaurant => restaurant.restaurant.city === cityBestRestaurant,
+            sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
+                (restaurant: RestaurantWithScore) => restaurant.restaurant.city === sessionAttributes.cityBestRestaurant,
             )
         } else {
             // Otherwise, remove the restaurant in the same city of the best restaurant
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
-                restaurant => restaurant.restaurant.city !== cityBestRestaurant,
+            sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
+                (restaurant: RestaurantWithScore) => restaurant.restaurant.city !== sessionAttributes.cityBestRestaurant,
             )
         }
-        cityBestRestaurant = '' // Reset city best restaurant
+        sessionAttributes.cityBestRestaurant = '' // Reset city best restaurant
     }
 
     // Disambiguation with zones result
-    if (zoneBestRestaurant && zoneBestRestaurant !== '') {
+    if (sessionAttributes.zoneBestRestaurant && sessionAttributes.zoneBestRestaurant !== '') {
         if (yesNo === 'yes') {
             //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
-                restaurant => restaurant.restaurant.zone === zoneBestRestaurant,
+            sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
+                (restaurant: RestaurantWithScore) => restaurant.restaurant.zone === sessionAttributes.zoneBestRestaurant,
             )
         } else {
             // Otherwise, remove the restaurant in the same zone of the best restaurant
-            restaurantsToDisambiguate = restaurantsToDisambiguate.filter(
-                restaurant => restaurant.restaurant.zone !== zoneBestRestaurant,
+            sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
+                (restaurant: RestaurantWithScore) => restaurant.restaurant.zone !== sessionAttributes.zoneBestRestaurant,
             )
         }
-        zoneBestRestaurant = '' // Reset zone best restaurant
+        sessionAttributes.zoneBestRestaurant = '' // Reset zone best restaurant
     }
 
     // I compute the variance (and the buckets)
     // This is done at each iteration
-    const handleResult = handleScores(restaurantsToDisambiguate)
+    const handleResult = handleScores(sessionAttributes.restaurantsToDisambiguate)
 
     // If the are no restaurants found
     if (!handleResult) {
@@ -268,22 +261,22 @@ export const handleSimilarRestaurants = async (
             restaurants: RestaurantWithScore[]
             fieldsAndVariances: Variances
         }
-        restaurantsToDisambiguate = restaurants
-        fieldsForDisambiguation = fieldsAndVariances
-        isRestaurantContextComputationCompleted = true
+        sessionAttributes.restaurantsToDisambiguate = restaurants
+        sessionAttributes.fieldsForDisambiguation = fieldsAndVariances
+        sessionAttributes.isRestaurantContextComputationCompleted = true
     } else {
         // No variance, one a restaurant left. I immediatly take it.
-        restaurantsToDisambiguate = [handleResult]
-        lastAnalyzedRestaurant = handleResult
-        isRestaurantContextComputationCompleted = true
+        sessionAttributes.restaurantsToDisambiguate = [handleResult]
+        sessionAttributes.lastAnalyzedRestaurant = handleResult
+        sessionAttributes.isRestaurantContextComputationCompleted = true
     }
 
-    console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(restaurantsToDisambiguate)}`)
-    console.log(`DISAMBIGUATION_DEBUG: Fields for disambiguation left ${beautify(fieldsForDisambiguation)}`)
+    console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(sessionAttributes.restaurantsToDisambiguate)}`)
+    console.log(`DISAMBIGUATION_DEBUG: Fields for disambiguation left ${beautify(sessionAttributes.fieldsForDisambiguation)}`)
 
     // If there is one restaurant left, take it and ask for confirmation
-    if (restaurantsToDisambiguate.length === 1) {
-        const finalRestaurant = restaurantsToDisambiguate[0]
+    if (sessionAttributes.restaurantsToDisambiguate.length === 1) {
+        const finalRestaurant = sessionAttributes.restaurantsToDisambiguate[0]
         return handlerInput.responseBuilder
             .speak(
                 `Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}?`,
@@ -293,9 +286,9 @@ export const handleSimilarRestaurants = async (
     }
 
     // If there are two restaurants left, ask immediatly if the user wants to reserve to the one with the highest score
-    if (restaurantsToDisambiguate.length === 2) {
-        const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
-        lastAnalyzedRestaurant = restaurantWithHighestScore
+    if (sessionAttributes.restaurantsToDisambiguate.length === 2) {
+        const restaurantWithHighestScore = getBestRestaurant(sessionAttributes.restaurantsToDisambiguate)
+        sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore
         return handlerInput.responseBuilder
         .speak(
             `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
@@ -306,14 +299,14 @@ export const handleSimilarRestaurants = async (
 
     // Otherwise (if there are more than 2 resturants) -> disambiguation
     // Take the most discriminative field and remove unwanted resturants until to remain with 1 (it will the one to confirm)
-    const disambiguationField = getBestField(fieldsForDisambiguation)
+    const disambiguationField = getBestField(sessionAttributes.fieldsForDisambiguation)
 
-    const restaurantWithHighestScore = getBestRestaurant(restaurantsToDisambiguate)
+    const restaurantWithHighestScore = getBestRestaurant(sessionAttributes.restaurantsToDisambiguate)
     if (disambiguationField.field === 'cuisine') {
         console.log('DISAMBIGUATION DEBUG: You are in the cuisine case!')
-        const discriminativeCuisine = getMostDiscriminativeCuisine(restaurantsToDisambiguate, restaurantWithHighestScore)
+        const discriminativeCuisine = getMostDiscriminativeCuisine(sessionAttributes.restaurantsToDisambiguate, restaurantWithHighestScore)
         if (discriminativeCuisine !== undefined) {
-            cuisineType = discriminativeCuisine
+            sessionAttributes.cuisineType = discriminativeCuisine
             return handlerInput.responseBuilder
             .speak(
                 `Does the restaurant you're looking have ${discriminativeCuisine} dishes in the menu?`,
@@ -325,9 +318,9 @@ export const handleSimilarRestaurants = async (
 
     // Otherwise, try to disambiguate using latLon (standard behavior)
     // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-    const allCities = [...new Set(restaurantsToDisambiguate.map(restaurant => restaurant.restaurant.city))]
+    const allCities = [...new Set(sessionAttributes.restaurantsToDisambiguate.map((restaurant: RestaurantWithScore) => restaurant.restaurant.city))]
     if (allCities.length > 1) {
-        cityBestRestaurant = restaurantWithHighestScore.restaurant.city
+        sessionAttributes.cityBestRestaurant = restaurantWithHighestScore.restaurant.city
         return handlerInput.responseBuilder
             .speak(`Is the restaurant in ${getRestaurantCity(restaurantWithHighestScore)}?`)
             .addElicitSlotDirective('YesNoSlot')
@@ -335,19 +328,19 @@ export const handleSimilarRestaurants = async (
     }
 
     // Check if there are different zones (in a certain city) and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-    const allZones = restaurantsToDisambiguate
-        .map(restaurant => restaurant.restaurant.zone)
-        .filter(zone => !zone.toLowerCase().startsWith('via '))
+    const allZones = sessionAttributes.restaurantsToDisambiguate
+        .map((restaurant: RestaurantWithScore) => restaurant.restaurant.zone)
+        .filter((zone: string) => !zone.toLowerCase().startsWith('via '))
     console.log(allZones)
     if (
         allZones.length > 1 &&
         getRestaurantCity(restaurantWithHighestScore).toLowerCase() !==
             restaurantWithHighestScore.restaurant.zone.toLowerCase()
     ) {
-        zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone
+        sessionAttributes.zoneBestRestaurant = restaurantWithHighestScore.restaurant.zone
         return handlerInput.responseBuilder
             .speak(
-                `Is the restaurant in ${zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(
+                `Is the restaurant in ${sessionAttributes.zoneBestRestaurant} neighboorhood, in ${getRestaurantCity(
                     restaurantWithHighestScore,
                 )}?`,
             )
@@ -356,7 +349,7 @@ export const handleSimilarRestaurants = async (
     }
 
     // Otherwise, simply ask to confirm the best restaurant
-    lastAnalyzedRestaurant = restaurantWithHighestScore
+    sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore
     return handlerInput.responseBuilder
     .speak(
         `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
