@@ -344,31 +344,26 @@ export const handleSimilarRestaurants = async (
         }
     }
 
-    // Choose to disambiguate with avgRating...
-    if (disambiguationField.field === "avgRating") {
+    // Choose to disambiguate with avgRating only if the similarity score between the restaurants is high enough
+    if (disambiguationField.field === "avgRating" && isScoreSimilar(sessionAttributes.restaurantsToDisambiguate)) {
         console.log('DISAMBIGUATION DEBUG: You are in the avgRating case!')
-        // ...only if:
-        // - If it is the best field
-        // - If the similarity between the restaurants is high enough (have a very low score)
-        if (isAverageWithinThreshold(sessionAttributes.restaurantsToDisambiguate) && isScoreSimilar(sessionAttributes.restaurantsToDisambiguate)) {
-            // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
-            // Creates a copy of the original array
-            const copyRestaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.slice();     
+        // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
+        // Creates a copy of the original array
+        const copyRestaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.slice();     
 
-            // Sort the copy by avgRating in descending order
-            copyRestaurantsToDisambiguate.sort((a: RestaurantWithScore, b: RestaurantWithScore) => b.restaurant.avgRating - a.restaurant.avgRating);
+        // Sort the copy by avgRating in descending order
+        copyRestaurantsToDisambiguate.sort((a: RestaurantWithScore, b: RestaurantWithScore) => b.restaurant.avgRating - a.restaurant.avgRating);
 
-            console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(copyRestaurantsToDisambiguate)}`)
+        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(copyRestaurantsToDisambiguate)}`)
 
-            // Get the restaurant with the highest avgRating
-            sessionAttributes.lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
-            return handlerInput.responseBuilder
-            .speak(
-                `Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`,
-            )
-            .addElicitSlotDirective('YesNoSlot')
-            .getResponse()
-        }
+        // Get the restaurant with the highest avgRating
+        sessionAttributes.lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
+        return handlerInput.responseBuilder
+        .speak(
+            `Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`,
+        )
+        .addElicitSlotDirective('YesNoSlot')
+        .getResponse()
     }
 
     // Otherwise, try to disambiguate using latLon (standard behavior)
@@ -466,23 +461,6 @@ const getMostDiscriminativeCuisine = (restaurants: RestaurantWithScore[], bestRe
         console.log(`DISAMBIGUATION DEBUG: Final discrivimative cuisines: ${beautify(selectedCuisines)}`)
     }
     return selectedCuisines
-}
-
-const isAverageWithinThreshold = (restaurantsToDisambiguate: RestaurantWithScore[]): bool => {
-    // Calculates the average of score values
-    const scores = restaurantsToDisambiguate.map((restaurant) => restaurant.score);
-    const averageScore = scores.reduce((total, score) => total + score, 0) / scores.length;
-
-    // Set the desired threshold
-    // (the highest since the restaurants in this case must all have a very low score)
-    const threshold = CONF.SCORE_THRESHOLDS.high;
-
-    // Check whether the average falls within the threshold
-    const isAverageWithinThreshold = averageScore >= threshold;
-
-    console.log(`DISAMBIGUATION_DEBUG: isAverageWithinThreshold ${beautify(averageScore)}`)
-    console.log(`DISAMBIGUATION_DEBUG: isAverageWithinThreshold ${beautify(isAverageWithinThreshold)}`)
-    return isAverageWithinThreshold
 }
 
 const isScoreSimilar = (restaurantsToDisambiguate: RestaurantWithScore[]): bool => {
