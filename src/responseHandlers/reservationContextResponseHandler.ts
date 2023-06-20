@@ -11,10 +11,10 @@ import {
     VarianceResult,
     ContextResults,
 } from '../shared/types'
-import getCoordinates, { distanceBetweenCoordinates } from '../utils/localizationFeatures'
+import { getCoordinates, distanceBetweenCoordinates, parseAddress } from '../utils/localizationFeatures'
 import { getDistanceFromContext, searchRestaurants, getCityCoordinates, createReservation } from '../apiCalls'
 import { CONF, TEST_LATLNG, MAX_DISTANCE, USER_ID } from '../shared/constants'
-import { getDateComponentsFromDate, convertAmazonDateTime, parseTime } from '../utils/dateTimeUtils'
+import { getDateComponentsFromDate, convertAmazonDateTime, parseTime, formatDate } from '../utils/dateTimeUtils'
 import { beautify } from '../utils/debugUtils'
 
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = CONF
@@ -190,7 +190,7 @@ export const handleSimilarRestaurants = async (
             if (addReservationResponse === 200) {
                 return handlerInput.responseBuilder
                 .speak(
-                    `Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} added correctly`,
+                    `Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${parseAddress(sessionAttributes.lastAnalyzedRestaurant.restaurant.address, getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant), sessionAttributes.lastAnalyzedRestaurant.restaurant.zone)} successfully added`,
                 )
                 .getResponse()
             } else {
@@ -305,7 +305,7 @@ export const handleSimilarRestaurants = async (
         const finalRestaurant = sessionAttributes.restaurantsToDisambiguate[0]
         return handlerInput.responseBuilder
             .speak(
-                `Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}?`,
+                `Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${parseAddress(finalRestaurant.restaurant.address, getRestaurantCity(finalRestaurant), finalRestaurant.restaurant.zone)}, ${formatDate(date)} at ${time} for ${numPeople} ${Number(numPeople) === 1 ? 'person' : 'people'}?`,
             )
             .addElicitSlotDirective('YesNoSlot')
             .getResponse()
@@ -317,7 +317,7 @@ export const handleSimilarRestaurants = async (
         sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore
         return handlerInput.responseBuilder
         .speak(
-            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${parseAddress(restaurantWithHighestScore.restaurant.address, getRestaurantCity(restaurantWithHighestScore), restaurantWithHighestScore.restaurant.zone)}?`,
         )
         .addElicitSlotDirective('YesNoSlot')
         .getResponse()
@@ -358,7 +358,7 @@ export const handleSimilarRestaurants = async (
         sessionAttributes.lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
         .speak(
-            `Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`,
+            `Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${parseAddress(sessionAttributes.lastAnalyzedRestaurant.restaurant.address, getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant), sessionAttributes.lastAnalyzedRestaurant.restaurant.zone)} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`,
         )
         .addElicitSlotDirective('YesNoSlot')
         .getResponse()
@@ -400,7 +400,7 @@ export const handleSimilarRestaurants = async (
     sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore
     return handlerInput.responseBuilder
     .speak(
-        `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`,
+        `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${parseAddress(restaurantWithHighestScore.restaurant.address, getRestaurantCity(restaurantWithHighestScore), restaurantWithHighestScore.restaurant.zone)}?`,
     )
     .addElicitSlotDirective('YesNoSlot')
     .getResponse()

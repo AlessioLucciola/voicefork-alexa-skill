@@ -24,3 +24,8 @@ export const convertAmazonDateTime = (date: string, time: string): DateTime => {
 export const parseTime = (hour: number, minutes: number): string => {
     return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
 }
+
+export const formatDate = (dateString: string) => {
+    const date = DateTime.fromISO(dateString);
+    return date.toFormat("EEEE dd 'of' MMMM yyyy");
+  }

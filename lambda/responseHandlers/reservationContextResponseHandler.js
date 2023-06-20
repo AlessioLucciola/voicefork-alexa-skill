@@ -16,7 +16,7 @@ const constants_1 = require("../shared/constants");
 const dateTimeUtils_1 = require("../utils/dateTimeUtils");
 const debugUtils_1 = require("../utils/debugUtils");
 const { VALUE_MAP, CONTEXT_WEIGHT, NULL_DISTANCE_SCALING_FACTOR, DISTANCE_THRESHOLD } = constants_1.CONF;
-let coordinates = (0, localizationFeatures_1.default)();
+let coordinates = (0, localizationFeatures_1.getCoordinates)();
 /**
  * Searches for the restaurants that match better the user query, and gives a score to each one of them based on the distance from the query and the context.
  * @param handlerInput
@@ -165,7 +165,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             console.log(`DEBUG RESERVATION: status ${addReservationResponse}`);
             if (addReservationResponse === 200) {
                 return handlerInput.responseBuilder
-                    .speak(`Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} added correctly`)
+                    .speak(`Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${(0, localizationFeatures_1.parseAddress)(sessionAttributes.lastAnalyzedRestaurant.restaurant.address, getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant), sessionAttributes.lastAnalyzedRestaurant.restaurant.zone)} successfully added`)
                     .getResponse();
             }
             else {
@@ -259,7 +259,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     if (sessionAttributes.restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = sessionAttributes.restaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
-            .speak(`Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${finalRestaurant.restaurant.address}, ${date} at ${time} for ${numPeople}?`)
+            .speak(`Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${(0, localizationFeatures_1.parseAddress)(finalRestaurant.restaurant.address, getRestaurantCity(finalRestaurant), finalRestaurant.restaurant.zone)}, ${(0, dateTimeUtils_1.formatDate)(date)} at ${time} for ${numPeople} ${Number(numPeople) === 1 ? 'person' : 'people'}?`)
             .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
@@ -268,7 +268,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         const restaurantWithHighestScore = getBestRestaurant(sessionAttributes.restaurantsToDisambiguate);
         sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore;
         return handlerInput.responseBuilder
-            .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`)
+            .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${(0, localizationFeatures_1.parseAddress)(restaurantWithHighestScore.restaurant.address, getRestaurantCity(restaurantWithHighestScore), restaurantWithHighestScore.restaurant.zone)}?`)
             .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
@@ -299,7 +299,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         // Get the restaurant with the highest avgRating
         sessionAttributes.lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
         return handlerInput.responseBuilder
-            .speak(`Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`)
+            .speak(`Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${(0, localizationFeatures_1.parseAddress)(sessionAttributes.lastAnalyzedRestaurant.restaurant.address, getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant), sessionAttributes.lastAnalyzedRestaurant.restaurant.zone)} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`)
             .addElicitSlotDirective('YesNoSlot')
             .getResponse();
     }
@@ -330,7 +330,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     // Otherwise, simply ask to confirm the best restaurant
     sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore;
     return handlerInput.responseBuilder
-        .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${restaurantWithHighestScore.restaurant.address}?`)
+        .speak(`Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${(0, localizationFeatures_1.parseAddress)(restaurantWithHighestScore.restaurant.address, getRestaurantCity(restaurantWithHighestScore), restaurantWithHighestScore.restaurant.zone)}?`)
         .addElicitSlotDirective('YesNoSlot')
         .getResponse();
 });

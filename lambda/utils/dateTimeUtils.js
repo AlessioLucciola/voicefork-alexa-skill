@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseTime = exports.convertAmazonDateTime = exports.getDateComponentsFromDate = void 0;
+exports.formatDate = exports.parseTime = exports.convertAmazonDateTime = exports.getDateComponentsFromDate = void 0;
 const luxon_1 = require("luxon");
 const getDateComponentsFromDate = (dateTime) => {
     if (dateTime === undefined)
@@ -25,3 +25,8 @@ const parseTime = (hour, minutes) => {
     return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 };
 exports.parseTime = parseTime;
+const formatDate = (dateString) => {
+    const date = luxon_1.DateTime.fromISO(dateString);
+    return date.toFormat("EEEE dd 'of' MMMM yyyy");
+};
+exports.formatDate = formatDate;
