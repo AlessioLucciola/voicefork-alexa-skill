@@ -72,6 +72,9 @@
                             "name": "time",
                             "type": "AMAZON.TIME",
                             "samples": [
+                                "at {time} for {numPeople} people",
+                                "at {time} for {numPeople}",
+                                "at {time}",
                                 "{time} for {numPeople}",
                                 "{time} for {numPeople} people",
                                 "{time}"
