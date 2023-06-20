@@ -41,8 +41,8 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             console.log('DEBUG INSIDE COORDINATES BUT CITY CASE');
             const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
             coordinates = cityCoordinates;
-            const locationInfo = { location: coordinates, maxDistance: constants_1.MAX_DISTANCE };
-            searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
+            //const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
+            searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, undefined, location);
             sessionAttributes.isSearchRestaurantCompleted = true;
             console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
         }
@@ -59,8 +59,8 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
             console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE');
             const cityCoordinates = yield (0, apiCalls_1.getCityCoordinates)(location);
             coordinates = cityCoordinates;
-            const locationInfo = { location: coordinates, maxDistance: constants_1.MAX_DISTANCE };
-            searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, locationInfo, undefined);
+            //const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
+            searchResults = yield (0, apiCalls_1.searchRestaurants)(restaurantName, undefined, location);
             sessionAttributes.isSearchRestaurantCompleted = true;
             console.log(`DEBUG FOUND ${apiCalls_1.searchRestaurants.length} RESTAURANTS!`);
         }

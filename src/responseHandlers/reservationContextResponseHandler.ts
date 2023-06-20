@@ -48,8 +48,8 @@ export const handleSimilarRestaurants = async (
             console.log('DEBUG INSIDE COORDINATES BUT CITY CASE')
             const cityCoordinates = await getCityCoordinates(location)
             coordinates = cityCoordinates
-            const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
-            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            //const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, undefined, location)
             sessionAttributes.isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
         } else if (coordinates !== undefined && location === undefined) {
@@ -64,8 +64,8 @@ export const handleSimilarRestaurants = async (
             console.log('DEBUG INSIDE NOT COORDINATES BUT CITY CASE')
             const cityCoordinates = await getCityCoordinates(location)
             coordinates = cityCoordinates
-            const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
-            searchResults = await searchRestaurants(restaurantName, locationInfo, undefined)
+            //const locationInfo = { location: coordinates, maxDistance: MAX_DISTANCE }
+            searchResults = await searchRestaurants(restaurantName, undefined, location)
             sessionAttributes.isSearchRestaurantCompleted = true
             console.log(`DEBUG FOUND ${searchRestaurants.length} RESTAURANTS!`)
         } else {
