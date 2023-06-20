@@ -65,23 +65,15 @@
                                 "{date} at {time}",
                                 "{date}",
                                 "{date} {time}",
-                                "{date} at {time} for {numPeople}",
-                                "{date} to {restaurantName}",
-                                "{date} to {restaurantName} at {time}",
-                                "{date} to {restaurantName} at {time} for {numPeople}"
+                                "{date} at {time} for {numPeople}"
                             ]
                         },
                         {
                             "name": "time",
                             "type": "AMAZON.TIME",
                             "samples": [
-                                "{time} in {location} on {date} for {numPeople}",
-                                "{time} in {location} on {date}",
-                                "{time} on {date} for {numPeople}",
-                                "{time} on {date} ",
-                                "{time} in {location} for {numPeople} ",
-                                "{time} in {location} ",
-                                "{time} for {numPeople} ",
+                                "{time} for {numPeople}",
+                                "{time} for {numPeople} people",
                                 "{time}"
                             ]
                         },
@@ -89,15 +81,7 @@
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
                             "samples": [
-                                "{numPeople} at {time} on {date}",
-                                "{numPeople} at {time} in {location}",
-                                "{numPeople} on {date} at {time} in {location}",
-                                "{numPeople} on {date} in {location} at {time}",
-                                "{numPeople} on {date} in {location}",
-                                "{numPeople} at {time}",
-                                "{numPeople} on {date}",
-                                "{numPeople}",
-                                "{numPeople} in {location}"
+                                "{numPeople}"
                             ]
                         },
                         {
@@ -304,7 +288,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "OK, at {restaurantName} on {date} at {time} , for how many people?"
+                        "value": "OK, at {restaurantName} on {date} at {time}, For how many people?"
                     },
                     {
                         "type": "PlainText",
@@ -317,31 +301,31 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Ok, at {time} for {numPeople} , for when?"
+                        "value": "Ok, at {time} for {numPeople}, for when?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Ok, to {restaurantName}  at {time} for {numPeople} , for when?"
+                        "value": "Ok, to {restaurantName}  at {time} for {numPeople}, for when?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Ok, at {time} , for when?"
+                        "value": "Ok, at {time}, for when?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Ok, for {numPeople} , for when?"
+                        "value": "Ok, for {numPeople}, for when?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Ok, to {restaurantName} at {time} , for when?"
+                        "value": "Ok, to {restaurantName} at {time}, for when?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Ok, to {restaurantName} for {numPeople} , for when?"
+                        "value": "Ok, to {restaurantName} for {numPeople}, for when?"
                     },
                     {
                         "type": "PlainText",
-                        "value": "Ok, to {restaurantName} , for when?"
+                        "value": "Ok, to {restaurantName}, for when?"
                     },
                     {
                         "type": "PlainText",
@@ -354,7 +338,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "OK, on {date} , at what time?"
+                        "value": "OK, on {date}, at what time?"
                     },
                     {
                         "type": "PlainText",
@@ -368,10 +352,6 @@
                     {
                         "type": "PlainText",
                         "value": "What's the name of the restaurant?"
-                    },
-                    {
-                        "type": "PlainText",
-                        "value": "Where?"
                     },
                     {
                         "type": "PlainText",
