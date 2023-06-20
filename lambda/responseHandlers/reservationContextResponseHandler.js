@@ -282,7 +282,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         if (discriminativeCuisine !== undefined) {
             sessionAttributes.cuisineType = discriminativeCuisine;
             return handlerInput.responseBuilder
-                .speak(`Does the restaurant you're looking have ${discriminativeCuisine} dishes in the menu?`)
+                .speak(getCuisineAlexaResponse(discriminativeCuisine))
                 .addElicitSlotDirective('YesNoSlot')
                 .getResponse();
         }
@@ -414,6 +414,12 @@ const getBestRestaurant = (restaurants) => {
 const getBestField = (fieldsAndVariances) => {
     const [maxPropertyName, maxValue] = Object.entries(fieldsAndVariances).reduce((acc, [property, value]) => (value > acc[1] ? [property, value] : acc), ['', -Infinity]);
     return { field: maxPropertyName, variance: maxValue };
+};
+const getCuisineAlexaResponse = (cuisinetype) => {
+    if (cuisinetype === 'bar' || cuisinetype === 'pub') {
+        return `Is the place you're looking fore a ${cuisinetype}?`;
+    }
+    return `Does the restaurant you're looking for have ${cuisinetype} dishes in the menu?`;
 };
 /**
  * Computes the aggregate score between the contextDistance and the nameDistance. The higher the score, the better.

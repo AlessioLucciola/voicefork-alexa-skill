@@ -335,7 +335,7 @@ export const handleSimilarRestaurants = async (
             sessionAttributes.cuisineType = discriminativeCuisine
             return handlerInput.responseBuilder
             .speak(
-                `Does the restaurant you're looking have ${discriminativeCuisine} dishes in the menu?`,
+                getCuisineAlexaResponse(discriminativeCuisine),
             )
             .addElicitSlotDirective('YesNoSlot')
             .getResponse()
@@ -501,6 +501,13 @@ const getBestField = (fieldsAndVariances: Variances): { field: string; variance:
     )
 
     return { field: maxPropertyName, variance: maxValue as number }
+}
+
+const getCuisineAlexaResponse = (cuisinetype: string): string => {
+    if (cuisinetype === 'bar' || cuisinetype === 'pub') {
+        return `Is the place you're looking fore a ${cuisinetype}?`
+    }
+    return `Does the restaurant you're looking for have ${cuisinetype} dishes in the menu?`
 }
 
 /**
