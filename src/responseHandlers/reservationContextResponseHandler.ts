@@ -342,6 +342,28 @@ export const handleSimilarRestaurants = async (
         }
     }
 
+    // Choose to disambiguate with avgRating only if the similarity score between the restaurants is high enough
+    if (disambiguationField.field === "avgRating" && isScoreSimilar(sessionAttributes.restaurantsToDisambiguate)) {
+        console.log('DISAMBIGUATION DEBUG: You are in the avgRating case!')
+        // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
+        // Creates a copy of the original array
+        const copyRestaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.slice();     
+
+        // Sort the copy by avgRating in descending order
+        copyRestaurantsToDisambiguate.sort((a: RestaurantWithScore, b: RestaurantWithScore) => b.restaurant.avgRating - a.restaurant.avgRating);
+
+        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(copyRestaurantsToDisambiguate)}`)
+
+        // Get the restaurant with the highest avgRating
+        sessionAttributes.lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
+        return handlerInput.responseBuilder
+        .speak(
+            `Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${sessionAttributes.lastAnalyzedRestaurant.restaurant.address} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`,
+        )
+        .addElicitSlotDirective('YesNoSlot')
+        .getResponse()
+    }
+
     // Otherwise, try to disambiguate using latLon (standard behavior)
     // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
     const allCities = [...new Set(sessionAttributes.restaurantsToDisambiguate.map((restaurant: RestaurantWithScore) => restaurant.restaurant.city))]
@@ -384,14 +406,14 @@ export const handleSimilarRestaurants = async (
     .getResponse()
 }
 
-const getMostDiscriminativeCuisine = (restaurants: RestaurantWithScore[], bestRestaurant: RestaurantWithScore) => {
-    const cuisinesBestRestaurant = bestRestaurant.restaurant.macroCuisines.split(',').filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, '')) // Extract cuisines of the best resturant
-    if (cuisinesBestRestaurant.length === 0) return undefined
+    const getMostDiscriminativeCuisine = (restaurants: RestaurantWithScore[], bestRestaurant: RestaurantWithScore) => {
+        const cuisinesBestRestaurant = bestRestaurant.restaurant.macroCuisines.split(',').filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, '')) // Extract cuisines of the best resturant
+        if (cuisinesBestRestaurant.length === 0) return undefined
 
-    let restaurantsWithNotNullCuisines = 0 // Count the restaurants with with not null cuisines (macroCuisines !== "")
-    restaurants.forEach((restaurant) => {
-        if (restaurant.restaurant.macroCuisines.trim() !== "") {
-            restaurantsWithNotNullCuisines++
+        let restaurantsWithNotNullCuisines = 0 // Count the restaurants with with not null cuisines (macroCuisines !== "")
+        restaurants.forEach((restaurant) => {
+            if (restaurant.restaurant.macroCuisines.trim() !== "") {
+                restaurantsWithNotNullCuisines++
         }
     })
 
@@ -437,6 +459,24 @@ const getMostDiscriminativeCuisine = (restaurants: RestaurantWithScore[], bestRe
         console.log(`DISAMBIGUATION DEBUG: Final discrivimative cuisines: ${beautify(selectedCuisines)}`)
     }
     return selectedCuisines
+}
+
+const isScoreSimilar = (restaurantsToDisambiguate: RestaurantWithScore[]): boolean => {
+    // Calculate the average of the "score" values
+    const scores = restaurantsToDisambiguate.map(restaurant => restaurant.score);
+    const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+
+    console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(scores)}`)
+    console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(averageScore)}`)
+
+    // Set the tolerance value
+    const tolerance = 0.1;
+
+    // Check whether the "score" values are similar within tolerance
+    const isScoreSimilar = scores.every(score => Math.abs(score - averageScore) <= tolerance);
+
+    console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(isScoreSimilar)}`)
+    return isScoreSimilar
 }
 
 const getRestaurantCity = (restaurant: RestaurantWithScore): string => {
