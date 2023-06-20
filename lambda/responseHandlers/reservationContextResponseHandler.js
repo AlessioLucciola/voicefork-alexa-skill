@@ -157,8 +157,8 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 id_restaurant: sessionAttributes.lastAnalyzedRestaurant.restaurant.id,
                 dateTime: reservationDateTime.toString(),
                 n_people: Number(numPeople),
-                createdAtLatitude: coordinates === null || coordinates === void 0 ? void 0 : coordinates.latitude,
-                createdAtLongitude: coordinates === null || coordinates === void 0 ? void 0 : coordinates.longitude
+                createdAtLatitude: Number(coordinates === null || coordinates === void 0 ? void 0 : coordinates.latitude),
+                createdAtLongitude: Number(coordinates === null || coordinates === void 0 ? void 0 : coordinates.longitude)
             };
             console.log(`DEBUG RESERVATION: ${(0, debugUtils_1.beautify)(reservationInfo)}`);
             const addReservationResponse = yield (0, apiCalls_1.createReservation)(reservationInfo);

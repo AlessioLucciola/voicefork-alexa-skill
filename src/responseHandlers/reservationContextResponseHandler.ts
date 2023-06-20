@@ -181,8 +181,8 @@ export const handleSimilarRestaurants = async (
                     id_restaurant: sessionAttributes.lastAnalyzedRestaurant.restaurant.id,
                     dateTime: reservationDateTime.toString(),
                     n_people: Number(numPeople),
-                    createdAtLatitude: coordinates?.latitude,
-                    createdAtLongitude: coordinates?.longitude
+                    createdAtLatitude: Number(coordinates?.latitude),
+                    createdAtLongitude: Number(coordinates?.longitude)
                 }
             console.log(`DEBUG RESERVATION: ${beautify(reservationInfo)}`)
             const addReservationResponse = await createReservation(reservationInfo)
