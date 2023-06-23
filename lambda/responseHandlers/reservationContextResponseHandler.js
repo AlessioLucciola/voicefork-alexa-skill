@@ -67,7 +67,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         else {
             // Altrimenti (non ho né coordinate, né città)..
             return handlerInput.responseBuilder
-                .speak(`Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`)
+                .speak(`Sorry, I can't find your location. Can you please tell me the name of the city you want to reserve to?`)
                 .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
                 .addElicitSlotDirective('location')
                 .getResponse();
@@ -236,7 +236,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     // If the are no restaurants found
     if (!handleResult) {
         return handlerInput.responseBuilder
-            .speak(`Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`)
+            .speak(`Sorry, but it looks that I can't find restaurants matching your query. Please, try again with a different restaurant name or a different location.`)
             .getResponse();
     }
     console.log(handleResult);
@@ -417,7 +417,7 @@ const getBestField = (fieldsAndVariances) => {
 };
 const getCuisineAlexaResponse = (cuisinetype) => {
     if (cuisinetype === 'bar' || cuisinetype === 'pub') {
-        return `Is the place you're looking fore a ${cuisinetype}?`;
+        return `Is the place you're looking for a ${cuisinetype}?`;
     }
     return `Does the restaurant you're looking for have ${cuisinetype} dishes in the menu?`;
 };

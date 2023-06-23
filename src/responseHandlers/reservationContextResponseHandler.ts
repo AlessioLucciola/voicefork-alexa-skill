@@ -72,7 +72,7 @@ export const handleSimilarRestaurants = async (
             // Altrimenti (non ho né coordinate, né città)..
             return handlerInput.responseBuilder
                 .speak(
-                    `Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`,
+                    `Sorry, I can't find your location. Can you please tell me the name of the city you want to reserve to?`,
                 )
                 .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
                 .addElicitSlotDirective('location')
@@ -275,7 +275,7 @@ export const handleSimilarRestaurants = async (
     if (!handleResult) {
         return handlerInput.responseBuilder
             .speak(
-                `Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`,
+                `Sorry, but it looks that I can't find restaurants matching your query. Please, try again with a different restaurant name or a different location.`,
             )
             .getResponse()
     }
@@ -505,7 +505,7 @@ const getBestField = (fieldsAndVariances: Variances): { field: string; variance:
 
 const getCuisineAlexaResponse = (cuisinetype: string): string => {
     if (cuisinetype === 'bar' || cuisinetype === 'pub') {
-        return `Is the place you're looking fore a ${cuisinetype}?`
+        return `Is the place you're looking for a ${cuisinetype}?`
     }
     return `Does the restaurant you're looking for have ${cuisinetype} dishes in the menu?`
 }

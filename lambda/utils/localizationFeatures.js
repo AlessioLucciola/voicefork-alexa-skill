@@ -27,7 +27,18 @@ const distanceBetweenCoordinates = (origin, destination) => {
 exports.distanceBetweenCoordinates = distanceBetweenCoordinates;
 const parseAddress = (address, city, zone) => {
     const street = address.split(',')[0];
-    const finalAddress = city !== '' ? street + ' in ' + city : street + ' in ' + zone;
+    let finalAddress = street;
+    if (city !== "") {
+        if (zone !== "" && city.toLowerCase().trim() !== zone.toLowerCase().trim() && !zone.toLowerCase().startsWith('via ')) {
+            finalAddress = finalAddress + ' in ' + zone + ' neighborhood';
+        }
+        finalAddress = finalAddress + ' in ' + city;
+    }
+    else {
+        if (zone !== "" && !zone.toLowerCase().startsWith('via ')) {
+            finalAddress = finalAddress + ' in ' + zone;
+        }
+    }
     return finalAddress;
 };
 exports.parseAddress = parseAddress;
