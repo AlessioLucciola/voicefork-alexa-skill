@@ -73,7 +73,7 @@ export const getDistanceFromContext = async (context: ReservationContext): Promi
 export const createReservation = async (reservation: ReservationData): Promise<number> => {
     const URL = `${RESERVATIONS_URL}/create-reservation`
     console.log(`Made api call to ${URL}`)
-    const response = (await axios.post(URL, reservation))
+    const response = await axios.post(URL, reservation)
     return response.status
 }
 
@@ -86,7 +86,7 @@ export const getCityCoordinates = async (city: string): Promise<LatLng> => {
             const lat = response.data[0].lat
             const lon = response.data[0].lon
             console.log(`${URL} returned these coordinates: lat = (${lat}), lon = (${lon})}`)
-            const cityCoordinates: LatLng = {latitude: lat, longitude: lon}
+            const cityCoordinates: LatLng = { latitude: lat, longitude: lon }
             return cityCoordinates
         }
         console.log(`${city} not found. Setting coordinates to "Rome" ones.`)

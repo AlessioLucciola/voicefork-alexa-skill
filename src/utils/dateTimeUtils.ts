@@ -26,6 +26,6 @@ export const parseTime = (hour: number, minutes: number): string => {
 }
 
 export const formatDate = (dateString: string) => {
-    const date = DateTime.fromISO(dateString);
-    return date.toFormat("EEEE dd 'of' MMMM yyyy");
-  }
+    const date = DateTime.fromISO(dateString)
+    return date.toFormat("EEEE dd 'of' MMMM yyyy")
+}
