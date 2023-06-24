@@ -67,7 +67,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         else {
             // Altrimenti (non ho né coordinate, né città)..
             return handlerInput.responseBuilder
-                .speak(`Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`)
+                .speak(`Sorry, I can't find your location. Can you please tell me the name of the city you want to reserve to?`)
                 .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
                 .addElicitSlotDirective('location')
                 .getResponse();
@@ -158,7 +158,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                 dateTime: reservationDateTime.toString(),
                 n_people: Number(numPeople),
                 createdAtLatitude: Number(coordinates === null || coordinates === void 0 ? void 0 : coordinates.latitude),
-                createdAtLongitude: Number(coordinates === null || coordinates === void 0 ? void 0 : coordinates.longitude)
+                createdAtLongitude: Number(coordinates === null || coordinates === void 0 ? void 0 : coordinates.longitude),
             };
             console.log(`DEBUG RESERVATION: ${(0, debugUtils_1.beautify)(reservationInfo)}`);
             const addReservationResponse = yield (0, apiCalls_1.createReservation)(reservationInfo);
@@ -169,9 +169,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
                     .getResponse();
             }
             else {
-                return handlerInput.responseBuilder
-                    .speak(`Error while making the reservation!`)
-                    .getResponse();
+                return handlerInput.responseBuilder.speak(`Error while making the reservation!`).getResponse();
             }
         }
         else {
@@ -182,24 +180,28 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     // Remove the restaurants according to their cuisine types
     if (sessionAttributes.cuisineType && sessionAttributes.cuisineType !== '') {
         // If the user confirms that he wants that types of cuisines, remove the restaurants that doesn't have them
-        let restaurantsToDisambiguateWithNotNullCuisines = sessionAttributes.restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.macroCuisines !== "");
+        let restaurantsToDisambiguateWithNotNullCuisines = sessionAttributes.restaurantsToDisambiguate.filter((restaurant) => restaurant.restaurant.macroCuisines !== '');
         if (yesNo === 'yes') {
             restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant) => {
-                const cuisines = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''));
+                const cuisines = restaurant.restaurant.macroCuisines
+                    .split(',')
+                    .map(part => part.replace(/^\s+/, ''));
                 return cuisines.includes(sessionAttributes.cuisineType);
             });
         }
         else {
             // If the user confirms that he doesn't want that types of cuisines, remove the restaurants that have them
             restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant) => {
-                const cuisines = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''));
+                const cuisines = restaurant.restaurant.macroCuisines
+                    .split(',')
+                    .map(part => part.replace(/^\s+/, ''));
                 return !cuisines.includes(sessionAttributes.cuisineType);
             });
         }
         let filteredRestaurants = [];
         for (const restaurant of sessionAttributes.restaurantsToDisambiguate) {
             const found = restaurantsToDisambiguateWithNotNullCuisines.some((r) => r.restaurant.id === restaurant.restaurant.id);
-            if (found || restaurant.restaurant.macroCuisines === "") {
+            if (found || restaurant.restaurant.macroCuisines === '') {
                 filteredRestaurants.push(restaurant);
             }
         }
@@ -236,7 +238,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     // If the are no restaurants found
     if (!handleResult) {
         return handlerInput.responseBuilder
-            .speak(`Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`)
+            .speak(`Sorry, but it looks that I can't find restaurants matching your query. Please, try again with a different restaurant name or a different location.`)
             .getResponse();
     }
     console.log(handleResult);
@@ -288,7 +290,7 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
         }
     }
     // Choose to disambiguate with avgRating only if the similarity score between the restaurants is high enough
-    if (disambiguationField.field === "avgRating" && isScoreSimilar(sessionAttributes.restaurantsToDisambiguate)) {
+    if (disambiguationField.field === 'avgRating' && isScoreSimilar(sessionAttributes.restaurantsToDisambiguate)) {
         console.log('DISAMBIGUATION DEBUG: You are in the avgRating case!');
         // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
         // Creates a copy of the original array
@@ -305,7 +307,9 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
     }
     // Otherwise, try to disambiguate using latLon (standard behavior)
     // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-    const allCities = [...new Set(sessionAttributes.restaurantsToDisambiguate.map((restaurant) => restaurant.restaurant.city))];
+    const allCities = [
+        ...new Set(sessionAttributes.restaurantsToDisambiguate.map((restaurant) => restaurant.restaurant.city)),
+    ];
     if (allCities.length > 1) {
         sessionAttributes.cityBestRestaurant = restaurantWithHighestScore.restaurant.city;
         return handlerInput.responseBuilder
@@ -336,19 +340,25 @@ const handleSimilarRestaurants = (handlerInput, slots) => __awaiter(void 0, void
 });
 exports.handleSimilarRestaurants = handleSimilarRestaurants;
 const getMostDiscriminativeCuisine = (restaurants, bestRestaurant) => {
-    const cuisinesBestRestaurant = bestRestaurant.restaurant.macroCuisines.split(',').filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, '')); // Extract cuisines of the best resturant
+    const cuisinesBestRestaurant = bestRestaurant.restaurant.macroCuisines
+        .split(',')
+        .filter(cuisine => cuisine !== '')
+        .map(part => part.replace(/^\s+/, '')); // Extract cuisines of the best resturant
     if (cuisinesBestRestaurant.length === 0)
         return undefined;
     let restaurantsWithNotNullCuisines = 0; // Count the restaurants with with not null cuisines (macroCuisines !== "")
-    restaurants.forEach((restaurant) => {
-        if (restaurant.restaurant.macroCuisines.trim() !== "") {
+    restaurants.forEach(restaurant => {
+        if (restaurant.restaurant.macroCuisines.trim() !== '') {
             restaurantsWithNotNullCuisines++;
         }
     });
     const allCuisines = []; // Array to save all the cuisines
     // Get all cuisines
     restaurants.forEach(restaurant => {
-        const cuisines = restaurant.restaurant.macroCuisines.split(",").filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, ''));
+        const cuisines = restaurant.restaurant.macroCuisines
+            .split(',')
+            .filter(cuisine => cuisine !== '')
+            .map(part => part.replace(/^\s+/, ''));
         allCuisines.push(...cuisines);
     });
     const cuisineCounts = {}; // Array to save the occcurrences for each cuisine
@@ -417,7 +427,7 @@ const getBestField = (fieldsAndVariances) => {
 };
 const getCuisineAlexaResponse = (cuisinetype) => {
     if (cuisinetype === 'bar' || cuisinetype === 'pub') {
-        return `Is the place you're looking fore a ${cuisinetype}?`;
+        return `Is the place you're looking for a ${cuisinetype}?`;
     }
     return `Does the restaurant you're looking for have ${cuisinetype} dishes in the menu?`;
 };

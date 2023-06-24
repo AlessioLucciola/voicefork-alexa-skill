@@ -73,7 +73,7 @@ exports.getDistanceFromContext = getDistanceFromContext;
 const createReservation = (reservation) => __awaiter(void 0, void 0, void 0, function* () {
     const URL = `${urls_1.RESERVATIONS_URL}/create-reservation`;
     console.log(`Made api call to ${URL}`);
-    const response = (yield axios_1.default.post(URL, reservation));
+    const response = yield axios_1.default.post(URL, reservation);
     return response.status;
 });
 exports.createReservation = createReservation;

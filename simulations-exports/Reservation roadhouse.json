@@ -1,12 +1,5 @@
 {
-  "skillId": "amzn1.ask.skill.2bcd765d-62b0-4d1b-9396-9f02f684a23d",
-  "locale": "en-US",
-  "userInput": [
-    "open voicefork",
-    "make a reservation",
-    "roadhouse",
-    "tomorrow",
-    "12:00",
-    "10"
-  ]
+    "skillId": "amzn1.ask.skill.2bcd765d-62b0-4d1b-9396-9f02f684a23d",
+    "locale": "en-US",
+    "userInput": ["open voicefork", "make a reservation", "roadhouse", "tomorrow", "12:00", "10"]
 }

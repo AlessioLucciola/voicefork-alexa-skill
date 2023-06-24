@@ -31,7 +31,7 @@ const MakeReservationIntentHandler: RequestHandler = {
             yesNo: slots?.YesNoSlot.value,
         }
 
-        const { restaurantName, date, time, numPeople} = slotValues
+        const { restaurantName, date, time, numPeople } = slotValues
 
         if (!restaurantName || !date || !time || !numPeople) {
             //Ask for the data that's missing before disambiguation

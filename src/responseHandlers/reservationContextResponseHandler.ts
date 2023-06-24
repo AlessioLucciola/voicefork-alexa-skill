@@ -72,7 +72,7 @@ export const handleSimilarRestaurants = async (
             // Altrimenti (non ho né coordinate, né città)..
             return handlerInput.responseBuilder
                 .speak(
-                    `Sorry, I can't get your location. Can you please tell me the name of the city you want to reserve to?`,
+                    `Sorry, I can't find your location. Can you please tell me the name of the city you want to reserve to?`,
                 )
                 .reprompt(`Please, tell me the name of a city like "Rome" or "Milan" in which the restaurant is.`)
                 .addElicitSlotDirective('location')
@@ -177,32 +177,33 @@ export const handleSimilarRestaurants = async (
             */
             const reservationDateTime = convertAmazonDateTime(date, time)
             const reservationInfo = {
-                    id_user: USER_ID,
-                    id_restaurant: sessionAttributes.lastAnalyzedRestaurant.restaurant.id,
-                    dateTime: reservationDateTime.toString(),
-                    n_people: Number(numPeople),
-                    createdAtLatitude: Number(coordinates?.latitude),
-                    createdAtLongitude: Number(coordinates?.longitude)
-                }
+                id_user: USER_ID,
+                id_restaurant: sessionAttributes.lastAnalyzedRestaurant.restaurant.id,
+                dateTime: reservationDateTime.toString(),
+                n_people: Number(numPeople),
+                createdAtLatitude: Number(coordinates?.latitude),
+                createdAtLongitude: Number(coordinates?.longitude),
+            }
             console.log(`DEBUG RESERVATION: ${beautify(reservationInfo)}`)
             const addReservationResponse = await createReservation(reservationInfo)
             console.log(`DEBUG RESERVATION: status ${addReservationResponse}`)
             if (addReservationResponse === 200) {
                 return handlerInput.responseBuilder
-                .speak(
-                    `Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${parseAddress(sessionAttributes.lastAnalyzedRestaurant.restaurant.address, getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant), sessionAttributes.lastAnalyzedRestaurant.restaurant.zone)} successfully added`,
-                )
-                .getResponse()
+                    .speak(
+                        `Reservation to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${parseAddress(
+                            sessionAttributes.lastAnalyzedRestaurant.restaurant.address,
+                            getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant),
+                            sessionAttributes.lastAnalyzedRestaurant.restaurant.zone,
+                        )} successfully added`,
+                    )
+                    .getResponse()
             } else {
-                return handlerInput.responseBuilder
-                .speak(
-                    `Error while making the reservation!`,
-                )
-                .getResponse()
+                return handlerInput.responseBuilder.speak(`Error while making the reservation!`).getResponse()
             }
         } else {
             sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
-                (restaurant: RestaurantWithScore) => restaurant.restaurant.id !== sessionAttributes.lastAnalyzedRestaurant?.restaurant.id,
+                (restaurant: RestaurantWithScore) =>
+                    restaurant.restaurant.id !== sessionAttributes.lastAnalyzedRestaurant?.restaurant.id,
             )
         }
         sessionAttributes.lastAnalyzedRestaurant = null
@@ -211,24 +212,36 @@ export const handleSimilarRestaurants = async (
     // Remove the restaurants according to their cuisine types
     if (sessionAttributes.cuisineType && sessionAttributes.cuisineType !== '') {
         // If the user confirms that he wants that types of cuisines, remove the restaurants that doesn't have them
-        let restaurantsToDisambiguateWithNotNullCuisines = sessionAttributes.restaurantsToDisambiguate.filter((restaurant: RestaurantWithScore) => restaurant.restaurant.macroCuisines !== "")
+        let restaurantsToDisambiguateWithNotNullCuisines = sessionAttributes.restaurantsToDisambiguate.filter(
+            (restaurant: RestaurantWithScore) => restaurant.restaurant.macroCuisines !== '',
+        )
         if (yesNo === 'yes') {
-            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant: RestaurantWithScore) => {
-                const cuisines: string[] = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''))
-                return cuisines.includes(sessionAttributes.cuisineType)
-            })
+            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter(
+                (restaurant: RestaurantWithScore) => {
+                    const cuisines: string[] = restaurant.restaurant.macroCuisines
+                        .split(',')
+                        .map(part => part.replace(/^\s+/, ''))
+                    return cuisines.includes(sessionAttributes.cuisineType)
+                },
+            )
         } else {
-        // If the user confirms that he doesn't want that types of cuisines, remove the restaurants that have them
-            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter((restaurant: RestaurantWithScore) => {
-                const cuisines: string[] = restaurant.restaurant.macroCuisines.split(",").map(part => part.replace(/^\s+/, ''))
-                return !cuisines.includes(sessionAttributes.cuisineType)
-            })
+            // If the user confirms that he doesn't want that types of cuisines, remove the restaurants that have them
+            restaurantsToDisambiguateWithNotNullCuisines = restaurantsToDisambiguateWithNotNullCuisines.filter(
+                (restaurant: RestaurantWithScore) => {
+                    const cuisines: string[] = restaurant.restaurant.macroCuisines
+                        .split(',')
+                        .map(part => part.replace(/^\s+/, ''))
+                    return !cuisines.includes(sessionAttributes.cuisineType)
+                },
+            )
         }
         let filteredRestaurants: RestaurantWithScore[] = []
         for (const restaurant of sessionAttributes.restaurantsToDisambiguate) {
-            const found = restaurantsToDisambiguateWithNotNullCuisines.some((r: RestaurantWithScore) => r.restaurant.id === restaurant.restaurant.id);
-            if (found || restaurant.restaurant.macroCuisines === "") {
-                filteredRestaurants.push(restaurant);
+            const found = restaurantsToDisambiguateWithNotNullCuisines.some(
+                (r: RestaurantWithScore) => r.restaurant.id === restaurant.restaurant.id,
+            )
+            if (found || restaurant.restaurant.macroCuisines === '') {
+                filteredRestaurants.push(restaurant)
             }
         }
         sessionAttributes.restaurantsToDisambiguate = filteredRestaurants
@@ -240,12 +253,14 @@ export const handleSimilarRestaurants = async (
         if (yesNo === 'yes') {
             //If the response was "yes" it means that the user wants to reserve to the city of the best restaurant so let's remove the ones that are in other cities
             sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
-                (restaurant: RestaurantWithScore) => restaurant.restaurant.city === sessionAttributes.cityBestRestaurant,
+                (restaurant: RestaurantWithScore) =>
+                    restaurant.restaurant.city === sessionAttributes.cityBestRestaurant,
             )
         } else {
             // Otherwise, remove the restaurant in the same city of the best restaurant
             sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
-                (restaurant: RestaurantWithScore) => restaurant.restaurant.city !== sessionAttributes.cityBestRestaurant,
+                (restaurant: RestaurantWithScore) =>
+                    restaurant.restaurant.city !== sessionAttributes.cityBestRestaurant,
             )
         }
         sessionAttributes.cityBestRestaurant = '' // Reset city best restaurant
@@ -256,12 +271,14 @@ export const handleSimilarRestaurants = async (
         if (yesNo === 'yes') {
             //If the response was "yes" it means that the user wants to reserve to the zone of the best restaurant so let's remove the ones that are in other zones
             sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
-                (restaurant: RestaurantWithScore) => restaurant.restaurant.zone === sessionAttributes.zoneBestRestaurant,
+                (restaurant: RestaurantWithScore) =>
+                    restaurant.restaurant.zone === sessionAttributes.zoneBestRestaurant,
             )
         } else {
             // Otherwise, remove the restaurant in the same zone of the best restaurant
             sessionAttributes.restaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.filter(
-                (restaurant: RestaurantWithScore) => restaurant.restaurant.zone !== sessionAttributes.zoneBestRestaurant,
+                (restaurant: RestaurantWithScore) =>
+                    restaurant.restaurant.zone !== sessionAttributes.zoneBestRestaurant,
             )
         }
         sessionAttributes.zoneBestRestaurant = '' // Reset zone best restaurant
@@ -275,7 +292,7 @@ export const handleSimilarRestaurants = async (
     if (!handleResult) {
         return handlerInput.responseBuilder
             .speak(
-                `Sorry, but it looks that I can't find restaurant matching your query. Please, try again with a different restaurant name.`,
+                `Sorry, but it looks that I can't find restaurants matching your query. Please, try again with a different restaurant name or a different location.`,
             )
             .getResponse()
     }
@@ -297,15 +314,27 @@ export const handleSimilarRestaurants = async (
         sessionAttributes.isRestaurantContextComputationCompleted = true
     }
 
-    console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(sessionAttributes.restaurantsToDisambiguate)}`)
-    console.log(`DISAMBIGUATION_DEBUG: Fields for disambiguation left ${beautify(sessionAttributes.fieldsForDisambiguation)}`)
+    console.log(
+        `DISAMBIGUATION_DEBUG: Restaurants to disambiguate left ${beautify(
+            sessionAttributes.restaurantsToDisambiguate,
+        )}`,
+    )
+    console.log(
+        `DISAMBIGUATION_DEBUG: Fields for disambiguation left ${beautify(sessionAttributes.fieldsForDisambiguation)}`,
+    )
 
     // If there is one restaurant left, take it and ask for confirmation
     if (sessionAttributes.restaurantsToDisambiguate.length === 1) {
         const finalRestaurant = sessionAttributes.restaurantsToDisambiguate[0]
         return handlerInput.responseBuilder
             .speak(
-                `Can you confirm that you want to make a reservation to ${finalRestaurant.restaurant.name} in ${parseAddress(finalRestaurant.restaurant.address, getRestaurantCity(finalRestaurant), finalRestaurant.restaurant.zone)}, ${formatDate(date)} at ${time} for ${numPeople} ${Number(numPeople) === 1 ? 'person' : 'people'}?`,
+                `Can you confirm that you want to make a reservation to ${
+                    finalRestaurant.restaurant.name
+                } in ${parseAddress(
+                    finalRestaurant.restaurant.address,
+                    getRestaurantCity(finalRestaurant),
+                    finalRestaurant.restaurant.zone,
+                )}, ${formatDate(date)} at ${time} for ${numPeople} ${Number(numPeople) === 1 ? 'person' : 'people'}?`,
             )
             .addElicitSlotDirective('YesNoSlot')
             .getResponse()
@@ -316,11 +345,15 @@ export const handleSimilarRestaurants = async (
         const restaurantWithHighestScore = getBestRestaurant(sessionAttributes.restaurantsToDisambiguate)
         sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore
         return handlerInput.responseBuilder
-        .speak(
-            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${parseAddress(restaurantWithHighestScore.restaurant.address, getRestaurantCity(restaurantWithHighestScore), restaurantWithHighestScore.restaurant.zone)}?`,
-        )
-        .addElicitSlotDirective('YesNoSlot')
-        .getResponse()
+            .speak(
+                `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${parseAddress(
+                    restaurantWithHighestScore.restaurant.address,
+                    getRestaurantCity(restaurantWithHighestScore),
+                    restaurantWithHighestScore.restaurant.zone,
+                )}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
     }
 
     // Otherwise (if there are more than 2 resturants) -> disambiguation
@@ -330,43 +363,62 @@ export const handleSimilarRestaurants = async (
     const restaurantWithHighestScore = getBestRestaurant(sessionAttributes.restaurantsToDisambiguate)
     if (disambiguationField.field === 'cuisine') {
         console.log('DISAMBIGUATION DEBUG: You are in the cuisine case!')
-        const discriminativeCuisine = getMostDiscriminativeCuisine(sessionAttributes.restaurantsToDisambiguate, restaurantWithHighestScore)
+        const discriminativeCuisine = getMostDiscriminativeCuisine(
+            sessionAttributes.restaurantsToDisambiguate,
+            restaurantWithHighestScore,
+        )
         if (discriminativeCuisine !== undefined) {
             sessionAttributes.cuisineType = discriminativeCuisine
             return handlerInput.responseBuilder
-            .speak(
-                getCuisineAlexaResponse(discriminativeCuisine),
-            )
-            .addElicitSlotDirective('YesNoSlot')
-            .getResponse()
+                .speak(getCuisineAlexaResponse(discriminativeCuisine))
+                .addElicitSlotDirective('YesNoSlot')
+                .getResponse()
         }
     }
 
     // Choose to disambiguate with avgRating only if the similarity score between the restaurants is high enough
-    if (disambiguationField.field === "avgRating" && isScoreSimilar(sessionAttributes.restaurantsToDisambiguate)) {
+    if (disambiguationField.field === 'avgRating' && isScoreSimilar(sessionAttributes.restaurantsToDisambiguate)) {
         console.log('DISAMBIGUATION DEBUG: You are in the avgRating case!')
         // Sort the restaurants to be disambiguated by their avgRating (highest to lowest)
         // Creates a copy of the original array
-        const copyRestaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.slice();     
+        const copyRestaurantsToDisambiguate = sessionAttributes.restaurantsToDisambiguate.slice()
 
         // Sort the copy by avgRating in descending order
-        copyRestaurantsToDisambiguate.sort((a: RestaurantWithScore, b: RestaurantWithScore) => b.restaurant.avgRating - a.restaurant.avgRating);
+        copyRestaurantsToDisambiguate.sort(
+            (a: RestaurantWithScore, b: RestaurantWithScore) => b.restaurant.avgRating - a.restaurant.avgRating,
+        )
 
-        console.log(`DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(copyRestaurantsToDisambiguate)}`)
+        console.log(
+            `DISAMBIGUATION_DEBUG: Restaurants to disambiguate ordered by avgRating ${beautify(
+                copyRestaurantsToDisambiguate,
+            )}`,
+        )
 
         // Get the restaurant with the highest avgRating
-        sessionAttributes.lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0];
+        sessionAttributes.lastAnalyzedRestaurant = copyRestaurantsToDisambiguate[0]
         return handlerInput.responseBuilder
-        .speak(
-            `Do you want to reserve to ${sessionAttributes.lastAnalyzedRestaurant.restaurant.name} in ${parseAddress(sessionAttributes.lastAnalyzedRestaurant.restaurant.address, getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant), sessionAttributes.lastAnalyzedRestaurant.restaurant.zone)} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`,
-        )
-        .addElicitSlotDirective('YesNoSlot')
-        .getResponse()
+            .speak(
+                `Do you want to reserve to ${
+                    sessionAttributes.lastAnalyzedRestaurant.restaurant.name
+                } in ${parseAddress(
+                    sessionAttributes.lastAnalyzedRestaurant.restaurant.address,
+                    getRestaurantCity(sessionAttributes.lastAnalyzedRestaurant),
+                    sessionAttributes.lastAnalyzedRestaurant.restaurant.zone,
+                )} with an average rating of ${sessionAttributes.lastAnalyzedRestaurant.restaurant.avgRating}?`,
+            )
+            .addElicitSlotDirective('YesNoSlot')
+            .getResponse()
     }
 
     // Otherwise, try to disambiguate using latLon (standard behavior)
     // Check if there are different cities and, if so, try to understand if the user wants to reserve to the city of the best restaurant
-    const allCities = [...new Set(sessionAttributes.restaurantsToDisambiguate.map((restaurant: RestaurantWithScore) => restaurant.restaurant.city))]
+    const allCities = [
+        ...new Set(
+            sessionAttributes.restaurantsToDisambiguate.map(
+                (restaurant: RestaurantWithScore) => restaurant.restaurant.city,
+            ),
+        ),
+    ]
     if (allCities.length > 1) {
         sessionAttributes.cityBestRestaurant = restaurantWithHighestScore.restaurant.city
         return handlerInput.responseBuilder
@@ -399,29 +451,39 @@ export const handleSimilarRestaurants = async (
     // Otherwise, simply ask to confirm the best restaurant
     sessionAttributes.lastAnalyzedRestaurant = restaurantWithHighestScore
     return handlerInput.responseBuilder
-    .speak(
-        `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${parseAddress(restaurantWithHighestScore.restaurant.address, getRestaurantCity(restaurantWithHighestScore), restaurantWithHighestScore.restaurant.zone)}?`,
-    )
-    .addElicitSlotDirective('YesNoSlot')
-    .getResponse()
+        .speak(
+            `Do you want to reserve to ${restaurantWithHighestScore.restaurant.name} in ${parseAddress(
+                restaurantWithHighestScore.restaurant.address,
+                getRestaurantCity(restaurantWithHighestScore),
+                restaurantWithHighestScore.restaurant.zone,
+            )}?`,
+        )
+        .addElicitSlotDirective('YesNoSlot')
+        .getResponse()
 }
 
-    const getMostDiscriminativeCuisine = (restaurants: RestaurantWithScore[], bestRestaurant: RestaurantWithScore) => {
-        const cuisinesBestRestaurant = bestRestaurant.restaurant.macroCuisines.split(',').filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, '')) // Extract cuisines of the best resturant
-        if (cuisinesBestRestaurant.length === 0) return undefined
+const getMostDiscriminativeCuisine = (restaurants: RestaurantWithScore[], bestRestaurant: RestaurantWithScore) => {
+    const cuisinesBestRestaurant = bestRestaurant.restaurant.macroCuisines
+        .split(',')
+        .filter(cuisine => cuisine !== '')
+        .map(part => part.replace(/^\s+/, '')) // Extract cuisines of the best resturant
+    if (cuisinesBestRestaurant.length === 0) return undefined
 
-        let restaurantsWithNotNullCuisines = 0 // Count the restaurants with with not null cuisines (macroCuisines !== "")
-        restaurants.forEach((restaurant) => {
-            if (restaurant.restaurant.macroCuisines.trim() !== "") {
-                restaurantsWithNotNullCuisines++
+    let restaurantsWithNotNullCuisines = 0 // Count the restaurants with with not null cuisines (macroCuisines !== "")
+    restaurants.forEach(restaurant => {
+        if (restaurant.restaurant.macroCuisines.trim() !== '') {
+            restaurantsWithNotNullCuisines++
         }
     })
 
     const allCuisines: string[] = [] // Array to save all the cuisines
     // Get all cuisines
     restaurants.forEach(restaurant => {
-        const cuisines = restaurant.restaurant.macroCuisines.split(",").filter(cuisine => cuisine !== "").map(part => part.replace(/^\s+/, ''))
-        allCuisines.push(...cuisines);
+        const cuisines = restaurant.restaurant.macroCuisines
+            .split(',')
+            .filter(cuisine => cuisine !== '')
+            .map(part => part.replace(/^\s+/, ''))
+        allCuisines.push(...cuisines)
     })
     const cuisineCounts: { [cuisine: string]: number } = {} // Array to save the occcurrences for each cuisine
     allCuisines.forEach(cuisine => {
@@ -431,9 +493,17 @@ export const handleSimilarRestaurants = async (
     const cuisineCountsArray: [string, number][] = Object.entries(cuisineCounts) // Convert object to array of key-value pairs
     cuisineCountsArray.sort((a, b) => a[1] - b[1]) // Sort array based on number of occurrences
 
-    console.log(`DISAMBIGUATION DEBUG: I found ${cuisinesBestRestaurant.length} cuisines in the best resturant: ${beautify(cuisinesBestRestaurant)}`)
-    console.log(`DISAMBIGUATION DEBUG: I found these cuisines in the restaurants to disambiguate: ${beautify(cuisineCountsArray)}`)
-    
+    console.log(
+        `DISAMBIGUATION DEBUG: I found ${cuisinesBestRestaurant.length} cuisines in the best resturant: ${beautify(
+            cuisinesBestRestaurant,
+        )}`,
+    )
+    console.log(
+        `DISAMBIGUATION DEBUG: I found these cuisines in the restaurants to disambiguate: ${beautify(
+            cuisineCountsArray,
+        )}`,
+    )
+
     let selectedCuisines: string | undefined
     for (const [cuisine, count] of cuisineCountsArray) {
         // Get the cuisine in the best restaurant that has the lowest number of occurrences in restaurants to disambiguate
@@ -444,7 +514,9 @@ export const handleSimilarRestaurants = async (
 
     // If there is no "unique" discriminative cuisine (the least common cuisine in the best restaurant is in all restaurants)
     if (!selectedCuisines) {
-        console.log(`DISAMBIGUATION DEBUG: I didn't find a discriminative cuisines in the best restaurant so I will try to get the most discriminative one in the other restaurants`)
+        console.log(
+            `DISAMBIGUATION DEBUG: I didn't find a discriminative cuisines in the best restaurant so I will try to get the most discriminative one in the other restaurants`,
+        )
         for (const [cuisine, count] of cuisineCountsArray) {
             // Get the cuisine that has the highest number of occurrences in restaurants to disambiguate (but not in the best restaurant!)
             if (count !== restaurantsWithNotNullCuisines) {
@@ -454,7 +526,9 @@ export const handleSimilarRestaurants = async (
     }
 
     if (!selectedCuisines) {
-        console.log(`DISAMBIGUATION DEBUG: I couldn't find any discriminative cuisines. I'll abort the cuisine disambiguation!`)
+        console.log(
+            `DISAMBIGUATION DEBUG: I couldn't find any discriminative cuisines. I'll abort the cuisine disambiguation!`,
+        )
     } else {
         console.log(`DISAMBIGUATION DEBUG: Final discrivimative cuisines: ${beautify(selectedCuisines)}`)
     }
@@ -463,17 +537,17 @@ export const handleSimilarRestaurants = async (
 
 const isScoreSimilar = (restaurantsToDisambiguate: RestaurantWithScore[]): boolean => {
     // Calculate the average of the "score" values
-    const scores = restaurantsToDisambiguate.map(restaurant => restaurant.score);
-    const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    const scores = restaurantsToDisambiguate.map(restaurant => restaurant.score)
+    const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
 
     console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(scores)}`)
     console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(averageScore)}`)
 
     // Set the tolerance value
-    const tolerance = 0.1;
+    const tolerance = 0.1
 
     // Check whether the "score" values are similar within tolerance
-    const isScoreSimilar = scores.every(score => Math.abs(score - averageScore) <= tolerance);
+    const isScoreSimilar = scores.every(score => Math.abs(score - averageScore) <= tolerance)
 
     console.log(`DISAMBIGUATION_DEBUG: isScoreSimilar ${beautify(isScoreSimilar)}`)
     return isScoreSimilar
@@ -505,7 +579,7 @@ const getBestField = (fieldsAndVariances: Variances): { field: string; variance:
 
 const getCuisineAlexaResponse = (cuisinetype: string): string => {
     if (cuisinetype === 'bar' || cuisinetype === 'pub') {
-        return `Is the place you're looking fore a ${cuisinetype}?`
+        return `Is the place you're looking for a ${cuisinetype}?`
     }
     return `Does the restaurant you're looking for have ${cuisinetype} dishes in the menu?`
 }

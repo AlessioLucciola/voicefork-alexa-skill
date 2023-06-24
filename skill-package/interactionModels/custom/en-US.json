@@ -83,9 +83,7 @@
                         {
                             "name": "numPeople",
                             "type": "AMAZON.NUMBER",
-                            "samples": [
-                                "{numPeople}"
-                            ]
+                            "samples": ["{numPeople}"]
                         },
                         {
                             "name": "meal",
@@ -194,19 +192,13 @@
                         {
                             "name": {
                                 "value": "No",
-                                "synonyms": [
-                                    "Nope"
-                                ]
+                                "synonyms": ["Nope"]
                             }
                         },
                         {
                             "name": {
                                 "value": "Yes",
-                                "synonyms": [
-                                    "Confirm",
-                                    "Absolutely",
-                                    "Sure"
-                                ]
+                                "synonyms": ["Confirm", "Absolutely", "Sure"]
                             }
                         }
                     ]
