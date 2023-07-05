@@ -4,7 +4,7 @@ Final project for the master's degree in Computer Science course "Human-Computer
 
 The project consists in an Alexa Skill that uses the same backend as [Voicefork](https://github.com/DomizianoScarcelli/voicefork), another project made by the same team, that focuses on restaurant name disambiguation by the voice assistant, focusing on the user context and the restaurant features (cuisine, rating, and location) in order to proceed with the disambiguation.
 
-For more details, you can read the [Report]() or you can see the [Presentation]().
+For more details, you can read the [Report](https://github.com/DomizianoScarcelli/voicefork-alexa-skill/blob/master/report.pdf) or you can see the [Presentation](https://github.com/DomizianoScarcelli/voicefork-alexa-skill/blob/master/slides.pdf).
 
 
 The work was carried out by:
