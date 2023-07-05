@@ -1,7 +1,7 @@
 import { TEST_LATLNG, LOCALIZATION_ENABLED } from '../shared/constants'
 import { LatLng } from '../shared/types'
 
-const getCoordinates = () => {
+export const getCoordinates = () => {
     if (LOCALIZATION_ENABLED) return TEST_LATLNG
     else return undefined
 }
@@ -24,4 +24,22 @@ export const distanceBetweenCoordinates = (origin: LatLng, destination: LatLng):
     return distance
 }
 
-export default getCoordinates
+export const parseAddress = (address: string, city: string, zone: string): string => {
+    const street = address.split(',')[0]
+    let finalAddress = street
+    if (city !== '') {
+        if (
+            zone !== '' &&
+            city.toLowerCase().trim() !== zone.toLowerCase().trim() &&
+            !zone.toLowerCase().startsWith('via ')
+        ) {
+            finalAddress = finalAddress + ' in ' + zone + ' neighborhood'
+        }
+        finalAddress = finalAddress + ' in ' + city
+    } else {
+        if (zone !== '' && !zone.toLowerCase().startsWith('via ')) {
+            finalAddress = finalAddress + ' in ' + zone
+        }
+    }
+    return finalAddress
+}

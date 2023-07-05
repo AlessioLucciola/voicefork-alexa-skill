@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.distanceBetweenCoordinates = void 0;
+exports.parseAddress = exports.distanceBetweenCoordinates = exports.getCoordinates = void 0;
 const constants_1 = require("../shared/constants");
 const getCoordinates = () => {
     if (constants_1.LOCALIZATION_ENABLED)
@@ -8,6 +8,7 @@ const getCoordinates = () => {
     else
         return undefined;
 };
+exports.getCoordinates = getCoordinates;
 const distanceBetweenCoordinates = (origin, destination) => {
     const degToRad = (deg) => {
         return deg * (Math.PI / 180);
@@ -24,4 +25,22 @@ const distanceBetweenCoordinates = (origin, destination) => {
     return distance;
 };
 exports.distanceBetweenCoordinates = distanceBetweenCoordinates;
-exports.default = getCoordinates;
+const parseAddress = (address, city, zone) => {
+    const street = address.split(',')[0];
+    let finalAddress = street;
+    if (city !== '') {
+        if (zone !== '' &&
+            city.toLowerCase().trim() !== zone.toLowerCase().trim() &&
+            !zone.toLowerCase().startsWith('via ')) {
+            finalAddress = finalAddress + ' in ' + zone + ' neighborhood';
+        }
+        finalAddress = finalAddress + ' in ' + city;
+    }
+    else {
+        if (zone !== '' && !zone.toLowerCase().startsWith('via ')) {
+            finalAddress = finalAddress + ' in ' + zone;
+        }
+    }
+    return finalAddress;
+};
+exports.parseAddress = parseAddress;

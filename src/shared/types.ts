@@ -90,3 +90,12 @@ export type ContextResults = {
     restaurants: RestaurantWithScore[]
     fieldsAndVariances: Variances
 }
+
+export type ReservationData = {
+    id_user: number
+    id_restaurant: number
+    dateTime: string
+    n_people: number
+    createdAtLatitude: number | undefined
+    createdAtLongitude: number | undefined
+}

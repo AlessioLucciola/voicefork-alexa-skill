@@ -1,7 +1,7 @@
 import { LatLng } from './shared/types'
 import { RESTAURANTS_URL, RESERVATIONS_URL } from './shared/urls'
 import axios from 'axios'
-import { RestaurantSearchResult, ReservationContext } from './shared/types'
+import { RestaurantSearchResult, ReservationContext, ReservationData } from './shared/types'
 import { MAX_DISTANCE, ROME_LATLNG } from './shared/constants'
 
 export const searchNearbyRestaurants = async (
@@ -70,6 +70,13 @@ export const getDistanceFromContext = async (context: ReservationContext): Promi
     return data.distance
 }
 
+export const createReservation = async (reservation: ReservationData): Promise<number> => {
+    const URL = `${RESERVATIONS_URL}/create-reservation`
+    console.log(`Made api call to ${URL}`)
+    const response = await axios.post(URL, reservation)
+    return response.status
+}
+
 export const getCityCoordinates = async (city: string): Promise<LatLng> => {
     const URL = `https://geocode.maps.co/search?city=${city}`
     const response = await axios.get(URL)
@@ -79,7 +86,7 @@ export const getCityCoordinates = async (city: string): Promise<LatLng> => {
             const lat = response.data[0].lat
             const lon = response.data[0].lon
             console.log(`${URL} returned these coordinates: lat = (${lat}), lon = (${lon})}`)
-            const cityCoordinates: LatLng = {latitude: lat, longitude: lon}
+            const cityCoordinates: LatLng = { latitude: lat, longitude: lon }
             return cityCoordinates
         }
         console.log(`${city} not found. Setting coordinates to "Rome" ones.`)

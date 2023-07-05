@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCityCoordinates = exports.getDistanceFromContext = exports.searchRestaurants = exports.searchNearbyRestaurants = void 0;
+exports.getCityCoordinates = exports.createReservation = exports.getDistanceFromContext = exports.searchRestaurants = exports.searchNearbyRestaurants = void 0;
 const urls_1 = require("./shared/urls");
 const axios_1 = require("axios");
 const constants_1 = require("./shared/constants");
@@ -70,6 +70,13 @@ const getDistanceFromContext = (context) => __awaiter(void 0, void 0, void 0, fu
     return data.distance;
 });
 exports.getDistanceFromContext = getDistanceFromContext;
+const createReservation = (reservation) => __awaiter(void 0, void 0, void 0, function* () {
+    const URL = `${urls_1.RESERVATIONS_URL}/create-reservation`;
+    console.log(`Made api call to ${URL}`);
+    const response = yield axios_1.default.post(URL, reservation);
+    return response.status;
+});
+exports.createReservation = createReservation;
 const getCityCoordinates = (city) => __awaiter(void 0, void 0, void 0, function* () {
     const URL = `https://geocode.maps.co/search?city=${city}`;
     const response = yield axios_1.default.get(URL);
