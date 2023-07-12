@@ -13,3 +13,8 @@ The work was carried out by:
 - [Alessio Lucciola](https://github.com/AlessioLucciola)
 - [Danilo Corsi](https://github.com/CorsiDanilo)
 
+### VUI Demo
+https://github.com/AlessioLucciola/voicefork-alexa-skill/assets/80223097/5363232c-8c64-4e63-8856-e7dff7294fa9
+
+
+
